@@ -7,7 +7,7 @@
     html, body {
       margin: 0;
       padding: 0;
-      height: 100dvh; /* corrige rolagem no iOS */
+      height: 100dvh;
       background: white;
       overflow: hidden;
       display: flex;
@@ -35,8 +35,8 @@
     }
 
     .login-link {
-      position: absolute;
-      top: 2vh;
+      position: fixed;
+      top: 1.5vh;
       right: 2vw;
       z-index: 10;
     }
@@ -76,19 +76,19 @@
   </style>
 </head>
 <body>
-  <!-- Link para login no canto superior direito -->
+  <!-- Link fixo no canto superior direito -->
   <div class="login-link">
     <a href="login.html">Acesso Restrito</a>
   </div>
 
-  <!-- Logo centralizada verticalmente -->
+  <!-- Logo centralizada -->
   <div class="logo-wrapper">
     <div style="flex:1;"></div>
     <img src="JBLogoBranco.png" alt="Logo Jungle Brothers" class="main-logo">
     <div style="flex:1;"></div>
   </div>
 
-  <!-- Ícone do Instagram no rodapé -->
+  <!-- Ícone do Instagram -->
   <div class="footer">
     <a href="https://www.instagram.com/junglebrothersbr/" target="_blank" rel="noopener">
       <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
