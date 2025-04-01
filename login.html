@@ -51,12 +51,8 @@
           alert("Acesso não autorizado.");
         }
       } catch (error) {
-        if (error.code !== "auth/popup-closed-by-user") {
-          console.error("Erro no login:", error);
-          if (!window.location.href.includes("dashboard.html")) {
-            alert("Erro ao fazer login.");
-          }
-        }
+        console.error("Erro real:", error);
+        alert("Erro ao fazer login.");
       }
     };
 
