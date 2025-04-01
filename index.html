@@ -9,33 +9,30 @@
       padding: 0;
       height: 100%;
       background: white;
-    }
-
-    .wrapper {
-      height: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+    }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      position: relative;
-      box-sizing: border-box;
-      padding: 8vh 0; /* margem superior e inferior iguais para a logo */
+      padding: 4vh 0; /* pequeno espaçamento interno */
     }
 
     .main-logo {
-      max-height: 100%;
+      max-height: 70vh;
       max-width: 90vw;
       height: auto;
       width: auto;
     }
 
     .footer {
-      position: fixed;
-      bottom: 1vh;
-      left: 0;
-      right: 0;
       display: flex;
       justify-content: center;
+      padding-bottom: 1vh;
     }
 
     .footer img {
@@ -52,8 +49,10 @@
   </style>
 </head>
 <body>
-  <div class="wrapper">
+  <div class="content">
+    <div></div> <!-- espaço superior -->
     <img src="JBLogoBranco.png" alt="Logo Jungle Brothers" class="main-logo">
+    <div></div> <!-- espaço abaixo da logo -->
   </div>
   <div class="footer">
     <a href="https://www.instagram.com/junglebrothersbr/" target="_blank" rel="noopener">
