@@ -95,12 +95,16 @@
         return;
       }
 
+      const nivel = docSnap.data().nivel || "cliente";
+
       status.textContent = `Logado como ${user.email}`;
       logoutBtn.style.display = "inline-block";
       linkVoltar.style.display = "inline-block";
-      painel.style.display = "block";
 
-      carregarUsuarios();
+      if (nivel === "administrador") {
+        painel.style.display = "block";
+        carregarUsuarios();
+      }
     });
 
     async function carregarUsuarios() {
@@ -108,12 +112,14 @@
       const snapshot = await getDocs(collection(db, "autorizados"));
       snapshot.forEach((docu) => {
         const email = docu.id;
-        const ativo = docu.data().ativo;
+        const data = docu.data();
+        const ativo = data.ativo;
+        const nivel = data.nivel || "cliente";
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${email}</td>
-          <td>${ativo}</td>
+          <td>${ativo} (${nivel})</td>
           <td>
             <button onclick="removerUsuario('${email}')">Remover</button>
             <button onclick="toggleAtivo('${email}', '${ativo}')">
@@ -129,7 +135,10 @@
       e.preventDefault();
       const email = document.getElementById("email-novo").value.trim().toLowerCase();
       if (!email) return;
-      await setDoc(doc(db, "autorizados", email), { ativo: "sim" });
+      await setDoc(doc(db, "autorizados", email), {
+        ativo: "sim",
+        nivel: "cliente"
+      });
       document.getElementById("email-novo").value = "";
       carregarUsuarios();
     };
@@ -143,7 +152,10 @@
 
     window.toggleAtivo = async (email, statusAtual) => {
       const novoStatus = statusAtual === "sim" ? "nao" : "sim";
-      await setDoc(doc(db, "autorizados", email), { ativo: novoStatus });
+      const ref = doc(db, "autorizados", email);
+      const snap = await getDoc(ref);
+      const nivel = snap.data().nivel || "cliente";
+      await setDoc(ref, { ativo: novoStatus, nivel });
       carregarUsuarios();
     };
   </script>
