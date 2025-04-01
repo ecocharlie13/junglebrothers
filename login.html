@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Login | Jungle Brothers</title>
   <script type="module">
-    // Firebase config do seu projeto Jungle Brothers
+    // Firebase SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import {
       getAuth,
@@ -14,13 +14,15 @@
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
+    // Configuração do seu projeto Firebase
     const firebaseConfig = {
-      apiKey: "AlzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
       authDomain: "jungle-brothers-93e80.firebaseapp.com",
       projectId: "jungle-brothers-93e80",
-      appId: "appId-pendente"
+      appId: "1:221354970870:web:a7f68c75480dc094bb6ad7"
     };
 
+    // Inicialização
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
@@ -29,29 +31,32 @@
     const botaoLogout = document.getElementById("logout");
     const status = document.getElementById("status");
 
-    // LISTA DE EMAILS AUTORIZADOS
+    // Emails permitidos
     const usuariosAutorizados = [
       "ernestocassol@gmail.com"
     ];
 
+    // Login com popup
     botaoLogin.onclick = async () => {
       try {
         const result = await signInWithPopup(auth, provider);
         const email = result.user.email;
         if (usuariosAutorizados.includes(email)) {
-          window.location.href = "dashboard.html"; // redirecionar após login válido
+          window.location.href = "dashboard.html"; // redireciona após login
         } else {
           alert("Acesso não autorizado.");
-          signOut(auth);
+          await signOut(auth);
         }
       } catch (error) {
         console.error(error);
-        alert("Erro no login. Tente novamente.");
+        alert("Erro ao fazer login.");
       }
     };
 
+    // Logout
     botaoLogout.onclick = () => signOut(auth);
 
+    // Verificação de login
     onAuthStateChanged(auth, (user) => {
       if (user) {
         status.textContent = `Logado como ${user.email}`;
