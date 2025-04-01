@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <title>Dashboard | Jungle Brothers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="font-family: sans-serif; text-align: center; padding: 50px;">
   <h1>Área Restrita</h1>
   <p id="status">Verificando acesso...</p>
-  <button id="logout">Sair</button>
+  <button id="logout" style="display: none;">Sair</button>
   <p>
-    <a href="index.html" style="font-size: 14px; color: #555; text-decoration: none;">
+    <a href="index.html" id="link-voltar" style="font-size: 14px; color: #555; text-decoration: none; display: none;">
       ← Voltar para a página inicial
     </a>
   </p>
@@ -42,27 +43,32 @@
 
     const status = document.getElementById("status");
     const logoutBtn = document.getElementById("logout");
+    const linkVoltar = document.getElementById("link-voltar");
 
-    logoutBtn.onclick = () => {
-      signOut(auth);
+    logoutBtn.onclick = async () => {
+      await signOut(auth);
       window.location.href = "index.html";
     };
 
     onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const email = user.email;
-        const docRef = doc(db, "autorizados", email);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists() && docSnap.data().ativo === "sim") {
-          status.textContent = `Logado como ${email}`;
-        } else {
-          alert("Acesso negado.");
-          window.location.href = "login.html";
-        }
-      } else {
+      if (!user) {
         window.location.href = "login.html";
+        return;
       }
+
+      const docRef = doc(db, "autorizados", user.email);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists() || docSnap.data().ativo !== "sim") {
+        alert("Acesso negado.");
+        await signOut(auth);
+        window.location.href = "login.html";
+        return;
+      }
+
+      status.textContent = `Logado como ${user.email}`;
+      logoutBtn.style.display = "inline-block";
+      linkVoltar.style.display = "inline-block";
     });
   </script>
 </body>
