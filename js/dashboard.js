@@ -14,6 +14,7 @@ import {
   collection
 } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
+// Configuração Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
   authDomain: "jungle-brothers-93e80.firebaseapp.com",
@@ -23,10 +24,12 @@ const firebaseConfig = {
   appId: "1:221354970870:web:a7f68c75480dc094bb6ad7"
 };
 
+// Inicialização
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Elementos DOM
 const status = document.getElementById("status");
 const logoutBtn = document.getElementById("logout");
 const linkVoltar = document.getElementById("link-voltar");
@@ -36,38 +39,13 @@ const formAdd = document.getElementById("form-add");
 const emailNovo = document.getElementById("email-novo");
 const papelNovo = document.getElementById("papel-novo");
 
+// Logout
 logoutBtn.onclick = async () => {
   await signOut(auth);
   window.location.href = "index.html";
 };
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  const docRef = doc(db, "autorizados", user.email);
-  const docSnap = await getDoc(docRef);
-
-  if (!docSnap.exists() || docSnap.data().ativo !== "sim") {
-    await signOut(auth);
-    window.location.href = "login.html";
-    return;
-  }
-
-  const nivel = docSnap.data().nivel || "cliente";
-
-  status.textContent = `Logado como ${user.email}`;
-  logoutBtn.style.display = "inline-block";
-  linkVoltar.style.display = "inline-block";
-
-  if (nivel === "administrador") {
-    painel.style.display = "block";
-    carregarUsuarios();
-  }
-});
-
+// Tornar visível globalmente
 window.carregarUsuarios = async function () {
   tabela.innerHTML = "";
   const snapshot = await getDocs(collection(db, "autorizados"));
@@ -91,8 +69,9 @@ window.carregarUsuarios = async function () {
     `;
     tabela.appendChild(tr);
   });
-}
+};
 
+// Adição de usuário
 formAdd.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -119,6 +98,7 @@ formAdd.addEventListener("submit", async (e) => {
   }
 });
 
+// Funções globais
 window.removerUsuario = async (email) => {
   if (confirm(`Remover ${email}?`)) {
     await deleteDoc(doc(db, "autorizados", email));
@@ -134,3 +114,31 @@ window.toggleAtivo = async (email, statusAtual, nivelAtual) => {
   }, { merge: true });
   carregarUsuarios();
 };
+
+// Verificação de login
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const docRef = doc(db, "autorizados", user.email);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists() || docSnap.data().ativo !== "sim") {
+    await signOut(auth);
+    window.location.href = "login.html";
+    return;
+  }
+
+  const nivel = docSnap.data().nivel || "cliente";
+
+  status.textContent = `Logado como ${user.email}`;
+  logoutBtn.style.display = "inline-block";
+  linkVoltar.style.display = "inline-block";
+
+  if (nivel === "administrador") {
+    painel.style.display = "block";
+    window.carregarUsuarios(); // aqui chamamos corretamente
+  }
+});
