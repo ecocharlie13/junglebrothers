@@ -20,6 +20,11 @@
 
     <form id="form-add" style="margin-bottom: 20px;">
       <input type="email" id="email-novo" placeholder="Novo e-mail autorizado" required style="padding: 5px;">
+      <select id="papel-novo" required style="padding: 5px;">
+        <option value="cliente">Cliente</option>
+        <option value="equipe">Equipe</option>
+        <option value="admin">Administrador</option>
+      </select>
       <button type="submit">Adicionar</button>
     </form>
 
@@ -28,12 +33,11 @@
         <tr>
           <th>E-mail</th>
           <th>Status</th>
+          <th>Papel</th>
           <th>Ações</th>
         </tr>
       </thead>
-      <tbody id="tabela-usuarios">
-        <!-- preenchido por JS -->
-      </tbody>
+      <tbody id="tabela-usuarios"></tbody>
     </table>
   </div>
 
@@ -73,6 +77,8 @@
     const painel = document.getElementById("painel");
     const tabela = document.getElementById("tabela-usuarios");
     const formAdd = document.getElementById("form-add");
+    const emailNovo = document.getElementById("email-novo");
+    const papelNovo = document.getElementById("papel-novo");
 
     logoutBtn.onclick = async () => {
       await signOut(auth);
@@ -80,28 +86,24 @@
     };
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
+      if (!user) return (window.location.href = "login.html");
 
       const docRef = doc(db, "autorizados", user.email);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists() || docSnap.data().ativo !== "sim") {
-        alert("Acesso negado.");
         await signOut(auth);
         window.location.href = "login.html";
         return;
       }
 
-      const nivel = docSnap.data().nivel || "cliente";
+      const papel = docSnap.data().papel || "cliente";
 
       status.textContent = `Logado como ${user.email}`;
       logoutBtn.style.display = "inline-block";
       linkVoltar.style.display = "inline-block";
 
-      if (nivel === "administrador") {
+      if (papel === "admin") {
         painel.style.display = "block";
         carregarUsuarios();
       }
@@ -112,14 +114,15 @@
       const snapshot = await getDocs(collection(db, "autorizados"));
       snapshot.forEach((docu) => {
         const email = docu.id;
-        const data = docu.data();
-        const ativo = data.ativo;
-        const nivel = data.nivel || "cliente";
+        const dados = docu.data();
+        const ativo = dados.ativo;
+        const papel = dados.papel || "cliente";
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${email}</td>
-          <td>${ativo} (${nivel})</td>
+          <td>${ativo}</td>
+          <td>${papel}</td>
           <td>
             <button onclick="removerUsuario('${email}')">Remover</button>
             <button onclick="toggleAtivo('${email}', '${ativo}')">
@@ -133,13 +136,16 @@
 
     formAdd.onsubmit = async (e) => {
       e.preventDefault();
-      const email = document.getElementById("email-novo").value.trim().toLowerCase();
+      const email = emailNovo.value.trim().toLowerCase();
+      const papel = papelNovo.value;
       if (!email) return;
+
       await setDoc(doc(db, "autorizados", email), {
         ativo: "sim",
-        nivel: "cliente"
+        papel: papel
       });
-      document.getElementById("email-novo").value = "";
+
+      emailNovo.value = "";
       carregarUsuarios();
     };
 
@@ -152,10 +158,11 @@
 
     window.toggleAtivo = async (email, statusAtual) => {
       const novoStatus = statusAtual === "sim" ? "nao" : "sim";
-      const ref = doc(db, "autorizados", email);
-      const snap = await getDoc(ref);
-      const nivel = snap.data().nivel || "cliente";
-      await setDoc(ref, { ativo: novoStatus, nivel });
+      const docRef = doc(db, "autorizados", email);
+      const docSnap = await getDoc(docRef);
+      const papel = docSnap.data().papel || "cliente";
+
+      await setDoc(docRef, { ativo: novoStatus, papel });
       carregarUsuarios();
     };
   </script>
