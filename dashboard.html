@@ -11,9 +11,43 @@
       background: #f5f5f5;
     }
   </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+      authDomain: "jungle-brothers-93e80.firebaseapp.com",
+      projectId: "jungle-brothers-93e80",
+      storageBucket: "jungle-brothers-93e80.appspot.com",
+      messagingSenderId: "221354970870",
+      appId: "1:221354970870:web:a7f68c75480dc094bb6ad7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // Se não estiver logado, redireciona
+        window.location.href = "login.html";
+      }
+    });
+
+    window.logout = () => {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    };
+  </script>
 </head>
 <body>
   <h1>Bem-vindo à Área Restrita</h1>
   <p>Seu login foi verificado com sucesso.</p>
+  <button onclick="logout()">Sair</button>
 </body>
 </html>
