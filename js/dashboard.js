@@ -93,20 +93,31 @@ async function carregarUsuarios() {
   });
 }
 
-formAdd.onsubmit = async (e) => {
+formAdd.addEventListener("submit", async (e) => {
   e.preventDefault();
+
   const email = emailNovo.value.trim().toLowerCase();
   const nivel = papelNovo.value;
-  if (!email) return;
 
-  await setDoc(doc(db, "autorizados", email), {
-    ativo: "sim",
-    nivel: nivel
-  }, { merge: true });
+  if (!email || !nivel) {
+    alert("Preencha todos os campos!");
+    return;
+  }
 
-  emailNovo.value = "";
-  carregarUsuarios();
-};
+  try {
+    await setDoc(doc(db, "autorizados", email), {
+      ativo: "sim",
+      nivel: nivel
+    }, { merge: true });
+
+    console.log("Usuário adicionado:", email);
+    emailNovo.value = "";
+    carregarUsuarios();
+  } catch (err) {
+    console.error("Erro ao adicionar usuário:", err);
+    alert("Erro ao adicionar usuário.");
+  }
+});
 
 window.removerUsuario = async (email) => {
   if (confirm(`Remover ${email}?`)) {
