@@ -42,7 +42,10 @@ logoutBtn.onclick = async () => {
 };
 
 onAuthStateChanged(auth, async (user) => {
-  if (!user) return (window.location.href = "login.html");
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
   const docRef = doc(db, "autorizados", user.email);
   const docSnap = await getDoc(docRef);
@@ -71,7 +74,7 @@ async function carregarUsuarios() {
   snapshot.forEach((docu) => {
     const email = docu.id;
     const dados = docu.data();
-    const ativo = dados.ativo;
+    const ativo = dados.ativo || "nao";
     const nivel = dados.nivel || "cliente";
 
     const tr = document.createElement("tr");
@@ -99,7 +102,7 @@ formAdd.onsubmit = async (e) => {
   await setDoc(doc(db, "autorizados", email), {
     ativo: "sim",
     nivel: nivel
-  });
+  }, { merge: true });
 
   emailNovo.value = "";
   carregarUsuarios();
@@ -114,8 +117,9 @@ window.removerUsuario = async (email) => {
 
 window.toggleAtivo = async (email, statusAtual, nivelAtual) => {
   const novoStatus = statusAtual === "sim" ? "nao" : "sim";
-  const docRef = doc(db, "autorizados", email);
-
-  await setDoc(docRef, { ativo: novoStatus, nivel: nivelAtual });
+  await setDoc(doc(db, "autorizados", email), {
+    ativo: novoStatus,
+    nivel: nivelAtual
+  }, { merge: true });
   carregarUsuarios();
 };
