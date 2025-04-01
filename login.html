@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Login | Jungle Brothers</title>
   <script type="module">
-    // Configuração Firebase (substitua com a sua)
+    // Firebase config do seu projeto Jungle Brothers
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import {
       getAuth,
@@ -15,10 +15,10 @@
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
-      authDomain: "SEU_PROJETO.firebaseapp.com",
-      projectId: "SEU_PROJETO",
-      appId: "SEU_APP_ID"
+      apiKey: "AlzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+      authDomain: "jungle-brothers-93e80.firebaseapp.com",
+      projectId: "jungle-brothers-93e80",
+      appId: "appId-pendente"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -29,9 +29,9 @@
     const botaoLogout = document.getElementById("logout");
     const status = document.getElementById("status");
 
+    // LISTA DE EMAILS AUTORIZADOS
     const usuariosAutorizados = [
-      "voce@gmail.com",
-      "outro@email.com"
+      "ernestocassol@gmail.com"
     ];
 
     botaoLogin.onclick = async () => {
@@ -39,13 +39,14 @@
         const result = await signInWithPopup(auth, provider);
         const email = result.user.email;
         if (usuariosAutorizados.includes(email)) {
-          window.location.href = "dashboard.html"; // ou outra página protegida
+          window.location.href = "dashboard.html"; // redirecionar após login válido
         } else {
           alert("Acesso não autorizado.");
           signOut(auth);
         }
       } catch (error) {
         console.error(error);
+        alert("Erro no login. Tente novamente.");
       }
     };
 
