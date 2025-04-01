@@ -12,12 +12,17 @@
       signOut,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
       authDomain: "jungle-brothers-93e80.firebaseapp.com",
       projectId: "jungle-brothers-93e80",
-      storageBucket: "jungle-brothers-93e80.appspot.com", <!-- ESSENCIAL -->
+      storageBucket: "jungle-brothers-93e80.appspot.com",
       messagingSenderId: "221354970870",
       appId: "1:221354970870:web:a7f68c75480dc094bb6ad7"
     };
@@ -25,18 +30,21 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
+    const db = getFirestore(app);
 
     const botaoLogin = document.getElementById("login");
     const botaoLogout = document.getElementById("logout");
     const status = document.getElementById("status");
 
-    const usuariosAutorizados = ["ernestocassol@gmail.com"];
-
     botaoLogin.onclick = async () => {
       try {
         const result = await signInWithPopup(auth, provider);
         const email = result.user.email;
-        if (usuariosAutorizados.includes(email)) {
+
+        const docRef = doc(db, "autorizados", email);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists() && docSnap.data().ativo === "sim") {
           window.location.href = "dashboard.html";
         } else {
           alert("Acesso não autorizado.");
@@ -44,7 +52,7 @@
         }
       } catch (error) {
         console.error(error);
-        alert("Erro no login. Tente novamente.");
+        alert("Erro ao fazer login.");
       }
     };
 
