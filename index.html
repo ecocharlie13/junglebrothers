@@ -14,7 +14,7 @@
     }
 
     .logo-wrapper {
-      height: calc(100dvh - 60px);
+      height: calc(100dvh - 40px);
       width: 100%;
       display: flex;
       flex-direction: column;
@@ -32,7 +32,7 @@
 
     .login-link {
       position: fixed;
-      top: 12px;
+      top: 10px;
       right: 16px;
       z-index: 10;
     }
@@ -40,24 +40,28 @@
     .login-link a {
       text-decoration: none;
       color: #000;
-      font-size: 16px;
-      font-weight: bold;
-      opacity: 0.85;
+      font-size: 14px;
+      opacity: 0.8;
+      transition: opacity 0.3s;
+    }
+
+    .login-link a:hover {
+      opacity: 1;
     }
 
     .footer {
       position: absolute;
-      bottom: 2vh;
+      bottom: 1vh;
       width: 100%;
       display: flex;
       justify-content: center;
     }
 
     .footer img {
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       filter: grayscale(100%) brightness(0.8);
-      opacity: 0.7;
+      opacity: 0.6;
       transition: opacity 0.3s;
     }
 
@@ -65,10 +69,9 @@
       opacity: 1;
     }
 
-    /* Ajuste especial para telas pequenas */
-    @media (max-width: 480px) {
+    @media (max-width: 600px) {
       .login-link a {
-        font-size: 18px;
+        font-size: 20px;
       }
 
       .footer img {
@@ -79,19 +82,19 @@
   </style>
 </head>
 <body>
-  <!-- Link superior direito -->
+  <!-- Link no canto superior direito fixo -->
   <div class="login-link">
     <a href="login.html">Acesso Restrito</a>
   </div>
 
-  <!-- Logo -->
+  <!-- Logo centralizada -->
   <div class="logo-wrapper">
     <div style="flex:1;"></div>
     <img src="JBLogoBranco.png" alt="Logo Jungle Brothers" class="main-logo">
     <div style="flex:1;"></div>
   </div>
 
-  <!-- Ícone do Instagram -->
+  <!-- Instagram no rodapé -->
   <div class="footer">
     <a href="https://www.instagram.com/junglebrothersbr/" target="_blank" rel="noopener">
       <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
