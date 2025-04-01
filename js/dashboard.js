@@ -53,13 +53,13 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  const papel = docSnap.data().papel || "cliente";
+  const nivel = docSnap.data().nivel || "cliente";
 
   status.textContent = `Logado como ${user.email}`;
   logoutBtn.style.display = "inline-block";
   linkVoltar.style.display = "inline-block";
 
-  if (papel === "administrador") {
+  if (nivel === "administrador") {
     painel.style.display = "block";
     carregarUsuarios();
   }
@@ -72,16 +72,16 @@ async function carregarUsuarios() {
     const email = docu.id;
     const dados = docu.data();
     const ativo = dados.ativo;
-    const papel = dados.papel || "cliente";
+    const nivel = dados.nivel || "cliente";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${email}</td>
       <td>${ativo}</td>
-      <td>${papel}</td>
+      <td>${nivel}</td>
       <td>
         <button onclick="removerUsuario('${email}')">Remover</button>
-        <button onclick="toggleAtivo('${email}', '${ativo}')">
+        <button onclick="toggleAtivo('${email}', '${ativo}', '${nivel}')">
           ${ativo === "sim" ? "Desativar" : "Ativar"}
         </button>
       </td>
@@ -93,12 +93,12 @@ async function carregarUsuarios() {
 formAdd.onsubmit = async (e) => {
   e.preventDefault();
   const email = emailNovo.value.trim().toLowerCase();
-  const papel = papelNovo.value;
+  const nivel = papelNovo.value;
   if (!email) return;
 
   await setDoc(doc(db, "autorizados", email), {
     ativo: "sim",
-    papel: papel
+    nivel: nivel
   });
 
   emailNovo.value = "";
@@ -112,11 +112,10 @@ window.removerUsuario = async (email) => {
   }
 };
 
-window.toggleAtivo = async (email, statusAtual) => {
+window.toggleAtivo = async (email, statusAtual, nivelAtual) => {
   const novoStatus = statusAtual === "sim" ? "nao" : "sim";
-  const ref = doc(db, "autorizados", email);
-  const snap = await getDoc(ref);
-  const papel = snap.data().papel || "cliente";
-  await setDoc(ref, { ativo: novoStatus, papel });
+  const docRef = doc(db, "autorizados", email);
+
+  await setDoc(docRef, { ativo: novoStatus, nivel: nivelAtual });
   carregarUsuarios();
 };
