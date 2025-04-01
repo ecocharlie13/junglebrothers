@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Área Restrita | Jungle Brothers</title>
+  <title>Dashboard | Jungle Brothers</title>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import {
@@ -32,7 +32,10 @@
     const status = document.getElementById("status");
     const logoutBtn = document.getElementById("logout");
 
-    logoutBtn.onclick = () => signOut(auth);
+    logoutBtn.onclick = () => {
+      signOut(auth);
+      window.location.href = "index.html";
+    };
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -56,5 +59,10 @@
   <h1>Área Restrita</h1>
   <p id="status">Verificando acesso...</p>
   <button id="logout">Sair</button>
+  <p>
+    <a href="index.html" style="font-size: 14px; color: #555; text-decoration: none;">
+      ← Voltar para a página inicial
+    </a>
+  </p>
 </body>
 </html>
