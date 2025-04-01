@@ -9,30 +9,33 @@
       padding: 0;
       height: 100%;
       background: white;
-      display: flex;
-      flex-direction: column;
     }
 
-    .content {
-      flex: 1;
+    .container {
+      height: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
       align-items: center;
-      padding: 4vh 0; /* pequeno espaçamento interno */
+      position: relative;
+    }
+
+    .spacer {
+      flex-grow: 1;
     }
 
     .main-logo {
-      max-height: 70vh;
       max-width: 90vw;
+      max-height: 100%;
       height: auto;
       width: auto;
     }
 
     .footer {
+      position: absolute;
+      bottom: 1vh;
+      width: 100%;
       display: flex;
       justify-content: center;
-      padding-bottom: 1vh;
     }
 
     .footer img {
@@ -49,15 +52,15 @@
   </style>
 </head>
 <body>
-  <div class="content">
-    <div></div> <!-- espaço superior -->
+  <div class="container">
+    <div class="spacer"></div>
     <img src="JBLogoBranco.png" alt="Logo Jungle Brothers" class="main-logo">
-    <div></div> <!-- espaço abaixo da logo -->
-  </div>
-  <div class="footer">
-    <a href="https://www.instagram.com/junglebrothersbr/" target="_blank" rel="noopener">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
-    </a>
+    <div class="spacer"></div>
+    <div class="footer">
+      <a href="https://www.instagram.com/junglebrothersbr/" target="_blank" rel="noopener">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
+      </a>
+    </div>
   </div>
 </body>
 </html>
