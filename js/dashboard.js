@@ -68,7 +68,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-async function carregarUsuarios() {
+window.carregarUsuarios = async function () {
   tabela.innerHTML = "";
   const snapshot = await getDocs(collection(db, "autorizados"));
   snapshot.forEach((docu) => {
