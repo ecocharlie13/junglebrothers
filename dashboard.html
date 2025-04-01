@@ -3,6 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <title>Dashboard | Jungle Brothers</title>
+</head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+  <h1>Área Restrita</h1>
+  <p id="status">Verificando acesso...</p>
+  <button id="logout">Sair</button>
+  <p>
+    <a href="index.html" style="font-size: 14px; color: #555; text-decoration: none;">
+      ← Voltar para a página inicial
+    </a>
+  </p>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import {
@@ -54,15 +65,5 @@
       }
     });
   </script>
-</head>
-<body style="font-family: sans-serif; text-align: center; padding: 50px;">
-  <h1>Área Restrita</h1>
-  <p id="status">Verificando acesso...</p>
-  <button id="logout">Sair</button>
-  <p>
-    <a href="index.html" style="font-size: 14px; color: #555; text-decoration: none;">
-      ← Voltar para a página inicial
-    </a>
-  </p>
 </body>
 </html>
