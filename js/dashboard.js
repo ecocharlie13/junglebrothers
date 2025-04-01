@@ -1,0 +1,122 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  getDocs,
+  collection
+} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+  authDomain: "jungle-brothers-93e80.firebaseapp.com",
+  projectId: "jungle-brothers-93e80",
+  storageBucket: "jungle-brothers-93e80.appspot.com",
+  messagingSenderId: "221354970870",
+  appId: "1:221354970870:web:a7f68c75480dc094bb6ad7"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const status = document.getElementById("status");
+const logoutBtn = document.getElementById("logout");
+const linkVoltar = document.getElementById("link-voltar");
+const painel = document.getElementById("painel");
+const tabela = document.getElementById("tabela-usuarios");
+const formAdd = document.getElementById("form-add");
+const emailNovo = document.getElementById("email-novo");
+const papelNovo = document.getElementById("papel-novo");
+
+logoutBtn.onclick = async () => {
+  await signOut(auth);
+  window.location.href = "index.html";
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return (window.location.href = "login.html");
+
+  const docRef = doc(db, "autorizados", user.email);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists() || docSnap.data().ativo !== "sim") {
+    await signOut(auth);
+    window.location.href = "login.html";
+    return;
+  }
+
+  const papel = docSnap.data().papel || "cliente";
+
+  status.textContent = `Logado como ${user.email}`;
+  logoutBtn.style.display = "inline-block";
+  linkVoltar.style.display = "inline-block";
+
+  if (papel === "administrador") {
+    painel.style.display = "block";
+    carregarUsuarios();
+  }
+});
+
+async function carregarUsuarios() {
+  tabela.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "autorizados"));
+  snapshot.forEach((docu) => {
+    const email = docu.id;
+    const dados = docu.data();
+    const ativo = dados.ativo;
+    const papel = dados.papel || "cliente";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${email}</td>
+      <td>${ativo}</td>
+      <td>${papel}</td>
+      <td>
+        <button onclick="removerUsuario('${email}')">Remover</button>
+        <button onclick="toggleAtivo('${email}', '${ativo}')">
+          ${ativo === "sim" ? "Desativar" : "Ativar"}
+        </button>
+      </td>
+    `;
+    tabela.appendChild(tr);
+  });
+}
+
+formAdd.onsubmit = async (e) => {
+  e.preventDefault();
+  const email = emailNovo.value.trim().toLowerCase();
+  const papel = papelNovo.value;
+  if (!email) return;
+
+  await setDoc(doc(db, "autorizados", email), {
+    ativo: "sim",
+    papel: papel
+  });
+
+  emailNovo.value = "";
+  carregarUsuarios();
+};
+
+window.removerUsuario = async (email) => {
+  if (confirm(`Remover ${email}?`)) {
+    await deleteDoc(doc(db, "autorizados", email));
+    carregarUsuarios();
+  }
+};
+
+window.toggleAtivo = async (email, statusAtual) => {
+  const novoStatus = statusAtual === "sim" ? "nao" : "sim";
+  const ref = doc(db, "autorizados", email);
+  const snap = await getDoc(ref);
+  const papel = snap.data().papel || "cliente";
+  await setDoc(ref, { ativo: novoStatus, papel });
+  carregarUsuarios();
+};
