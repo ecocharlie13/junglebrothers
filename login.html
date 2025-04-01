@@ -47,16 +47,19 @@
         if (docSnap.exists() && docSnap.data().ativo === "sim") {
           window.location.href = "dashboard.html";
         } else {
-          await signOut(auth);
           alert("Acesso não autorizado.");
+          await signOut(auth);
         }
       } catch (error) {
-        console.error("Erro real:", error);
+        console.error("Erro no login:", error);
         alert("Erro ao fazer login.");
       }
     };
 
-    botaoLogout.onclick = () => signOut(auth);
+    botaoLogout.onclick = async () => {
+      await signOut(auth);
+      window.location.href = "index.html"; // redireciona ao sair
+    };
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
