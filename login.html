@@ -47,12 +47,16 @@
         if (docSnap.exists() && docSnap.data().ativo === "sim") {
           window.location.href = "dashboard.html";
         } else {
-          alert("Acesso não autorizado.");
           await signOut(auth);
+          alert("Acesso não autorizado.");
         }
       } catch (error) {
-        console.error(error);
-        alert("Erro ao fazer login.");
+        if (error.code !== "auth/popup-closed-by-user") {
+          console.error("Erro no login:", error);
+          if (!window.location.href.includes("dashboard.html")) {
+            alert("Erro ao fazer login.");
+          }
+        }
       }
     };
 
