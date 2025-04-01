@@ -9,32 +9,37 @@
       padding: 0;
       height: 100%;
       background: white;
+    }
+
+    .container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2vh 0;
+      box-sizing: border-box;
+    }
+
+    .logo {
+      flex-grow: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
     }
 
-    .main-logo {
-      max-height: calc(100vh - 80px); /* 100% da tela menos o espaço do rodapé */
+    .logo img {
+      max-height: 100%;
       max-width: 90vw;
       height: auto;
       width: auto;
     }
 
-    .footer {
-      position: absolute;
-      bottom: 2vh;
-      display: flex;
-      justify-content: center;
-      width: 100%;
-    }
-
     .footer img {
       width: 24px;
       height: 24px;
-      filter: grayscale(100%) brightness(0.8);
-      opacity: 0.5;
+      filter: grayscale(100%) brightness(0.7);
+      opacity: 0.6;
       transition: opacity 0.3s;
     }
 
@@ -44,11 +49,15 @@
   </style>
 </head>
 <body>
-  <img src="JBLogoBranco.png" alt="Imagem Centralizada" class="main-logo">
-  <div class="footer">
-    <a href="https://www.instagram.com/junglebrothersbr/" target="_blank" rel="noopener">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
-    </a>
+  <div class="container">
+    <div class="logo">
+      <img src="JBLogoBranco.png" alt="Imagem Centralizada">
+    </div>
+    <div class="footer">
+      <a href="https://www.instagram.com/junglebrothersbr/" target="_blank" rel="noopener">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
+      </a>
+    </div>
   </div>
 </body>
 </html>
