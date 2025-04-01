@@ -92,10 +92,10 @@ formAdd.addEventListener("submit", async (e) => {
     console.log("Usuário adicionado:", email);
     emailNovo.value = "";
     carregarUsuarios();
-  } catch (err) {
-    console.error("Erro ao adicionar usuário:", err);
-    alert("Erro ao adicionar usuário.");
-  }
+} catch (err) {
+  console.error("Erro ao adicionar usuário:", err.message);
+  alert("Erro ao adicionar usuário: " + err.message);
+}
 });
 
 // Funções globais
