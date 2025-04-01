@@ -10,7 +10,6 @@
       height: 100%;
       background: white;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       position: relative;
@@ -31,6 +30,13 @@
     .footer img {
       width: 24px;
       height: 24px;
+      filter: grayscale(100%);
+      opacity: 0.6;
+      transition: opacity 0.3s;
+    }
+
+    .footer img:hover {
+      opacity: 1;
     }
   </style>
 </head>
