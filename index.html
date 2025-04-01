@@ -10,19 +10,34 @@
       height: 100%;
       background: white;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
     }
-    img {
-      max-height: 90vh;
+
+    img.main {
+      max-height: 80vh;
       max-width: 90vw;
       height: auto;
       width: auto;
-      margin-bottom: 5vh;
+    }
+
+    .footer {
+      margin-top: 2vh;
+    }
+
+    .footer img {
+      width: 24px;
+      height: 24px;
     }
   </style>
 </head>
 <body>
-  <img src="JBLogoBranco.png" alt="Imagem Centralizada">
+  <img src="JBLogoBranco.png" alt="Imagem Centralizada" class="main">
+  <div class="footer">
+    <a href="https://www.instagram.com/junglebrothersbr/" target="_blank" rel="noopener">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram">
+    </a>
+  </div>
 </body>
 </html>
