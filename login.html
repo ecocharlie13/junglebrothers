@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login | Jungle Brothers</title>
+  <script type="module">
+    // Configuração Firebase (substitua com a sua)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_PROJETO.firebaseapp.com",
+      projectId: "SEU_PROJETO",
+      appId: "SEU_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const botaoLogin = document.getElementById("login");
+    const botaoLogout = document.getElementById("logout");
+    const status = document.getElementById("status");
+
+    const usuariosAutorizados = [
+      "voce@gmail.com",
+      "outro@email.com"
+    ];
+
+    botaoLogin.onclick = async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const email = result.user.email;
+        if (usuariosAutorizados.includes(email)) {
+          window.location.href = "dashboard.html"; // ou outra página protegida
+        } else {
+          alert("Acesso não autorizado.");
+          signOut(auth);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    botaoLogout.onclick = () => signOut(auth);
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        status.textContent = `Logado como ${user.email}`;
+        botaoLogin.style.display = "none";
+        botaoLogout.style.display = "inline-block";
+      } else {
+        status.textContent = "Você não está logado.";
+        botaoLogin.style.display = "inline-block";
+        botaoLogout.style.display = "none";
+      }
+    });
+  </script>
+</head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+  <h1>Área Restrita</h1>
+  <p id="status">Carregando...</p>
+  <button id="login">Entrar com Google</button>
+  <button id="logout" style="display:none;">Sair</button>
+</body>
+</html>
