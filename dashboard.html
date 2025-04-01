@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | Jungle Brothers</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="font-family: sans-serif; text-align: center; padding: 50px;">
   <h1>Área Restrita</h1>
@@ -15,6 +15,28 @@
     </a>
   </p>
 
+  <div id="painel" style="display: none;">
+    <h2>Painel de Administração</h2>
+
+    <form id="form-add" style="margin-bottom: 20px;">
+      <input type="email" id="email-novo" placeholder="Novo e-mail autorizado" required style="padding: 5px;">
+      <button type="submit">Adicionar</button>
+    </form>
+
+    <table border="1" cellpadding="8" style="margin: auto;">
+      <thead>
+        <tr>
+          <th>E-mail</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-usuarios">
+        <!-- preenchido por JS -->
+      </tbody>
+    </table>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import {
@@ -25,7 +47,11 @@
     import {
       getFirestore,
       doc,
-      getDoc
+      getDoc,
+      setDoc,
+      deleteDoc,
+      getDocs,
+      collection
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -44,6 +70,9 @@
     const status = document.getElementById("status");
     const logoutBtn = document.getElementById("logout");
     const linkVoltar = document.getElementById("link-voltar");
+    const painel = document.getElementById("painel");
+    const tabela = document.getElementById("tabela-usuarios");
+    const formAdd = document.getElementById("form-add");
 
     logoutBtn.onclick = async () => {
       await signOut(auth);
@@ -69,7 +98,54 @@
       status.textContent = `Logado como ${user.email}`;
       logoutBtn.style.display = "inline-block";
       linkVoltar.style.display = "inline-block";
+      painel.style.display = "block";
+
+      carregarUsuarios();
     });
+
+    async function carregarUsuarios() {
+      tabela.innerHTML = "";
+      const snapshot = await getDocs(collection(db, "autorizados"));
+      snapshot.forEach((docu) => {
+        const email = docu.id;
+        const ativo = docu.data().ativo;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${email}</td>
+          <td>${ativo}</td>
+          <td>
+            <button onclick="removerUsuario('${email}')">Remover</button>
+            <button onclick="toggleAtivo('${email}', '${ativo}')">
+              ${ativo === "sim" ? "Desativar" : "Ativar"}
+            </button>
+          </td>
+        `;
+        tabela.appendChild(tr);
+      });
+    }
+
+    formAdd.onsubmit = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email-novo").value.trim().toLowerCase();
+      if (!email) return;
+      await setDoc(doc(db, "autorizados", email), { ativo: "sim" });
+      document.getElementById("email-novo").value = "";
+      carregarUsuarios();
+    };
+
+    window.removerUsuario = async (email) => {
+      if (confirm(`Remover ${email}?`)) {
+        await deleteDoc(doc(db, "autorizados", email));
+        carregarUsuarios();
+      }
+    };
+
+    window.toggleAtivo = async (email, statusAtual) => {
+      const novoStatus = statusAtual === "sim" ? "nao" : "sim";
+      await setDoc(doc(db, "autorizados", email), { ativo: novoStatus });
+      carregarUsuarios();
+    };
   </script>
 </body>
 </html>
