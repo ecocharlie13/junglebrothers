@@ -16,6 +16,7 @@
     </a>
   </p>
 
+  <!-- Painel apenas para administradores -->
   <div id="painel" style="display: none;">
     <h2>Painel de Administração</h2>
 
@@ -24,7 +25,7 @@
       <select id="papel-novo" required>
         <option value="cliente">Cliente</option>
         <option value="equipe">Equipe</option>
-        <option value="admin">Administrador</option>
+        <option value="administrador">Administrador</option>
       </select>
       <button type="submit">Adicionar</button>
     </form>
@@ -41,19 +42,22 @@
       <tbody id="tabela-usuarios"></tbody>
     </table>
   </div>
-<div id="link-classroom" style="display: none; margin-top: 40px;">
-  <a href="https://classroom.google.com/u/1/c/Njg5ODIzMjczMzM4" target="_blank" style="
-    display: inline-block;
-    padding: 12px 24px;
-    background-color: #34a853;
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    border-radius: 6px;
-  ">
-    Acessar Sala de Aula
-  </a>
-</div>
+
+  <!-- Botão para o Classroom (admin e equipe) -->
+  <div id="link-classroom" style="display: none; margin-top: 40px;">
+    <a href="https://classroom.google.com/u/1/c/Njg5ODIzMjczMzM4" target="_blank" style="
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #34a853;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 6px;
+    ">
+      Acessar Sala de Aula
+    </a>
+  </div>
+
   <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
