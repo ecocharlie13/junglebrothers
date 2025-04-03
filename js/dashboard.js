@@ -1,75 +1,146 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | Jungle Brothers</title>
-  <link rel="stylesheet" href="css/estilo.css" />
-</head>
-<body>
-  <h1>Área Restrita</h1>
-  <p id="status">Verificando acesso...</p>
-  <button id="logout" style="display: none;">Sair</button>
-  <p>
-    <a href="index.html" id="link-voltar" style="display: none;">
-      ← Voltar para a página inicial
-    </a>
-  </p>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  getDocs,
+  collection
+} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
-  <!-- Painel apenas para administradores -->
-  <div id="painel" style="display: none;">
-    <h2>Painel de Administração</h2>
+// Configuração Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+  authDomain: "jungle-brothers-93e80.firebaseapp.com",
+  projectId: "jungle-brothers-93e80",
+  storageBucket: "jungle-brothers-93e80.appspot.com",
+  messagingSenderId: "221354970870",
+  appId: "1:221354970870:web:a7f68c75480dc094bb6ad7"
+};
 
-    <form id="form-add">
-      <input type="email" id="email-novo" placeholder="Novo e-mail autorizado" required />
-      <select id="papel-novo" required>
-        <option value="cliente">Cliente</option>
-        <option value="equipe">Equipe</option>
-        <option value="administrador">Administrador</option>
-      </select>
-      <button type="submit">Adicionar</button>
-    </form>
+// Inicialização
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    <table id="tabela">
-      <thead>
-        <tr>
-          <th>E-mail</th>
-          <th>Status</th>
-          <th>Papel</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tabela-usuarios"></tbody>
-    </table>
-  </div>
+// Elementos DOM
+const status = document.getElementById("status");
+const logoutBtn = document.getElementById("logout");
+const linkVoltar = document.getElementById("link-voltar");
+const painel = document.getElementById("painel");
+const linkClassroom = document.getElementById("link-classroom");
+const tabela = document.getElementById("tabela-usuarios");
+const formAdd = document.getElementById("form-add");
+const emailNovo = document.getElementById("email-novo");
+const papelNovo = document.getElementById("papel-novo");
 
-  <!-- Botão para o Classroom (admin e equipe) -->
-  <div id="link-classroom" style="display: none; margin-top: 40px;">
-    <a href="https://classroom.google.com/u/1/c/Njg5ODIzMjczMzM4" target="_blank" style="
-      display: inline-block;
-      padding: 12px 24px;
-      background-color: #34a853;
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-      border-radius: 6px;
-    ">
-      Acessar Sala de Aula
-    </a>
-  </div>
+// Logout
+logoutBtn.onclick = async () => {
+  await signOut(auth);
+  window.location.href = "index.html";
+};
 
-  <!-- Visualização da pasta compartilhada (admin e equipe) -->
-  <div id="drive-tree" style="display: none; margin-top: 40px;">
-    <h2>Arquivos Compartilhados</h2>
-    <ul id="drive-root">
-      <li>
-        <span onclick="window.open('https://drive.google.com/drive/folders/1fJDlMeFpoUvZ4_JfIJEAVauezYmWdHqd', '_blank')" style="cursor: pointer;">
-          📁 Materiais da Equipe
-        </span>
-      </li>
-    </ul>
-  </div>
+// Verificação de login e permissões
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
-  <script type="module" src="js/dashboard.js"></script>
-</body>
-</html>
+  const docRef = doc(db, "autorizados", user.email);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists() || docSnap.data().ativo !== "sim") {
+    await signOut(auth);
+    window.location.href = "login.html";
+    return;
+  }
+
+  const nivel = docSnap.data().nivel || "cliente";
+
+  status.textContent = `Logado como ${user.email}`;
+  logoutBtn.style.display = "inline-block";
+  linkVoltar.style.display = "inline-block";
+
+  if (nivel === "administrador") {
+    painel.style.display = "block";
+    linkClassroom.style.display = "block";
+    carregarUsuarios();
+  } else if (nivel === "equipe") {
+    linkClassroom.style.display = "block";
+  }
+});
+
+// Carrega usuários (painel admin)
+async function carregarUsuarios() {
+  tabela.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "autorizados"));
+  snapshot.forEach((docu) => {
+    const email = docu.id;
+    const dados = docu.data();
+    const ativo = dados.ativo || "nao";
+    const nivel = dados.nivel || "cliente";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${email}</td>
+      <td>${ativo}</td>
+      <td>${nivel}</td>
+      <td>
+        <button onclick="removerUsuario('${email}')">Remover</button>
+        <button onclick="toggleAtivo('${email}', '${ativo}', '${nivel}')">
+          ${ativo === "sim" ? "Desativar" : "Ativar"}
+        </button>
+      </td>
+    `;
+    tabela.appendChild(tr);
+  });
+}
+
+// Adiciona novo usuário
+formAdd.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = emailNovo.value.trim().toLowerCase();
+  const nivel = papelNovo.value;
+
+  if (!email || !nivel) {
+    alert("Preencha todos os campos!");
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, "autorizados", email), {
+      ativo: "sim",
+      nivel: nivel
+    }, { merge: true });
+
+    emailNovo.value = "";
+    carregarUsuarios();
+  } catch (err) {
+    console.error("Erro ao adicionar usuário:", err.message);
+    alert("Erro ao adicionar usuário.");
+  }
+});
+
+// Funções globais
+window.removerUsuario = async (email) => {
+  if (confirm(`Remover ${email}?`)) {
+    await deleteDoc(doc(db, "autorizados", email));
+    carregarUsuarios();
+  }
+};
+
+window.toggleAtivo = async (email, statusAtual, nivelAtual) => {
+  const novoStatus = statusAtual === "sim" ? "nao" : "sim";
+  await setDoc(doc(db, "autorizados", email), {
+    ativo: novoStatus,
+    nivel: nivelAtual
+  }, { merge: true });
+  carregarUsuarios();
+};
