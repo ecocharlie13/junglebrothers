@@ -34,6 +34,7 @@ const status = document.getElementById("status");
 const logoutBtn = document.getElementById("logout");
 const linkVoltar = document.getElementById("link-voltar");
 const painel = document.getElementById("painel");
+const linkClassroom = document.getElementById("link-classroom");
 const tabela = document.getElementById("tabela-usuarios");
 const formAdd = document.getElementById("form-add");
 const emailNovo = document.getElementById("email-novo");
@@ -45,77 +46,7 @@ logoutBtn.onclick = async () => {
   window.location.href = "index.html";
 };
 
-// Tornar visível globalmente
-window.carregarUsuarios = async function () {
-  tabela.innerHTML = "";
-  const snapshot = await getDocs(collection(db, "autorizados"));
-  snapshot.forEach((docu) => {
-    const email = docu.id;
-    const dados = docu.data();
-    const ativo = dados.ativo || "nao";
-    const nivel = dados.nivel || "cliente";
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${email}</td>
-      <td>${ativo}</td>
-      <td>${nivel}</td>
-      <td>
-        <button onclick="removerUsuario('${email}')">Remover</button>
-        <button onclick="toggleAtivo('${email}', '${ativo}', '${nivel}')">
-          ${ativo === "sim" ? "Desativar" : "Ativar"}
-        </button>
-      </td>
-    `;
-    tabela.appendChild(tr);
-  });
-};
-
-// Adição de usuário
-formAdd.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const email = emailNovo.value.trim().toLowerCase();
-  const nivel = papelNovo.value;
-
-  if (!email || !nivel) {
-    alert("Preencha todos os campos!");
-    return;
-  }
-
-  try {
-    await setDoc(doc(db, "autorizados", email), {
-      ativo: "sim",
-      nivel: nivel
-    }, { merge: true });
-
-    console.log("Usuário adicionado:", email);
-    emailNovo.value = "";
-    carregarUsuarios();
-} catch (err) {
-  console.error("Erro ao adicionar usuário:", err.message);
-  alert("Erro ao adicionar usuário: " + err.message);
-}
-});
-
-// Funções globais
-window.removerUsuario = async (email) => {
-  if (confirm(`Remover ${email}?`)) {
-    await deleteDoc(doc(db, "autorizados", email));
-    carregarUsuarios();
-  }
-};
-
-window.toggleAtivo = async (email, statusAtual, nivelAtual) => {
-  const novoStatus = statusAtual === "sim" ? "nao" : "sim";
-  await setDoc(doc(db, "autorizados", email), {
-    ativo: novoStatus,
-    nivel: nivelAtual
-  }, { merge: true });
-  carregarUsuarios();
-};
-
-// Verificação de login
+// Verificação de login e permissões
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -139,6 +70,77 @@ onAuthStateChanged(auth, async (user) => {
 
   if (nivel === "administrador") {
     painel.style.display = "block";
-    window.carregarUsuarios(); // aqui chamamos corretamente
+    linkClassroom.style.display = "block";
+    carregarUsuarios();
+  } else if (nivel === "equipe") {
+    linkClassroom.style.display = "block";
   }
 });
+
+// Carrega usuários (painel admin)
+async function carregarUsuarios() {
+  tabela.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "autorizados"));
+  snapshot.forEach((docu) => {
+    const email = docu.id;
+    const dados = docu.data();
+    const ativo = dados.ativo || "nao";
+    const nivel = dados.nivel || "cliente";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${email}</td>
+      <td>${ativo}</td>
+      <td>${nivel}</td>
+      <td>
+        <button onclick="removerUsuario('${email}')">Remover</button>
+        <button onclick="toggleAtivo('${email}', '${ativo}', '${nivel}')">
+          ${ativo === "sim" ? "Desativar" : "Ativar"}
+        </button>
+      </td>
+    `;
+    tabela.appendChild(tr);
+  });
+}
+
+// Adiciona novo usuário
+formAdd.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = emailNovo.value.trim().toLowerCase();
+  const nivel = papelNovo.value;
+
+  if (!email || !nivel) {
+    alert("Preencha todos os campos!");
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, "autorizados", email), {
+      ativo: "sim",
+      nivel: nivel
+    }, { merge: true });
+
+    emailNovo.value = "";
+    carregarUsuarios();
+  } catch (err) {
+    console.error("Erro ao adicionar usuário:", err.message);
+    alert("Erro ao adicionar usuário.");
+  }
+});
+
+// Funções globais
+window.removerUsuario = async (email) => {
+  if (confirm(`Remover ${email}?`)) {
+    await deleteDoc(doc(db, "autorizados", email));
+    carregarUsuarios();
+  }
+};
+
+window.toggleAtivo = async (email, statusAtual, nivelAtual) => {
+  const novoStatus = statusAtual === "sim" ? "nao" : "sim";
+  await setDoc(doc(db, "autorizados", email), {
+    ativo: novoStatus,
+    nivel: nivelAtual
+  }, { merge: true });
+  carregarUsuarios();
+};
