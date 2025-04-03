@@ -35,6 +35,7 @@ const logoutBtn = document.getElementById("logout");
 const linkVoltar = document.getElementById("link-voltar");
 const painel = document.getElementById("painel");
 const linkClassroom = document.getElementById("link-classroom");
+const blocoDrive = document.getElementById("pasta-compartilhada");
 const tabela = document.getElementById("tabela-usuarios");
 const formAdd = document.getElementById("form-add");
 const emailNovo = document.getElementById("email-novo");
@@ -71,9 +72,11 @@ onAuthStateChanged(auth, async (user) => {
   if (nivel === "administrador") {
     painel.style.display = "block";
     linkClassroom.style.display = "block";
+    blocoDrive.style.display = "block";
     carregarUsuarios();
   } else if (nivel === "equipe") {
     linkClassroom.style.display = "block";
+    blocoDrive.style.display = "block";
   }
 });
 
