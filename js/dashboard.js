@@ -14,7 +14,7 @@ import {
   collection
 } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
-// Configuração Firebase
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
   authDomain: "jungle-brothers-93e80.firebaseapp.com",
@@ -34,8 +34,9 @@ const status = document.getElementById("status");
 const logoutBtn = document.getElementById("logout");
 const linkVoltar = document.getElementById("link-voltar");
 const painel = document.getElementById("painel");
+const menu = document.getElementById("menu");
 const linkClassroom = document.getElementById("link-classroom");
-const blocoDrive = document.getElementById("pasta-compartilhada");
+const pastaCompartilhada = document.getElementById("pasta-compartilhada");
 const tabela = document.getElementById("tabela-usuarios");
 const formAdd = document.getElementById("form-add");
 const emailNovo = document.getElementById("email-novo");
@@ -47,7 +48,7 @@ logoutBtn.onclick = async () => {
   window.location.href = "index.html";
 };
 
-// Verificação de login e permissões
+// Login e permissões
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -68,22 +69,24 @@ onAuthStateChanged(auth, async (user) => {
   status.textContent = `Logado como ${user.email}`;
   logoutBtn.style.display = "inline-block";
   linkVoltar.style.display = "inline-block";
+  menu.style.display = "block";
 
   if (nivel === "administrador") {
     painel.style.display = "block";
     linkClassroom.style.display = "block";
-    blocoDrive.style.display = "block";
+    pastaCompartilhada.style.display = "block";
     carregarUsuarios();
   } else if (nivel === "equipe") {
     linkClassroom.style.display = "block";
-    blocoDrive.style.display = "block";
+    pastaCompartilhada.style.display = "block";
   }
 });
 
-// Carrega usuários (painel admin)
+// Carregar lista de usuários
 async function carregarUsuarios() {
   tabela.innerHTML = "";
   const snapshot = await getDocs(collection(db, "autorizados"));
+
   snapshot.forEach((docu) => {
     const email = docu.id;
     const dados = docu.data();
@@ -106,7 +109,7 @@ async function carregarUsuarios() {
   });
 }
 
-// Adiciona novo usuário
+// Adicionar novo usuário
 formAdd.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = emailNovo.value.trim().toLowerCase();
@@ -131,7 +134,7 @@ formAdd.addEventListener("submit", async (e) => {
   }
 });
 
-// Funções globais
+// Remover usuário
 window.removerUsuario = async (email) => {
   if (confirm(`Remover ${email}?`)) {
     await deleteDoc(doc(db, "autorizados", email));
@@ -139,6 +142,7 @@ window.removerUsuario = async (email) => {
   }
 };
 
+// Ativar/desativar usuário
 window.toggleAtivo = async (email, statusAtual, nivelAtual) => {
   const novoStatus = statusAtual === "sim" ? "nao" : "sim";
   await setDoc(doc(db, "autorizados", email), {
