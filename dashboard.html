@@ -16,10 +16,25 @@
     </a>
   </p>
 
+  <!-- Menu principal da área restrita -->
+  <nav id="menu" style="display: none; margin: 40px 0;">
+    <ul style="list-style: none; padding: 0; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+      <li><a href="#">🏠 Início</a></li>
+      <li><a href="#">📅 Calendário</a></li>
+      <li><a href="#">🌱 Banco de Genéticas</a></li>
+      <li><a href="#">📓 Diários de Cultivo</a></li>
+      <li><a href="#">📚 Materiais</a></li>
+      <li><a href="#">💬 Fórum</a></li>
+      <li><a href="#">🛒 Loja / Trocas</a></li>
+      <li><a href="#">📄 Regulamento</a></li>
+      <li><a href="#">🙋 Perfil</a></li>
+      <li><a href="#">📞 Suporte</a></li>
+    </ul>
+  </nav>
+
   <!-- Painel apenas para administradores -->
   <div id="painel" style="display: none;">
     <h2>Painel de Administração</h2>
-
     <form id="form-add">
       <input type="email" id="email-novo" placeholder="Novo e-mail autorizado" required />
       <select id="papel-novo" required>
@@ -43,7 +58,7 @@
     </table>
   </div>
 
-  <!-- Botão para o Classroom (admin e equipe) -->
+  <!-- Link para o Classroom (admin e equipe) -->
   <div id="link-classroom" style="display: none; margin-top: 40px;">
     <a href="https://classroom.google.com/u/1/c/Njg5ODIzMjczMzM4" target="_blank" style="
       display: inline-block;
@@ -57,14 +72,17 @@
       Acessar Sala de Aula
     </a>
   </div>
-<!-- Visualização da pasta compartilhada -->
-<div id="pasta-compartilhada" style="display: none; margin-top: 40px;">
-  <h2>Materiais Compartilhados</h2>
-  <iframe
-    src="https://drive.google.com/embeddedfolderview?id=1fJDlMeFpoUvZ4_JfIJEAVauezYmWdHqd#grid"
-    style="width:100%; height:500px; border:1px solid #ccc;">
-  </iframe>
-</div>
+
+  <!-- Visualização da pasta compartilhada -->
+  <div id="pasta-compartilhada" style="display: none; margin-top: 40px;">
+    <h2>Materiais Compartilhados</h2>
+    <iframe
+      src="https://drive.google.com/embeddedfolderview?id=1fJDlMeFpoUvZ4_JfIJEAVauezYmWdHqd#grid"
+      style="width:100%; height:500px; border:1px solid #ccc;">
+    </iframe>
+  </div>
+
+  <!-- Firebase e JS -->
   <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
