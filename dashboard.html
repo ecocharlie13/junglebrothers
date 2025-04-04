@@ -10,39 +10,28 @@
   <h1>Área Restrita</h1>
   <p id="status">Verificando acesso...</p>
   <button id="logout" style="display: none;">Sair</button>
-  <nav style="margin: 20px 0;">
-  <a href="dashboard.html">🏠 Início</a> |
-  <a href="calendario.html">📅 Calendário</a> |
-  <a href="banco-geneticas.html">🌱 Genéticas</a> |
-  <a href="diarios.html">📓 Diários</a> |
-  <a href="estudos.html">📚 Estudos</a> |
-  <a href="forum.html">💬 Fórum</a> |
-  <a href="loja.html">🛒 Loja</a> |
-  <a href="regulamento.html">📜 Regras</a> |
-  <a href="perfil.html">👤 Perfil</a> |
-  <a href="suporte.html">🛠️ Suporte</a>
-</nav>
+
+  <!-- Menu principal da área restrita -->
+  <nav id="menu" style="display: none; margin: 20px 0;">
+    <ul style="list-style: none; padding: 0; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
+      <li><a href="dashboard.html">🏠 Início</a></li>
+      <li><a href="calendario.html">📅 Calendário</a></li>
+      <li><a href="banco-geneticas.html">🌱 Banco de Genéticas</a></li>
+      <li><a href="diarios.html">📓 Diários de Cultivo</a></li>
+      <li><a href="estudos.html">📚 Materiais</a></li>
+      <li><a href="forum.html">💬 Fórum</a></li>
+      <li><a href="loja.html">🛒 Loja / Trocas</a></li>
+      <li><a href="regulamento.html">📄 Regulamento</a></li>
+      <li><a href="perfil.html">👤 Perfil</a></li>
+      <li><a href="suporte.html">📞 Suporte</a></li>
+    </ul>
+  </nav>
+
   <p>
     <a href="index.html" id="link-voltar" style="display: none;">
       ← Voltar para a página inicial
     </a>
   </p>
-
-  <!-- Menu principal da área restrita -->
-  <nav id="menu" style="display: none; margin: 40px 0;">
-    <ul style="list-style: none; padding: 0; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
-      <li><a href="#">🏠 Início</a></li>
-      <li><a href="#">📅 Calendário</a></li>
-      <li><a href="#">🌱 Banco de Genéticas</a></li>
-      <li><a href="#">📓 Diários de Cultivo</a></li>
-      <li><a href="#">📚 Materiais</a></li>
-      <li><a href="#">💬 Fórum</a></li>
-      <li><a href="#">🛒 Loja / Trocas</a></li>
-      <li><a href="#">📄 Regulamento</a></li>
-      <li><a href="#">🙋 Perfil</a></li>
-      <li><a href="#">📞 Suporte</a></li>
-    </ul>
-  </nav>
 
   <!-- Painel apenas para administradores -->
   <div id="painel" style="display: none;">
