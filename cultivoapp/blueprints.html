@@ -82,6 +82,8 @@
     let usuario = null;
 
     onAuthStateChanged(auth, async (user) => {
+      console.log("Verificando login:", user);  // <-- ADICIONE ESTA LINHA
+
       if (!user) {
         window.location.href = "/login.html";
         return;
