@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>CultivoApp</title>
+  <title>Blueprint - Ajustes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
-  <h1>CultivoApp</h1>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
@@ -24,6 +24,100 @@
         window.location.href = "/login.html";
       }
     });
+  </script>
+
+  <main class="container">
+    <h1>Blueprint do Cultivo</h1>
+    <p>Eko Grower, aqui você pode ajustar a Blueprint do seu cultivo.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Evento</th>
+          <th>Dias</th>
+          <th>Ajuste (dias)</th>
+          <th>Notas</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-blueprint">
+        <tr>
+          <td>Clonar</td>
+          <td><input type="number" value="1" /></td>
+          <td><input type="number" value="0" /></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Enraizar Clones</td>
+          <td><input type="number" value="14" /></td>
+          <td><input type="number" value="0" /></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Tamponar</td>
+          <td><input type="number" value="2" /></td>
+          <td><input type="number" value="-2" /></td>
+          <td>Dois dias antes do fim de "Enraizar Clones"</td>
+        </tr>
+        <tr>
+          <td>Transplantar</td>
+          <td><input type="number" value="1" /></td>
+          <td><input type="number" value="0" /></td>
+          <td>Coincide com fim de "Enraizar Clones" e "Tamponar"</td>
+        </tr>
+        <tr>
+          <td>Enraizar</td>
+          <td><input type="number" value="7" /></td>
+          <td><input type="number" value="0" /></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Vega</td>
+          <td><input type="number" value="14" /></td>
+          <td><input type="number" value="0" /></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Estiramento</td>
+          <td><input type="number" value="28" /></td>
+          <td><input type="number" value="0" /></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Engorda</td>
+          <td><input type="number" value="14" /></td>
+          <td><input type="number" value="0" /></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Finalização</td>
+          <td><input type="number" value="14" /></td>
+          <td><input type="number" value="0" /></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Colheita</td>
+          <td><input type="number" value="1" /></td>
+          <td><input type="number" value="0" /></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 24px; text-align: center;">
+      <button onclick="salvarBlueprint()">Salvar Blueprint</button>
+      <button onclick="renomearBlueprint()">Renomear</button>
+    </div>
+  </main>
+
+  <script>
+    function salvarBlueprint() {
+      alert("Blueprint salva com sucesso (mock)");
+    }
+
+    function renomearBlueprint() {
+      const novoNome = prompt("Digite o novo nome da Blueprint:");
+      if (novoNome) alert(`Blueprint renomeada para: ${novoNome}`);
+    }
   </script>
 </body>
 </html>
