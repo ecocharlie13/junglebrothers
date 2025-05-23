@@ -2,9 +2,37 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Blueprint - Ajustes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CultivoApp - Home</title>
   <link rel="stylesheet" href="css/estilo.css">
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    .menu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-top: 40px;
+    }
+    .menu button {
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background-color: #2c7a7b;
+      color: white;
+      cursor: pointer;
+      width: 220px;
+    }
+    .menu button[disabled] {
+      background-color: #a0aec0;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
   <script type="module">
@@ -26,97 +54,30 @@
     });
   </script>
 
-  <main class="container">
-    <h1>Blueprint do Cultivo</h1>
-    <p>Eko Grower, aqui você pode ajustar a Blueprint do seu cultivo.</p>
+  <h1>Seja bem-vindo ao CultivoApp da Jungle Brothers</h1>
+  <p>Escolha como deseja prosseguir, Eko Grower:</p>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Evento</th>
-          <th>Dias</th>
-          <th>Ajuste (dias)</th>
-          <th>Notas</th>
-        </tr>
-      </thead>
-      <tbody id="tabela-blueprint">
-        <tr>
-          <td>Clonar</td>
-          <td><input type="number" value="1" /></td>
-          <td><input type="number" value="0" /></td>
-          <td></td>
-        </tr>
-        <tr>
-          <td>Enraizar Clones</td>
-          <td><input type="number" value="14" /></td>
-          <td><input type="number" value="0" /></td>
-          <td></td>
-        </tr>
-        <tr>
-          <td>Tamponar</td>
-          <td><input type="number" value="2" /></td>
-          <td><input type="number" value="-2" /></td>
-          <td>Dois dias antes do fim de "Enraizar Clones"</td>
-        </tr>
-        <tr>
-          <td>Transplantar</td>
-          <td><input type="number" value="1" /></td>
-          <td><input type="number" value="0" /></td>
-          <td>Coincide com fim de "Enraizar Clones" e "Tamponar"</td>
-        </tr>
-        <tr>
-          <td>Enraizar</td>
-          <td><input type="number" value="7" /></td>
-          <td><input type="number" value="0" /></td>
-          <td></td>
-        </tr>
-        <tr>
-          <td>Vega</td>
-          <td><input type="number" value="14" /></td>
-          <td><input type="number" value="0" /></td>
-          <td></td>
-        </tr>
-        <tr>
-          <td>Estiramento</td>
-          <td><input type="number" value="28" /></td>
-          <td><input type="number" value="0" /></td>
-          <td></td>
-        </tr>
-        <tr>
-          <td>Engorda</td>
-          <td><input type="number" value="14" /></td>
-          <td><input type="number" value="0" /></td>
-          <td></td>
-        </tr>
-        <tr>
-          <td>Finalização</td>
-          <td><input type="number" value="14" /></td>
-          <td><input type="number" value="0" /></td>
-          <td></td>
-        </tr>
-        <tr>
-          <td>Colheita</td>
-          <td><input type="number" value="1" /></td>
-          <td><input type="number" value="0" /></td>
-          <td></td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div style="margin-top: 24px; text-align: center;">
-      <button onclick="salvarBlueprint()">Salvar Blueprint</button>
-      <button onclick="renomearBlueprint()">Renomear</button>
-    </div>
-  </main>
+  <div class="menu">
+    <button onclick="window.location.href='blueprint_pagina_2.html'">Blueprints</button>
+    <button id="btn-cultivos" disabled>Cultivos</button>
+    <button id="btn-eventos" disabled>Eventos</button>
+    <button id="btn-relatorio" disabled>Relatório</button>
+  </div>
 
   <script>
-    function salvarBlueprint() {
-      alert("Blueprint salva com sucesso (mock)");
-    }
+    // Simula estado inicial com nenhuma blueprint criada
+    let temBlueprint = false;
+    let temCultivo = false;
+    let temEvento = false;
 
-    function renomearBlueprint() {
-      const novoNome = prompt("Digite o novo nome da Blueprint:");
-      if (novoNome) alert(`Blueprint renomeada para: ${novoNome}`);
+    if (temBlueprint) {
+      document.getElementById('btn-cultivos').disabled = false;
+    }
+    if (temCultivo) {
+      document.getElementById('btn-eventos').disabled = false;
+    }
+    if (temEvento) {
+      document.getElementById('btn-relatorio').disabled = false;
     }
   </script>
 </body>
