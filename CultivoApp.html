@@ -7,48 +7,114 @@
   <link rel="stylesheet" href="css/estilo.css" />
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 40px;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #fff;
     }
-    .menu {
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+    .lateral {
+      background-color: #8b44f3;
+      width: 80px;
+    }
+    .conteudo {
+      flex-grow: 1;
+      padding: 30px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      margin-top: 40px;
-    }
-    .menu button {
-      padding: 14px 28px;
-      font-size: 20px;
-      border: none;
-      border-radius: 12px;
-      background-color: #8a4fff;
-      color: white;
-      font-weight: bold;
-      width: 220px;
-      cursor: pointer;
-    }
-    .menu button[disabled] {
-      background-color: #ccc;
-      cursor: not-allowed;
+      justify-content: space-between;
     }
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 40px;
     }
     .logo {
-      font-weight: bold;
-      font-size: 24px;
+      height: 60px;
     }
-    .user {
+    .menu-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .menu-user select {
+      padding: 4px;
+    }
+    .foto-perfil {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+    }
+    h1 {
+      text-align: center;
+    }
+    p {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .botoes {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+    }
+    .botoes button {
+      padding: 12px 24px;
+      background-color: #8b44f3;
+      color: white;
+      font-weight: bold;
       font-size: 16px;
+      border: none;
+      border-radius: 12px 0 12px 0;
+      cursor: pointer;
+      min-width: 160px;
+    }
+    .botoes button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    footer {
+      background-color: #ccc;
+      height: 40px;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <div class="lateral"></div>
+    <div class="conteudo">
+      <header>
+        <img src="JBLogoBranco.png" alt="Logo Jungle Brothers" class="logo">
+        <div class="menu-user">
+          <span id="user-email">Grower</span>
+          <select>
+            <option>Home</option>
+            <option value="dashboard.html">Área Restrita</option>
+            <option value="perfil.html">Perfil</option>
+            <option value="index.html">Sair</option>
+          </select>
+          <img id="user-pic" src="" alt="Perfil" class="foto-perfil" />
+        </div>
+      </header>
+
+      <main>
+        <h1>Olá, seja bem-vindo ao CultivoApp</h1>
+        <p>Escolha como deseja prosseguir:</p>
+        <div class="botoes">
+          <button onclick="location.href='blueprint_pagina_2.html'">Blueprints</button>
+          <button id="btn-cultivos" disabled onclick="location.href='cultivos.html'">Cultivos</button>
+          <button id="btn-eventos" disabled onclick="location.href='eventos.html'">Eventos</button>
+          <button id="btn-relatorio" disabled onclick="location.href='relatorio.html'">Relatório</button>
+        </div>
+      </main>
+
+      <footer></footer>
+    </div>
+    <div class="lateral"></div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
@@ -65,27 +131,11 @@
       if (!user) {
         window.location.href = "/login.html";
       } else {
-        document.getElementById("user-nome").textContent = `Olá, ${user.email}`;
+        document.getElementById("user-email").textContent = user.email;
+        document.getElementById("user-pic").src = user.photoURL;
       }
     });
-  </script>
 
-  <header>
-    <div class="logo">🌿 Jungle Brothers</div>
-    <div class="user" id="user-nome">Olá, Grower</div>
-  </header>
-
-  <h1>Bem-vindo ao CultivoApp</h1>
-  <p>Escolha como deseja prosseguir:</p>
-
-  <div class="menu">
-    <button onclick="location.href='blueprint_pagina_2.html'">Blueprints</button>
-    <button id="btn-cultivos" disabled onclick="location.href='cultivos.html'">Cultivos</button>
-    <button id="btn-eventos" disabled onclick="location.href='eventos.html'">Eventos</button>
-    <button id="btn-relatorio" disabled onclick="location.href='relatorio.html'">Relatório</button>
-  </div>
-
-  <script>
     const estado = {
       blueprintCriada: true,
       cultivoCriado: false,
