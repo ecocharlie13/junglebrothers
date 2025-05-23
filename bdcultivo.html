@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Banco de Dados do Cultivo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f3f6f9;
+      margin: 0;
+      padding: 40px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #1a1a1a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      background-color: #0b6e4f;
+      color: #fff;
+      text-transform: uppercase;
+      font-size: 0.85em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"] {
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 0.95em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #fcfcfc;
+    }
+
+    .center {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Etapas do Cultivo</h1>
+
+  <table id="tabela-etapas">
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Nome</th>
+        <th>D+Anterior</th>
+        <th>Início</th>
+        <th>Fim</th>
+        <th>Dias</th>
+      </tr>
+    </thead>
+    <tbody id="corpo-tabela"></tbody>
+  </table>
+
+  <script>
+    const etapas = [
+      { codigo: '1.01', nome: 'Espetar clones', dias: 0 },
+      { codigo: '1.02', nome: 'Enraizar Clones', dias: 14 },
+      { codigo: '1.03', nome: 'Tamponar fibra de coco', dias: 2 },
+      { codigo: '1.04', nome: 'Transplante', dias: 0 },
+      { codigo: '1.05', nome: 'Enraizamento', dias: 7 },
+      { codigo: '1.06', nome: 'Tamponar fibra de coco', dias: 2 },
+      { codigo: '1.07', nome: 'Transplante', dias: 0 },
+      { codigo: '1.08', nome: 'Vega', dias: 14 },
+      { codigo: '1.09', nome: 'Estiramento', dias: 28 },
+      { codigo: '1.10', nome: 'Engorda', dias: 14 },
+      { codigo: '1.11', nome: 'Finalização', dias: 14 },
+      { codigo: '1.12', nome: 'Colheita', dias: 0 }
+    ];
+
+    const tabela = document.getElementById('corpo-tabela');
+
+    function formatDate(date) {
+      return date.toISOString().split('T')[0];
+    }
+
+    function calcData(base, dias) {
+      const novaData = new Date(base);
+      novaData.setDate(novaData.getDate() + dias);
+      return novaData;
+    }
+
+    function renderTabela(dataInicial) {
+      tabela.innerHTML = '';
+      let dataBase = new Date(dataInicial);
+
+      etapas.forEach((etapa, index) => {
+        const inicio = calcData(dataBase, etapa.dias);
+        const fim = new Date(inicio);
+        fim.setDate(fim.getDate() + 1);
+
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td><input type="text" value="${etapa.codigo}"></td>
+          <td><input type="text" value="${etapa.nome}"></td>
+          <td><input type="number" value="${etapa.dias}" onchange="atualizarTabela()"></td>
+          <td><input type="date" value="${formatDate(inicio)}" onchange="atualizarTabela()"></td>
+          <td><input type="date" value="${formatDate(fim)}" onchange="atualizarTabela()"></td>
+          <td class="center">${(fim - inicio) / (1000 * 60 * 60 * 24)}d</td>
+        `;
+
+        tabela.appendChild(tr);
+        dataBase = inicio;
+      });
+    }
+
+    function atualizarTabela() {
+      const primeiraData = document.querySelector('#corpo-tabela tr:first-child td:nth-child(4) input').value;
+      renderTabela(primeiraData);
+    }
+
+    // Inicializar com a data de hoje
+    renderTabela(new Date());
+  </script>
+
+</body>
+</html>
