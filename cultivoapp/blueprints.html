@@ -1,172 +1,67 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blueprint do Cultivo</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-    }
-    header, footer {
-      background-color: #ccc;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .logo {
-      height: 50px;
-    }
-    .perfil {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .perfil img {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-    }
-    h1 {
-      text-align: center;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-    }
-    th {
-      background-color: orange;
-    }
-    .botoes {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      background: #eee;
-    }
-    button {
-      padding: 10px 16px;
-      background-color: rebeccapurple;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <img src="../JBLogoBranco.png" alt="Logo" class="logo" />
-    <div class="perfil">
-      <span id="user-email">...</span>
-      <select onchange="if(this.value) window.location.href=this.value">
-        <option value="">Home</option>
-        <option value="../CultivoApp.html">Início</option>
-        <option value="../dashboard.html">Área Restrita</option>
-        <option value="../perfil.html">Perfil</option>
-      </select>
-      <img id="user-pic" src="" alt="Foto de perfil" />
-    </div>
-  </header>
+<input id="nome-blueprint" placeholder="Nome da Blueprint" value="Minha Blueprint" />
 
-  <main style="padding: 20px;">
-    <h1>Blueprint do Cultivo</h1>
-    <p style="text-align: center;">Aqui você pode criar e ajustar a Blueprint do seu cultivo.</p>
+<table id="tabela">
+  <thead>
+    <tr>
+      <th>Evento</th>
+      <th>Dias</th>
+      <th>Ajuste (dias)</th>
+      <th>Notas</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td contenteditable>Clonar</td>
+      <td contenteditable>1</td>
+      <td contenteditable>0</td>
+      <td contenteditable></td>
+    </tr>
+    <!-- (adicione os demais eventos com estrutura similar) -->
+  </tbody>
+</table>
 
-    <label for="bp-nome">Nome da Blueprint:</label>
-    <input id="bp-nome" style="margin-bottom: 10px; width: 200px" />
+<button id="salvar">Salvar</button>
 
-    <table id="blueprint-tabela">
-      <thead>
-        <tr><th>Evento</th><th>Dias</th><th>Ajuste (dias)</th><th>Notas</th></tr>
-      </thead>
-      <tbody>
-        <tr><td contenteditable>Clonar</td><td contenteditable>1</td><td contenteditable>0</td><td contenteditable></td></tr>
-        <tr><td contenteditable>Enraizar Clones</td><td contenteditable>14</td><td contenteditable>0</td><td contenteditable></td></tr>
-        <tr><td contenteditable>Tamponar</td><td contenteditable>2</td><td contenteditable>-2</td><td contenteditable>Dois dias antes do fim de "Enraizar Clones", deve ser feita a Tamponação</td></tr>
-        <tr><td contenteditable>Transplantar</td><td contenteditable>1</td><td contenteditable>0</td><td contenteditable>O transplante coincide com o fim das etapas "Enraizar Clones" e "Tamponar"</td></tr>
-        <tr><td contenteditable>Enraizar</td><td contenteditable>7</td><td contenteditable>0</td><td contenteditable></td></tr>
-        <tr><td contenteditable>Vega</td><td contenteditable>14</td><td contenteditable>0</td><td contenteditable></td></tr>
-        <tr><td contenteditable>Estiramento</td><td contenteditable>28</td><td contenteditable>0</td><td contenteditable></td></tr>
-        <tr><td contenteditable>Engorda</td><td contenteditable>14</td><td contenteditable>0</td><td contenteditable></td></tr>
-        <tr><td contenteditable>Finalizacao</td><td contenteditable>14</td><td contenteditable>0</td><td contenteditable></td></tr>
-        <tr><td contenteditable>Colheita</td><td contenteditable>1</td><td contenteditable>0</td><td contenteditable></td></tr>
-      </tbody>
-    </table>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    <div class="botoes">
-      <button onclick="renomearBlueprint()">Renomear Blueprint</button>
-      <button onclick="salvarBlueprint()">Salvar</button>
-    </div>
-  </main>
+  const app = initializeApp({
+    apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+    authDomain: "jungle-brothers-938e0.firebaseapp.com",
+    projectId: "jungle-brothers-938e0",
+    appId: "1:221354970870:web:a7f68c75480dc094bbad67"
+  });
 
-  <footer>
-    <p style="margin: auto;">Jungle Brothers CultivoApp</p>
-  </footer>
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
-    import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+  let currentUser;
 
-    const app = initializeApp({
-      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
-      authDomain: "jungle-brothers-938e0.firebaseapp.com",
-      projectId: "jungle-brothers-938e0",
-      appId: "1:221354970870:web:a7f68c75480dc094bbad67"
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      location.href = "/login.html";
+    } else {
+      currentUser = user;
+    }
+  });
+
+  document.getElementById("salvar").addEventListener("click", async () => {
+    const nome = document.getElementById("nome-blueprint").value;
+    const linhas = document.querySelectorAll("#tabela tbody tr");
+    const eventos = [];
+
+    linhas.forEach(linha => {
+      const [evento, dias, ajuste, notas] = [...linha.cells].map(td => td.innerText.trim());
+      eventos.push({ evento, dias: parseInt(dias), ajuste: parseInt(ajuste), notas });
     });
 
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const ref = doc(db, "blueprints", currentUser.uid);
+    await setDoc(ref, {
+      [nome]: eventos
+    }, { merge: true });
 
-    let user = null;
-    let isSaved = true;
-
-    onAuthStateChanged(auth, (u) => {
-      if (!u) return window.location.href = "/login.html";
-      user = u;
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
-    });
-
-    window.addEventListener("beforeunload", function (e) {
-      if (!isSaved) {
-        e.preventDefault();
-        e.returnValue = "Você tem alterações não salvas. Deseja sair?";
-      }
-    });
-
-    const salvarBlueprint = async () => {
-      if (!user) return;
-      const nome = document.getElementById("bp-nome").value || "sem-nome";
-      const linhas = [...document.querySelectorAll("#blueprint-tabela tbody tr")].map(tr => {
-        const [evento, dias, ajuste, notas] = [...tr.children].map(td => td.textContent.trim());
-        return { evento, dias, ajuste, notas };
-      });
-      await setDoc(doc(db, "blueprints", `${user.email}-${nome}`), {
-        user: user.email,
-        nome,
-        linhas,
-        atualizado: new Date()
-      });
-      alert("Blueprint salva com sucesso!");
-      isSaved = true;
-    };
-
-    const renomearBlueprint = () => {
-      const novoNome = prompt("Digite um novo nome para esta Blueprint:");
-      if (novoNome) document.getElementById("bp-nome").value = novoNome;
-      isSaved = false;
-    };
-
-    document.querySelector("#blueprint-tabela").addEventListener("input", () => isSaved = false);
-  </script>
-</body>
-</html>
+    alert("Blueprint salva!");
+  });
+</script>
