@@ -2,19 +2,51 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Blueprints | CultivoApp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/css/estilo.css" />
+  <title>Blueprints | CultivoApp</title>
   <style>
     body {
-      font-family: sans-serif;
-      background-color: white;
       margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #fff;
     }
     .container {
-      padding: 40px;
-      max-width: 960px;
-      margin: auto;
+      display: flex;
+      min-height: 100vh;
+    }
+    .lateral {
+      background-color: #8b44f3;
+      width: 80px;
+    }
+    .conteudo {
+      flex-grow: 1;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      height: 60px;
+    }
+    .menu-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .menu-user select {
+      padding: 4px;
+    }
+    .foto-perfil {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+    }
+    h1, p {
+      text-align: center;
     }
     table {
       width: 100%;
@@ -23,176 +55,133 @@
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 10px;
+      padding: 8px;
+      text-align: left;
     }
     th {
-      background: orange;
-      color: black;
+      background-color: orange;
     }
-    footer {
-      background: #ccc;
+    .footer-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      background-color: #ccc;
       padding: 10px;
-      text-align: center;
-      font-style: italic;
     }
-    .btn {
+    .footer-actions button {
       padding: 10px 20px;
-      background-color: rebeccapurple;
-      color: white;
       border: none;
-      margin: 5px;
-      border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
     }
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
+    .footer-actions button.nova {
+      background-color: #8b44f3;
+      color: white;
+      border-radius: 12px 0 12px 0;
     }
-    .topbar img {
-      height: 40px;
+    .footer-actions button.salvar {
+      background-color: #8b44f3;
+      color: white;
+      border-radius: 12px 0 12px 0;
     }
   </style>
 </head>
 <body>
-  <div class="topbar" style="background: #ccc;">
-    <img src="/JBLogoBranco.png" alt="Logo Jungle Brothers">
-    <div id="username">Olá, Grower</div>
-  </div>
-
   <div class="container">
-    <h2>Blueprint do Cultivo</h2>
-    <p id="subtext">Aqui você pode criar e ajustar a Blueprint do seu cultivo.</p>
-    
-    <table id="tabela">
-      <thead>
-        <tr>
-          <th>Evento</th>
-          <th>Dias</th>
-          <th>Ajuste (dias)</th>
-          <th>Notas</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <div class="lateral"></div>
+    <div class="conteudo">
+      <header>
+        <img src="/JBLogoBranco.png" alt="Logo Jungle Brothers" class="logo">
+        <div class="menu-user">
+          <span id="user-email">Grower</span>
+          <select>
+            <option>Home</option>
+            <option value="dashboard.html">Área Restrita</option>
+            <option value="perfil.html">Perfil</option>
+            <option value="index.html">Sair</option>
+          </select>
+          <img id="user-pic" src="" alt="Perfil" class="foto-perfil" />
+        </div>
+      </header>
 
-    <div style="margin-top: 20px;">
-      <button class="btn" onclick="renomearBlueprint()">Renomear Blueprint</button>
-      <button class="btn" onclick="salvarBlueprint()">Salvar</button>
+      <main>
+        <h1>Eko Grower, aqui você pode ajustar a Blueprint do seu cultivo</h1>
+        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+          <select><option>Blueprints</option></select>
+          <button>SELECIONAR</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Evento</th>
+              <th>Dias</th>
+              <th>Ajuste (dias)</th>
+              <th>Notas</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-blueprint">
+            <!-- Linhas dinâmicas -->
+          </tbody>
+        </table>
+      </main>
+
+      <div class="footer-actions">
+        <span><em>Renomear Blueprint</em></span>
+        <span><em>Adicionar/ Remover Linha</em></span>
+        <div>
+          <button class="nova">NOVA</button>
+          <button class="salvar">SALVAR</button>
+        </div>
+      </div>
     </div>
+    <div class="lateral"></div>
   </div>
-
-  <footer>Jungle Brothers CultivoApp</footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc,
-      updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    const firebaseConfig = {
+    const app = initializeApp({
       apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
       authDomain: "jungle-brothers-938e0.firebaseapp.com",
       projectId: "jungle-brothers-938e0",
       appId: "1:221354970870:web:a7f68c75480dc094bbad67"
-    };
+    });
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
     const auth = getAuth(app);
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+      } else {
+        document.getElementById("user-email").textContent = user.email;
+        document.getElementById("user-pic").src = user.photoURL;
+      }
+    });
 
-    let blueprintId = "";
-    const modelo = [
-      ["Clonar", 1, 0, ""],
-      ["Enraizar Clones", 14, 0, ""],
-      ["Tamponar", 2, -2, 'Dois dias antes do fim de "Enraizar Clones"'],
-      ["Transplantar", 1, 0, 'Coincide com o fim de "Tamponar"'],
-      ["Enraizar", 7, 0, ""],
-      ["Vega", 14, 0, ""],
-      ["Estiramento", 28, 0, ""],
-      ["Engorda", 14, 0, ""],
-      ["Finalizacao", 14, 0, ""],
-      ["Colheita", 1, 0, ""]
+    // Adiciona blueprint modelo
+    const eventos = [
+      { evento: "Clonar", dias: 1, ajuste: 0, nota: "" },
+      { evento: "Enraizar Clones", dias: 14, ajuste: 0, nota: "" },
+      { evento: "Tamponar", dias: 2, ajuste: -2, nota: "Dois dias antes do fim de \"Enraizar Clones\", deve ser feita a Tamponação" },
+      { evento: "Transplantar", dias: 1, ajuste: 0, nota: "O transplante coincide com o fim das etapas \"Enraizar Clones\" e \"Tamponar\"" },
+      { evento: "Enraizar", dias: 7, ajuste: 0, nota: "" },
+      { evento: "Vega", dias: 14, ajuste: 0, nota: "" },
+      { evento: "Estiramento", dias: 28, ajuste: 0, nota: "" },
+      { evento: "Engorda", dias: 14, ajuste: 0, nota: "" },
+      { evento: "Finalizacao", dias: 14, ajuste: 0, nota: "" },
+      { evento: "Colheita", dias: 1, ajuste: 0, nota: "" }
     ];
 
-    function renderTabela(data) {
-      const tbody = document.querySelector("tbody");
-      tbody.innerHTML = "";
-      data.forEach((linha, i) => {
-        const tr = document.createElement("tr");
-        linha.forEach((col, j) => {
-          const td = document.createElement("td");
-          if (j === 0) {
-            td.textContent = col;
-          } else if (j === 3) {
-            const input = document.createElement("input");
-            input.value = col;
-            input.style.width = "100%";
-            input.oninput = (e) => modelo[i][j] = e.target.value;
-            td.appendChild(input);
-          } else {
-            const input = document.createElement("input");
-            input.type = "number";
-            input.value = col;
-            input.style.width = "60px";
-            input.oninput = (e) => modelo[i][j] = Number(e.target.value);
-            td.appendChild(input);
-          }
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      });
-    }
-
-    function salvarBlueprint() {
-      if (!blueprintId) return alert("Nenhuma blueprint carregada");
-      setDoc(doc(db, "blueprints", blueprintId), {
-        uid: auth.currentUser.uid,
-        nome: blueprintId,
-        dados: modelo
-      }).then(() => alert("Salvo com sucesso"));
-    }
-
-    function renomearBlueprint() {
-      const novo = prompt("Digite o novo nome:");
-      if (novo) {
-        blueprintId = novo;
-        document.getElementById("subtext").innerText = `Blueprint: ${novo}`;
-      }
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        location.href = "/login.html";
-        return;
-      }
-      document.getElementById("username").innerText = `Olá, ${user.email}`;
-
-      const ref = doc(db, "blueprints", user.uid);
-      const snap = await getDoc(ref);
-
-      if (snap.exists()) {
-        const dados = snap.data();
-        blueprintId = dados.nome || user.uid;
-        document.getElementById("subtext").innerText = `Blueprint: ${blueprintId}`;
-        dados.dados.forEach((linha, i) => modelo[i] = linha);
-      } else {
-        blueprintId = prompt("Nomeie sua Blueprint:", "Minha Blueprint");
-        await setDoc(ref, {
-          uid: user.uid,
-          nome: blueprintId,
-          dados: modelo
-        });
-      }
-
-      renderTabela(modelo);
+    const tbody = document.getElementById("tabela-blueprint");
+    eventos.forEach(ev => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${ev.evento}</td>
+        <td>${ev.dias}</td>
+        <td>${ev.ajuste}</td>
+        <td>${ev.nota}</td>
+      `;
+      tbody.appendChild(tr);
     });
   </script>
 </body>
