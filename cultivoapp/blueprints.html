@@ -4,65 +4,65 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blueprints - CultivoApp</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #fff; }
-    header, footer { background: #ccc; padding: 10px; text-align: right; }
-    h1, p { text-align: center; }
-    table { margin: auto; border-collapse: collapse; width: 90%; }
-    th, td { border: 1px solid #ddd; padding: 8px; }
-    th { background-color: orange; }
-    input[type="text"], input[type="number"] { width: 100%; box-sizing: border-box; }
-    .actions { text-align: center; margin-top: 20px; }
-    .btn { padding: 10px 20px; background: rebeccapurple; color: #fff; border: none; cursor: pointer; }
-    .dropdown { position: absolute; top: 10px; left: 10px; }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <header>
-    <span id="user-email"></span>
-    <img id="user-pic" src="" width="32" height="32" style="border-radius:50%; vertical-align:middle;" />
+<body class="bg-gray-100 text-center">
+  <header class="bg-gray-300 p-4 flex justify-end items-center gap-4">
+    <span id="user-email" class="text-sm font-medium"></span>
+    <img id="user-pic" src="" alt="Perfil" class="w-8 h-8 rounded-full" />
   </header>
 
-  <h1>Blueprint do Cultivo</h1>
-  <p>Preencha abaixo sua blueprint e salve para começar.</p>
-  <div style="text-align: center;">
-    Nome da Blueprint: <input type="text" id="nome-blueprint" placeholder="Ex: BP Teste" />
-  </div>
+  <main class="p-6">
+    <h1 class="text-2xl font-bold mb-2">Blueprint do Cultivo</h1>
+    <p class="mb-4">Preencha abaixo sua blueprint e salve para começar.</p>
 
-  <table id="tabela">
-    <thead>
-      <tr><th>Evento</th><th>Dias</th><th>Ajuste</th><th>Notas</th></tr>
-    </thead>
-    <tbody>
-      <tr class="linha"><td><input class="evento" value="Clonar"/></td><td><input class="dias" value="1"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Enraizar Clones"/></td><td><input class="dias" value="14"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Tamponar"/></td><td><input class="dias" value="2"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas" value="Dois dias antes do fim de Enraizar Clones"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Transplantar"/></td><td><input class="dias" value="1"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas" value="Coincide com fim de Tamponar e Enraizar Clones"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Enraizar"/></td><td><input class="dias" value="7"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Vega"/></td><td><input class="dias" value="14"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Estiramento"/></td><td><input class="dias" value="28"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Engorda"/></td><td><input class="dias" value="14"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Finalizacao"/></td><td><input class="dias" value="14"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Colheita"/></td><td><input class="dias" value="1"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
-    </tbody>
-  </table>
+    <div class="mb-4">
+      <label for="nome-blueprint" class="font-semibold">Nome da Blueprint:</label>
+      <input id="nome-blueprint" class="border border-gray-400 px-2 py-1 rounded" placeholder="Ex: BP Teste" />
+    </div>
 
-  <div class="actions">
-    <button class="btn" id="salvar">Salvar</button>
-  </div>
+    <div class="mb-4">
+      <select id="blueprint-select" class="border px-2 py-1 rounded"></select>
+      <button onclick="loadBlueprint()" class="bg-blue-600 text-white px-4 py-1 ml-2 rounded">Carregar</button>
+    </div>
 
-  <footer>Jungle Brothers CultivoApp</footer>
+    <div class="overflow-x-auto">
+      <table class="table-auto mx-auto border">
+        <thead class="bg-orange-400 text-white">
+          <tr>
+            <th class="px-4 py-2">Evento</th>
+            <th class="px-4 py-2">Dias</th>
+            <th class="px-4 py-2">Ajuste</th>
+            <th class="px-4 py-2">Notas</th>
+          </tr>
+        </thead>
+        <tbody id="tabela">
+          <!-- Linhas de exemplo -->
+          <tr class="linha"><td><input class="evento" value="Clonar" /></td><td><input class="dias" value="1" /></td><td><input class="ajuste" value="0" /></td><td><input class="notas" value="" /></td></tr>
+          <tr class="linha"><td><input class="evento" value="Enraizar Clones" /></td><td><input class="dias" value="14" /></td><td><input class="ajuste" value="0" /></td><td><input class="notas" value="" /></td></tr>
+          <!-- Adicione outras linhas conforme necessário -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6">
+      <button id="salvar" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded">Salvar</button>
+      <p id="mensagem-sucesso" class="text-green-600 mt-2 hidden">✅ Blueprint salva com sucesso!</p>
+    </div>
+  </main>
+
+  <footer class="bg-gray-300 p-4 mt-6 text-sm text-right">Jungle Brothers CultivoApp</footer>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-    import { getFirestore, collection, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+    import { getFirestore, collection, doc, setDoc, getDocs, query, where, getDoc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
     import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
-      authDomain: "jungle-brothers-938e0.firebaseapp.com",
-      projectId: "jungle-brothers-938e0",
-      storageBucket: "jungle-brothers-938e0.appspot.com",
+      authDomain: "jungle-brothers-93e80.firebaseapp.com",
+      projectId: "jungle-brothers-93e80",
+      storageBucket: "jungle-brothers-93e80.appspot.com",
       messagingSenderId: "221354970870",
       appId: "1:221354970870:web:a7f68c75480dc094bbad67"
     };
@@ -70,25 +70,38 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    let usuario = null;
 
     onAuthStateChanged(auth, async (user) => {
-      console.log("Verificando login:", user);
       if (!user) {
         window.location.href = "/login.html";
-        return;
+      } else {
+        usuario = user;
+        document.getElementById("user-email").textContent = user.email;
+        document.getElementById("user-pic").src = user.photoURL;
+        carregarBluePrintsSalvas(user.email);
       }
-
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
     });
+
+    async function carregarBluePrintsSalvas(email) {
+      const bpRef = collection(db, "blueprints");
+      const q = query(bpRef, where("usuario", "==", email));
+      const snapshot = await getDocs(q);
+      const select = document.getElementById("blueprint-select");
+      select.innerHTML = "";
+      snapshot.forEach((doc) => {
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = doc.data().nome;
+        select.appendChild(opt);
+      });
+    }
 
     document.getElementById("salvar").addEventListener("click", async () => {
       const nome = document.getElementById("nome-blueprint").value.trim();
       if (!nome) return alert("Dê um nome à sua blueprint.");
-
-      const linhas = document.querySelectorAll(".linha");
+      const linhas = document.querySelectorAll("#tabela tr.linha");
       const eventos = [];
-
       linhas.forEach(row => {
         const evento = row.querySelector(".evento")?.value || "";
         const dias = parseInt(row.querySelector(".dias")?.value || "0");
@@ -97,15 +110,37 @@
         eventos.push({ evento, dias, ajuste, notas });
       });
 
-      await setDoc(doc(db, "blueprints", nome + "_" + auth.currentUser.uid), {
-        usuario: auth.currentUser.email,
+      await setDoc(doc(db, "blueprints", nome + "_" + usuario.uid), {
+        usuario: usuario.email,
         nome,
         eventos,
         criado: new Date().toISOString()
       });
-
-      alert("Blueprint salva com sucesso!");
+      document.getElementById("mensagem-sucesso").classList.remove("hidden");
     });
+
+    window.loadBlueprint = async () => {
+      const docId = document.getElementById("blueprint-select").value;
+      const ref = doc(db, "blueprints", docId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const eventos = snap.data().eventos;
+        const tbody = document.getElementById("tabela");
+        tbody.innerHTML = "";
+        eventos.forEach(ev => {
+          const tr = document.createElement("tr");
+          tr.classList.add("linha");
+          tr.innerHTML = `
+            <td><input class="evento" value="${ev.evento}" /></td>
+            <td><input class="dias" value="${ev.dias}" /></td>
+            <td><input class="ajuste" value="${ev.ajuste}" /></td>
+            <td><input class="notas" value="${ev.notas}" /></td>
+          `;
+          tbody.appendChild(tr);
+        });
+        document.getElementById("nome-blueprint").value = snap.data().nome;
+      }
+    }
   </script>
 </body>
 </html>
