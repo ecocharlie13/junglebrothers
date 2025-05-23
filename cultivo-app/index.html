@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cultivo-App | Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module" src="/js/firebase.js"></script>
   </head>
   <body class="bg-gray-100 h-screen flex items-center justify-center">
     <div class="bg-white p-10 rounded-2xl shadow-xl max-w-md w-full text-center">
@@ -21,7 +20,7 @@
     </div>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+      import { app } from "/js/firebase.js";
       import {
         getAuth,
         signInWithPopup,
@@ -33,16 +32,6 @@
         getDoc
       } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyC07MoowfRaolBp0oBQo9YJ-4NL0CJYFKE",
-        authDomain: "jungle-brothers-938e0.firebaseapp.com",
-        projectId: "jungle-brothers-938e0",
-        storageBucket: "jungle-brothers-938e0.appspot.com",
-        messagingSenderId: "221354970870",
-        appId: "1:221354970870:web:a7f68c75480dc094bbad67"
-      };
-
-      const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
       const provider = new GoogleAuthProvider();
@@ -56,7 +45,7 @@
           const docSnap = await getDoc(docRef);
 
           if (docSnap.exists() && docSnap.data().ativo === "sim") {
-            window.location.href = "/home.html";
+            window.location.href = "/cultivo-app/home.html";
           } else {
             document.getElementById("error-msg").innerText = "Acesso negado. Email não autorizado.";
             document.getElementById("error-msg").classList.remove("hidden");
