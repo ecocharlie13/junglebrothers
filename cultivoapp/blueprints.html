@@ -4,152 +4,168 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blueprints - CultivoApp</title>
-  <link rel="stylesheet" href="/css/estilo.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
+      background: #fff;
     }
     header, footer {
-      background-color: #ccc;
+      background: #ccc;
       padding: 10px;
       text-align: right;
     }
-    header img {
-      height: 60px;
-    }
-    .container {
-      padding: 20px;
+    h1, h2, p {
+      text-align: center;
     }
     table {
-      width: 100%;
+      margin: auto;
       border-collapse: collapse;
-      margin-bottom: 20px;
+      width: 90%;
     }
     th, td {
-      border: 1px solid #ccc;
+      border: 1px solid #ddd;
       padding: 8px;
-      text-align: left;
     }
     th {
       background-color: orange;
     }
-    input[type="text"] {
+    input[type="text"], input[type="number"] {
       width: 100%;
+      box-sizing: border-box;
     }
-    .botoes {
-      display: flex;
-      justify-content: space-between;
+    .actions {
+      text-align: center;
+      margin-top: 20px;
     }
-    button {
-      background-color: #8b44f3;
-      color: white;
-      border: none;
+    .btn {
       padding: 10px 20px;
+      background: rebeccapurple;
+      color: #fff;
+      border: none;
       cursor: pointer;
+    }
+    .dropdown {
+      position: absolute;
+      top: 10px;
+      left: 10px;
     }
   </style>
 </head>
 <body>
   <header>
-    <span id="user-email"></span>
-    <img id="user-pic" src="" alt="perfil" style="width:36px; height:36px; border-radius:50%;" />
-  </header>
-  <div class="container">
-    <h2>Blueprint do Cultivo</h2>
-    <p>Aqui você pode criar e ajustar a Blueprint do seu cultivo.</p>
-    <label for="nomeBlueprint">Nome da Blueprint:</label>
-    <input type="text" id="nomeBlueprint" placeholder="Digite o nome da Blueprint" />
-
-    <table id="tabelaBlueprint">
-      <thead>
-        <tr>
-          <th>Evento</th>
-          <th>Dias</th>
-          <th>Ajuste (dias)</th>
-          <th>Notas</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><input value="Clonar"></td><td><input value="1"></td><td><input value="0"></td><td></td></tr>
-        <tr><td><input value="Enraizar Clones"></td><td><input value="14"></td><td><input value="0"></td><td></td></tr>
-        <tr><td><input value="Tamponar"></td><td><input value="2"></td><td><input value="-2"></td><td>Dois dias antes do fim de "Enraizar Clones", deve ser feita a Tamponação</td></tr>
-        <tr><td><input value="Transplantar"></td><td><input value="1"></td><td><input value="0"></td><td>O transplante coincide com o fim das etapas "Enraizar Clones" e "Tamponar"</td></tr>
-        <tr><td><input value="Enraizar"></td><td><input value="7"></td><td><input value="0"></td><td></td></tr>
-        <tr><td><input value="Vega"></td><td><input value="14"></td><td><input value="0"></td><td></td></tr>
-        <tr><td><input value="Estiramento"></td><td><input value="28"></td><td><input value="0"></td><td></td></tr>
-        <tr><td><input value="Engorda"></td><td><input value="14"></td><td><input value="0"></td><td></td></tr>
-        <tr><td><input value="Finalizacao"></td><td><input value="14"></td><td><input value="0"></td><td></td></tr>
-        <tr><td><input value="Colheita"></td><td><input value="1"></td><td><input value="0"></td><td></td></tr>
-      </tbody>
-    </table>
-
-    <div class="botoes">
-      <button onclick="salvarBlueprint()">Salvar</button>
+    <div class="dropdown">
+      <select id="blueprint-select"></select>
+      <button onclick="loadBlueprint()">Carregar</button>
     </div>
+    <span id="user-email"></span> <img id="user-pic" src="" width="32" height="32" style="border-radius:50%; vertical-align:middle;" />
+  </header>
+
+  <h1>Blueprint do Cultivo</h1>
+  <p>Aqui você pode criar e ajustar a Blueprint do seu cultivo.</p>
+  <div style="text-align: center;">
+    Nome da Blueprint: <input type="text" id="nome-blueprint" placeholder="Ex: BP Teste" />
   </div>
+
+  <table id="tabela">
+    <thead>
+      <tr>
+        <th>Evento</th>
+        <th>Dias</th>
+        <th>Ajuste (dias)</th>
+        <th>Notas</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><input type="text" value="Clonar"/></td><td><input type="number" value="1"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
+      <tr><td><input type="text" value="Enraizar Clones"/></td><td><input type="number" value="14"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
+      <tr><td><input type="text" value="Tamponar"/></td><td><input type="number" value="2"/></td><td><input type="number" value="0"/></td><td><input type="text" value="Dois dias antes do fim de 'Enraizar Clones', deve ser feita a Tamponação"/></td></tr>
+      <tr><td><input type="text" value="Transplantar"/></td><td><input type="number" value="1"/></td><td><input type="number" value="0"/></td><td><input type="text" value="O transplante coincide com o fim das etapas 'Enraizar Clones' e 'Tamponar'"/></td></tr>
+      <tr><td><input type="text" value="Enraizar"/></td><td><input type="number" value="7"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
+      <tr><td><input type="text" value="Vega"/></td><td><input type="number" value="14"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
+      <tr><td><input type="text" value="Estiramento"/></td><td><input type="number" value="28"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
+      <tr><td><input type="text" value="Engorda"/></td><td><input type="number" value="14"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
+      <tr><td><input type="text" value="Finalizacao"/></td><td><input type="number" value="14"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
+      <tr><td><input type="text" value="Colheita"/></td><td><input type="number" value="1"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
+    </tbody>
+  </table>
+
+  <div class="actions">
+    <button class="btn" onclick="salvarBlueprint()">Salvar</button>
+  </div>
+
   <footer>
     Jungle Brothers CultivoApp
   </footer>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+    import { getFirestore, collection, doc, setDoc, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
 
-    const firebaseConfig = {
+    const app = initializeApp({
       apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
       authDomain: "jungle-brothers-938e0.firebaseapp.com",
       projectId: "jungle-brothers-938e0",
       appId: "1:221354970870:web:a7f68c75480dc094bbad67"
-    };
+    });
 
-    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-
     let usuario = null;
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = "/login.html";
       } else {
         usuario = user;
         document.getElementById("user-email").textContent = user.email;
         document.getElementById("user-pic").src = user.photoURL;
+        carregarBluePrintsSalvas(user.email);
       }
     });
 
-    window.salvarBlueprint = async () => {
-      const nome = document.getElementById("nomeBlueprint").value;
-      const linhas = document.querySelectorAll("#tabelaBlueprint tbody tr");
+    async function carregarBluePrintsSalvas(email) {
+      const bpRef = collection(db, "blueprints");
+      const q = query(bpRef, where("usuario", "==", email));
+      const snapshot = await getDocs(q);
+      const select = document.getElementById("blueprint-select");
+      snapshot.forEach((doc) => {
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = doc.data().nome;
+        select.appendChild(opt);
+      });
+    }
 
-      const blueprint = [];
-      linhas.forEach(tr => {
-        const cells = tr.querySelectorAll("input");
-        blueprint.push({
-          evento: cells[0].value,
-          dias: parseInt(cells[1].value),
-          ajuste: parseInt(cells[2].value),
-          notas: cells[3].value
+    window.salvarBlueprint = async () => {
+      const nome = document.getElementById("nome-blueprint").value;
+      if (!nome) return alert("Dê um nome à sua blueprint.");
+      const linhas = document.querySelectorAll("#tabela tbody tr");
+      const eventos = [];
+      linhas.forEach(row => {
+        const inputs = row.querySelectorAll("input");
+        eventos.push({
+          evento: inputs[0].value,
+          dias: Number(inputs[1].value),
+          ajuste: Number(inputs[2].value),
+          notas: inputs[3].value
         });
       });
+      await setDoc(doc(db, "blueprints", nome + "_" + usuario.uid), {
+        usuario: usuario.email,
+        nome: nome,
+        eventos: eventos,
+        criado: new Date().toISOString()
+      });
+      alert("Blueprint salva com sucesso!");
+    }
 
-      if (!nome || !usuario) return alert("Preencha o nome e aguarde o login!");
-
-      try {
-        await setDoc(doc(db, "blueprints", `${usuario.uid}-${nome}`), {
-          uid: usuario.uid,
-          nome: nome,
-          etapas: blueprint,
-          atualizadoEm: new Date().toISOString()
-        });
-        alert("Blueprint salva com sucesso!");
-      } catch (e) {
-        console.error("Erro ao salvar: ", e);
-        alert("Erro ao salvar blueprint.");
-      }
-    };
+    window.loadBlueprint = async () => {
+      const nome = document.getElementById("blueprint-select").value;
+      // carregar blueprint específica futuramente
+      alert("Carregamento ainda não implementado.");
+    }
   </script>
 </body>
 </html>
