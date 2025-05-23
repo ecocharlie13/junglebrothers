@@ -1,67 +1,155 @@
-<input id="nome-blueprint" placeholder="Nome da Blueprint" value="Minha Blueprint" />
-
-<table id="tabela">
-  <thead>
-    <tr>
-      <th>Evento</th>
-      <th>Dias</th>
-      <th>Ajuste (dias)</th>
-      <th>Notas</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td contenteditable>Clonar</td>
-      <td contenteditable>1</td>
-      <td contenteditable>0</td>
-      <td contenteditable></td>
-    </tr>
-    <!-- (adicione os demais eventos com estrutura similar) -->
-  </tbody>
-</table>
-
-<button id="salvar">Salvar</button>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-  const app = initializeApp({
-    apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
-    authDomain: "jungle-brothers-938e0.firebaseapp.com",
-    projectId: "jungle-brothers-938e0",
-    appId: "1:221354970870:web:a7f68c75480dc094bbad67"
-  });
-
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  let currentUser;
-
-  onAuthStateChanged(auth, user => {
-    if (!user) {
-      location.href = "/login.html";
-    } else {
-      currentUser = user;
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blueprints - CultivoApp</title>
+  <link rel="stylesheet" href="/css/estilo.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
     }
-  });
+    header, footer {
+      background-color: #ccc;
+      padding: 10px;
+      text-align: right;
+    }
+    header img {
+      height: 60px;
+    }
+    .container {
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: orange;
+    }
+    input[type="text"] {
+      width: 100%;
+    }
+    .botoes {
+      display: flex;
+      justify-content: space-between;
+    }
+    button {
+      background-color: #8b44f3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span id="user-email"></span>
+    <img id="user-pic" src="" alt="perfil" style="width:36px; height:36px; border-radius:50%;" />
+  </header>
+  <div class="container">
+    <h2>Blueprint do Cultivo</h2>
+    <p>Aqui você pode criar e ajustar a Blueprint do seu cultivo.</p>
+    <label for="nomeBlueprint">Nome da Blueprint:</label>
+    <input type="text" id="nomeBlueprint" placeholder="Digite o nome da Blueprint" />
 
-  document.getElementById("salvar").addEventListener("click", async () => {
-    const nome = document.getElementById("nome-blueprint").value;
-    const linhas = document.querySelectorAll("#tabela tbody tr");
-    const eventos = [];
+    <table id="tabelaBlueprint">
+      <thead>
+        <tr>
+          <th>Evento</th>
+          <th>Dias</th>
+          <th>Ajuste (dias)</th>
+          <th>Notas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><input value="Clonar"></td><td><input value="1"></td><td><input value="0"></td><td></td></tr>
+        <tr><td><input value="Enraizar Clones"></td><td><input value="14"></td><td><input value="0"></td><td></td></tr>
+        <tr><td><input value="Tamponar"></td><td><input value="2"></td><td><input value="-2"></td><td>Dois dias antes do fim de "Enraizar Clones", deve ser feita a Tamponação</td></tr>
+        <tr><td><input value="Transplantar"></td><td><input value="1"></td><td><input value="0"></td><td>O transplante coincide com o fim das etapas "Enraizar Clones" e "Tamponar"</td></tr>
+        <tr><td><input value="Enraizar"></td><td><input value="7"></td><td><input value="0"></td><td></td></tr>
+        <tr><td><input value="Vega"></td><td><input value="14"></td><td><input value="0"></td><td></td></tr>
+        <tr><td><input value="Estiramento"></td><td><input value="28"></td><td><input value="0"></td><td></td></tr>
+        <tr><td><input value="Engorda"></td><td><input value="14"></td><td><input value="0"></td><td></td></tr>
+        <tr><td><input value="Finalizacao"></td><td><input value="14"></td><td><input value="0"></td><td></td></tr>
+        <tr><td><input value="Colheita"></td><td><input value="1"></td><td><input value="0"></td><td></td></tr>
+      </tbody>
+    </table>
 
-    linhas.forEach(linha => {
-      const [evento, dias, ajuste, notas] = [...linha.cells].map(td => td.innerText.trim());
-      eventos.push({ evento, dias: parseInt(dias), ajuste: parseInt(ajuste), notas });
+    <div class="botoes">
+      <button onclick="salvarBlueprint()">Salvar</button>
+    </div>
+  </div>
+  <footer>
+    Jungle Brothers CultivoApp
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+      authDomain: "jungle-brothers-938e0.firebaseapp.com",
+      projectId: "jungle-brothers-938e0",
+      appId: "1:221354970870:web:a7f68c75480dc094bbad67"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let usuario = null;
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+      } else {
+        usuario = user;
+        document.getElementById("user-email").textContent = user.email;
+        document.getElementById("user-pic").src = user.photoURL;
+      }
     });
 
-    const ref = doc(db, "blueprints", currentUser.uid);
-    await setDoc(ref, {
-      [nome]: eventos
-    }, { merge: true });
+    window.salvarBlueprint = async () => {
+      const nome = document.getElementById("nomeBlueprint").value;
+      const linhas = document.querySelectorAll("#tabelaBlueprint tbody tr");
 
-    alert("Blueprint salva!");
-  });
-</script>
+      const blueprint = [];
+      linhas.forEach(tr => {
+        const cells = tr.querySelectorAll("input");
+        blueprint.push({
+          evento: cells[0].value,
+          dias: parseInt(cells[1].value),
+          ajuste: parseInt(cells[2].value),
+          notas: cells[3].value
+        });
+      });
+
+      if (!nome || !usuario) return alert("Preencha o nome e aguarde o login!");
+
+      try {
+        await setDoc(doc(db, "blueprints", `${usuario.uid}-${nome}`), {
+          uid: usuario.uid,
+          nome: nome,
+          etapas: blueprint,
+          atualizadoEm: new Date().toISOString()
+        });
+        alert("Blueprint salva com sucesso!");
+      } catch (e) {
+        console.error("Erro ao salvar: ", e);
+        alert("Erro ao salvar blueprint.");
+      }
+    };
+  </script>
+</body>
+</html>
