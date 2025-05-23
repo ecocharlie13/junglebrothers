@@ -2,67 +2,71 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <title>Blueprints | CultivoApp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blueprints - CultivoApp</title>
-  <link rel="stylesheet" href="../css/estilo.css" />
+  <link rel="stylesheet" href="/css/estilo.css" />
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
+      background-color: white;
       margin: 0;
     }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-    }
-    .logo {
-      height: 60px;
-    }
-    select, button {
-      padding: 6px;
+    .container {
+      padding: 40px;
+      max-width: 960px;
+      margin: auto;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 20px 0;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
     }
     th {
-      background-color: orange;
-      padding: 8px;
-    }
-    td {
-      border: 1px solid #ccc;
-      padding: 8px;
-    }
-    td[contenteditable] {
-      background: #fdfdfd;
+      background: orange;
+      color: black;
     }
     footer {
-      background-color: #ccc;
+      background: #ccc;
+      padding: 10px;
+      text-align: center;
+      font-style: italic;
+    }
+    .btn {
+      padding: 10px 20px;
+      background-color: rebeccapurple;
+      color: white;
+      border: none;
+      margin: 5px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .topbar {
       display: flex;
       justify-content: space-between;
-      padding: 10px 20px;
+      align-items: center;
+      padding: 16px;
     }
-    .highlight {
-      font-weight: bold;
+    .topbar img {
+      height: 40px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <img src="../JBLogoBranco.png" alt="Logo" class="logo">
-    <div>
-      <span id="user-email"></span>
-      <select id="blueprint-select"></select>
-      <button onclick="carregarBlueprint()">SELECIONAR</button>
-    </div>
-  </header>
+  <div class="topbar" style="background: #ccc;">
+    <img src="/JBLogoBranco.png" alt="Logo Jungle Brothers">
+    <div id="username">Olá, Grower</div>
+  </div>
 
-  <main>
-    <h2><span class="highlight" id="user-name"></span>, aqui você pode ajustar a Blueprint do seu cultivo</h2>
-    <label>Nome da Blueprint: <input type="text" id="nome-blueprint" /></label>
-    <table id="tabela-blueprint">
+  <div class="container">
+    <h2>Blueprint do Cultivo</h2>
+    <p id="subtext">Aqui você pode criar e ajustar a Blueprint do seu cultivo.</p>
+    
+    <table id="tabela">
       <thead>
         <tr>
           <th>Evento</th>
@@ -71,22 +75,27 @@
           <th>Notas</th>
         </tr>
       </thead>
-      <tbody>
-        <!-- Linhas da tabela geradas via JS -->
-      </tbody>
+      <tbody></tbody>
     </table>
-  </main>
 
-  <footer>
-    <button onclick="renomearBlueprint()">Renomear Blueprint</button>
-    <button onclick="novaBlueprint()">NOVA</button>
-    <button onclick="salvarBlueprint()">SALVAR</button>
-  </footer>
+    <div style="margin-top: 20px;">
+      <button class="btn" onclick="renomearBlueprint()">Renomear Blueprint</button>
+      <button class="btn" onclick="salvarBlueprint()">Salvar</button>
+    </div>
+  </div>
+
+  <footer>Jungle Brothers CultivoApp</footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
@@ -96,14 +105,15 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    const padrao = [
+    let blueprintId = "";
+    const modelo = [
       ["Clonar", 1, 0, ""],
       ["Enraizar Clones", 14, 0, ""],
-      ["Tamponar", 2, -2, "Dois dias antes do fim de \"Enraizar Clones\", deve ser feita a Tamponação"],
-      ["Transplantar", 1, 0, "O transplante coincide com o fim das etapas \"Enraizar Clones\" e \"Tamponar\""],
+      ["Tamponar", 2, -2, 'Dois dias antes do fim de "Enraizar Clones"'],
+      ["Transplantar", 1, 0, 'Coincide com o fim de "Tamponar"'],
       ["Enraizar", 7, 0, ""],
       ["Vega", 14, 0, ""],
       ["Estiramento", 28, 0, ""],
@@ -112,81 +122,78 @@
       ["Colheita", 1, 0, ""]
     ];
 
-    let uid = "";
-    let blueprintAtual = "default";
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) window.location.href = "/login.html";
-      uid = user.uid;
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-name").textContent = user.displayName || "Grower";
-      await listarBlueprints();
-      await carregarBlueprint();
-    });
-
-    async function listarBlueprints() {
-      const bpRef = collection(db, "blueprints", uid, "listas");
-      const snap = await getDocs(bpRef);
-      const select = document.getElementById("blueprint-select");
-      select.innerHTML = "";
-      snap.forEach(doc => {
-        const opt = document.createElement("option");
-        opt.value = doc.id;
-        opt.textContent = doc.id;
-        select.appendChild(opt);
-      });
-    }
-
-    async function carregarBlueprint() {
-      blueprintAtual = document.getElementById("blueprint-select").value || "default";
-      const bpRef = doc(db, "blueprints", uid, "listas", blueprintAtual);
-      const snap = await getDoc(bpRef);
-      const dados = snap.exists() ? snap.data().dados : padrao;
-      document.getElementById("nome-blueprint").value = blueprintAtual;
-      desenharTabela(dados);
-    }
-
-    function desenharTabela(linhas) {
-      const tbody = document.querySelector("#tabela-blueprint tbody");
+    function renderTabela(data) {
+      const tbody = document.querySelector("tbody");
       tbody.innerHTML = "";
-      linhas.forEach(([evento, dias, ajuste, nota]) => {
+      data.forEach((linha, i) => {
         const tr = document.createElement("tr");
-        [evento, dias, ajuste, nota].forEach((valor, i) => {
+        linha.forEach((col, j) => {
           const td = document.createElement("td");
-          td.textContent = valor;
-          td.contentEditable = true;
+          if (j === 0) {
+            td.textContent = col;
+          } else if (j === 3) {
+            const input = document.createElement("input");
+            input.value = col;
+            input.style.width = "100%";
+            input.oninput = (e) => modelo[i][j] = e.target.value;
+            td.appendChild(input);
+          } else {
+            const input = document.createElement("input");
+            input.type = "number";
+            input.value = col;
+            input.style.width = "60px";
+            input.oninput = (e) => modelo[i][j] = Number(e.target.value);
+            td.appendChild(input);
+          }
           tr.appendChild(td);
         });
         tbody.appendChild(tr);
       });
     }
 
-    async function salvarBlueprint() {
-      const nome = document.getElementById("nome-blueprint").value.trim();
-      const linhas = Array.from(document.querySelectorAll("#tabela-blueprint tbody tr")).map(tr =>
-        Array.from(tr.children).map(td => td.textContent.trim())
-      );
-      await setDoc(doc(db, "blueprints", uid, "listas", nome), {
-        dados: linhas
-      });
-      alert("Blueprint salva com sucesso.");
-      await listarBlueprints();
-    }
-
-    function novaBlueprint() {
-      const nome = prompt("Nome da nova blueprint:");
-      if (!nome) return;
-      document.getElementById("nome-blueprint").value = nome;
-      desenharTabela(padrao);
+    function salvarBlueprint() {
+      if (!blueprintId) return alert("Nenhuma blueprint carregada");
+      setDoc(doc(db, "blueprints", blueprintId), {
+        uid: auth.currentUser.uid,
+        nome: blueprintId,
+        dados: modelo
+      }).then(() => alert("Salvo com sucesso"));
     }
 
     function renomearBlueprint() {
-      const novo = prompt("Novo nome para a blueprint:", blueprintAtual);
-      if (!novo || novo === blueprintAtual) return;
-      document.getElementById("nome-blueprint").value = novo;
+      const novo = prompt("Digite o novo nome:");
+      if (novo) {
+        blueprintId = novo;
+        document.getElementById("subtext").innerText = `Blueprint: ${novo}`;
+      }
     }
 
-    window.onbeforeunload = () => "Tem certeza que deseja sair sem salvar?";
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        location.href = "/login.html";
+        return;
+      }
+      document.getElementById("username").innerText = `Olá, ${user.email}`;
+
+      const ref = doc(db, "blueprints", user.uid);
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) {
+        const dados = snap.data();
+        blueprintId = dados.nome || user.uid;
+        document.getElementById("subtext").innerText = `Blueprint: ${blueprintId}`;
+        dados.dados.forEach((linha, i) => modelo[i] = linha);
+      } else {
+        blueprintId = prompt("Nomeie sua Blueprint:", "Minha Blueprint");
+        await setDoc(ref, {
+          uid: user.uid,
+          nome: blueprintId,
+          dados: modelo
+        });
+      }
+
+      renderTabela(modelo);
+    });
   </script>
 </body>
 </html>
