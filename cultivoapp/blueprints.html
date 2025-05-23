@@ -7,7 +7,7 @@
   <style>
     body { font-family: Arial, sans-serif; margin: 0; background: #fff; }
     header, footer { background: #ccc; padding: 10px; text-align: right; }
-    h1, h2, p { text-align: center; }
+    h1, p { text-align: center; }
     table { margin: auto; border-collapse: collapse; width: 90%; }
     th, td { border: 1px solid #ddd; padding: 8px; }
     th { background-color: orange; }
@@ -28,25 +28,20 @@
   </header>
 
   <h1>Blueprint do Cultivo</h1>
-  <p>Aqui você pode criar e ajustar a Blueprint do seu cultivo.</p>
+  <p>Preencha abaixo sua blueprint e salve para começar.</p>
   <div style="text-align: center;">
     Nome da Blueprint: <input type="text" id="nome-blueprint" placeholder="Ex: BP Teste" />
   </div>
 
   <table id="tabela">
     <thead>
-      <tr>
-        <th>Evento</th>
-        <th>Dias</th>
-        <th>Ajuste (dias)</th>
-        <th>Notas</th>
-      </tr>
+      <tr><th>Evento</th><th>Dias</th><th>Ajuste</th><th>Notas</th></tr>
     </thead>
     <tbody>
       <tr class="linha"><td><input class="evento" value="Clonar"/></td><td><input class="dias" value="1"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
       <tr class="linha"><td><input class="evento" value="Enraizar Clones"/></td><td><input class="dias" value="14"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Tamponar"/></td><td><input class="dias" value="2"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas" value="Dois dias antes do fim de 'Enraizar Clones', deve ser feita a Tamponação"/></td></tr>
-      <tr class="linha"><td><input class="evento" value="Transplantar"/></td><td><input class="dias" value="1"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas" value="O transplante coincide com o fim das etapas 'Enraizar Clones' e 'Tamponar'"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Tamponar"/></td><td><input class="dias" value="2"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas" value="Dois dias antes do fim de Enraizar Clones"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Transplantar"/></td><td><input class="dias" value="1"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas" value="Coincide com fim de Tamponar e Enraizar Clones"/></td></tr>
       <tr class="linha"><td><input class="evento" value="Enraizar"/></td><td><input class="dias" value="7"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
       <tr class="linha"><td><input class="evento" value="Vega"/></td><td><input class="dias" value="14"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
       <tr class="linha"><td><input class="evento" value="Estiramento"/></td><td><input class="dias" value="28"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
@@ -79,19 +74,19 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
     let usuario = null;
 
-    onAuthStateChanged(auth, async (user) => {
-      console.log("Verificando login:", user);  // <-- ADICIONE ESTA LINHA
-
+    onAuthStateChanged(auth, (user) => {
+      console.log("Verificando login:", user);
       if (!user) {
         window.location.href = "/login.html";
-        return;
+      } else {
+        usuario = user;
+        document.getElementById("user-email").textContent = user.email;
+        document.getElementById("user-pic").src = user.photoURL;
+        carregarBluePrintsSalvas(user.email);
       }
-      usuario = user;
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
-      carregarBluePrintsSalvas(user.email);
     });
 
     async function carregarBluePrintsSalvas(email) {
@@ -110,8 +105,10 @@
     document.getElementById("salvar").addEventListener("click", async () => {
       const nome = document.getElementById("nome-blueprint").value.trim();
       if (!nome) return alert("Dê um nome à sua blueprint.");
+
       const linhas = document.querySelectorAll("#tabela tbody tr");
       const eventos = [];
+
       linhas.forEach(row => {
         const evento = row.querySelector(".evento")?.value || "";
         const dias = parseInt(row.querySelector(".dias")?.value || "0");
@@ -126,11 +123,12 @@
         eventos,
         criado: new Date().toISOString()
       });
+
       alert("Blueprint salva com sucesso!");
     });
 
     window.loadBlueprint = async () => {
-      alert("Carregamento ainda não implementado.");
+      alert("(em breve) Carregamento de blueprint ainda não implementado.");
     };
   </script>
 </body>
