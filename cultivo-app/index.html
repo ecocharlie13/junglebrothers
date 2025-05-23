@@ -20,7 +20,8 @@
     </div>
 
     <script type="module">
-      import { app } from "/cultivo-app/js/firebase.js";
+      const db = getFirestore(app);
+      const auth = getAuth(app);
       import {
         getAuth,
         signInWithPopup,
