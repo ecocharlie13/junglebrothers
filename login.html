@@ -1,88 +1,49 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Login | Jungle Brothers</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - CultivoApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+  <div class="bg-white p-10 rounded-2xl shadow-xl max-w-md w-full text-center">
+    <h1 class="text-2xl font-bold mb-4">CultivoApp</h1>
+    <p class="mb-6 text-gray-600">Acesse com sua conta Google</p>
+    <button id="login-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl w-full">
+      Entrar com Google
+    </button>
+    <p id="error-msg" class="mt-4 text-red-600 hidden"></p>
+  </div>
+
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
-      authDomain: "jungle-brothers-93e80.firebaseapp.com",
-      projectId: "jungle-brothers-93e80",
-      storageBucket: "jungle-brothers-93e80.appspot.com",
-      messagingSenderId: "221354970870",
-      appId: "1:221354970870:web:a7f68c75480dc094bb6ad7"
+      apiKey: "AIzaSyCy1Rikp-zFBbtmGMrx4qh-iVVPf4_pzc",
+      authDomain: "cultivoapp-a59c5.firebaseapp.com",
+      projectId: "cultivoapp-a59c5",
+      storageBucket: "cultivoapp-a59c5.appspot.com",
+      messagingSenderId: "1002856699445",
+      appId: "1:1002856699445:web:881f274eee0a931bb0837c"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
-    const db = getFirestore(app);
 
-    const botaoLogin = document.getElementById("login");
-    const botaoLogout = document.getElementById("logout");
-    const status = document.getElementById("status");
-
-    botaoLogin.onclick = async () => {
+    document.getElementById("login-btn").addEventListener("click", async () => {
       try {
-        const result = await signInWithPopup(auth, provider);
-        const email = result.user.email;
-
-        const docRef = doc(db, "autorizados", email);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists() && docSnap.data().ativo === "sim") {
-          window.location.href = "dashboard.html";
-        } else {
-          alert("Acesso não autorizado.");
-          await signOut(auth);
-        }
+        await signInWithPopup(auth, provider);
+        window.location.href = "/cultivoapp/blueprints.html";
       } catch (error) {
-        console.error("Erro no login:", error);
-        alert("Erro ao fazer login.");
-      }
-    };
-
-    botaoLogout.onclick = async () => {
-      await signOut(auth);
-      window.location.href = "index.html";
-    };
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        status.textContent = `Logado como ${user.email}`;
-        botaoLogin.style.display = "none";
-        botaoLogout.style.display = "inline-block";
-      } else {
-        status.textContent = "Você não está logado.";
-        botaoLogin.style.display = "inline-block";
-        botaoLogout.style.display = "none";
+        console.error(error);
+        const msg = document.getElementById("error-msg");
+        msg.textContent = "Erro ao autenticar. Tente novamente.";
+        msg.classList.remove("hidden");
       }
     });
   </script>
-</head>
-<body style="font-family: sans-serif; text-align: center; padding: 50px;">
-  <h1>Área Restrita</h1>
-  <p id="status">Carregando...</p>
-  <button id="login">Entrar com Google</button>
-  <button id="logout" style="display:none;">Sair</button>
-  <p>
-    <a href="index.html" style="font-size: 14px; color: #555; text-decoration: none;">
-      ← Voltar para a página inicial
-    </a>
-  </p>
 </body>
 </html>
