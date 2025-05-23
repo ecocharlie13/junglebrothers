@@ -1,131 +1,72 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Blueprint - Etapas do Cultivo</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f3f6f9;
-      margin: 0;
-      padding: 40px;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cultivo-App | Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="/js/firebase.js"></script>
+  </head>
+  <body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div class="bg-white p-10 rounded-2xl shadow-xl max-w-md w-full text-center">
+      <h1 class="text-2xl font-bold mb-4">Cultivo-App</h1>
+      <p class="mb-6 text-gray-600">Bem-vindo ao sistema de gestão da Jungle Brothers</p>
+      <button
+        id="login-btn"
+        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl w-full"
+      >
+        Entrar com Google
+      </button>
+      <p id="error-msg" class="mt-4 text-red-600 hidden"></p>
+    </div>
 
-    h1 {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #1a1a1a;
-    }
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithPopup,
+        GoogleAuthProvider
+      } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc
+      } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      border-radius: 12px;
-      overflow: hidden;
-    }
+      const firebaseConfig = {
+        apiKey: "AIzaSyC07MoowfRaolBp0oBQo9YJ-4NL0CJYFKE",
+        authDomain: "jungle-brothers-938e0.firebaseapp.com",
+        projectId: "jungle-brothers-938e0",
+        storageBucket: "jungle-brothers-938e0.appspot.com",
+        messagingSenderId: "221354970870",
+        appId: "1:221354970870:web:a7f68c75480dc094bbad67"
+      };
 
-    th, td {
-      padding: 12px 14px;
-      border-bottom: 1px solid #eee;
-      text-align: left;
-    }
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const provider = new GoogleAuthProvider();
 
-    th {
-      background-color: #0b6e4f;
-      color: #fff;
-      text-transform: uppercase;
-      font-size: 0.85em;
-    }
+      document.getElementById("login-btn").addEventListener("click", async () => {
+        try {
+          const result = await signInWithPopup(auth, provider);
+          const email = result.user.email;
 
-    tr:last-child td {
-      border-bottom: none;
-    }
+          const docRef = doc(db, "autorizados", email);
+          const docSnap = await getDoc(docRef);
 
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 6px 10px;
-      font-size: 0.95em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background-color: #fcfcfc;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 10px 20px;
-      margin-top: 20px;
-      font-size: 1em;
-      color: #fff;
-      background-color: #0b6e4f;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .btn:hover {
-      background-color: #095f40;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Blueprint de Etapas do Cultivo</h1>
-
-  <table id="tabela-etapas">
-    <thead>
-      <tr>
-        <th>Código</th>
-        <th>Nome</th>
-        <th>Duração (dias)</th>
-      </tr>
-    </thead>
-    <tbody id="corpo-tabela"></tbody>
-  </table>
-
-  <button class="btn" onclick="salvarBlueprint()">Salvar Blueprint</button>
-
-  <script>
-    const etapas = [
-      { codigo: '1.01', nome: 'Espetar clones', duracao: 1 },
-      { codigo: '1.02', nome: 'Enraizar Clones', duracao: 14 },
-      { codigo: '1.03', nome: 'Tamponar fibra de coco', duracao: 2 },
-      { codigo: '1.04', nome: 'Transplante', duracao: 1 },
-      { codigo: '1.05', nome: 'Enraizamento', duracao: 7 },
-      { codigo: '1.06', nome: 'Tamponar fibra de coco', duracao: 2 },
-      { codigo: '1.07', nome: 'Transplante', duracao: 1 },
-      { codigo: '1.08', nome: 'Vega', duracao: 14 },
-      { codigo: '1.09', nome: 'Estiramento', duracao: 28 },
-      { codigo: '1.10', nome: 'Engorda', duracao: 14 },
-      { codigo: '1.11', nome: 'Finalização', duracao: 14 },
-      { codigo: '1.12', nome: 'Colheita', duracao: 1 }
-    ];
-
-    const tabela = document.getElementById('corpo-tabela');
-
-    function renderTabela() {
-      tabela.innerHTML = '';
-      etapas.forEach((etapa, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><input type="text" value="${etapa.codigo}" onchange="etapas[${index}].codigo = this.value"></td>
-          <td><input type="text" value="${etapa.nome}" onchange="etapas[${index}].nome = this.value"></td>
-          <td><input type="number" min="1" value="${etapa.duracao}" onchange="etapas[${index}].duracao = parseInt(this.value)"></td>
-        `;
-        tabela.appendChild(tr);
+          if (docSnap.exists() && docSnap.data().ativo === "sim") {
+            window.location.href = "/home.html";
+          } else {
+            document.getElementById("error-msg").innerText = "Acesso negado. Email não autorizado.";
+            document.getElementById("error-msg").classList.remove("hidden");
+          }
+        } catch (error) {
+          console.error(error);
+          document.getElementById("error-msg").innerText = "Erro ao autenticar. Tente novamente.";
+          document.getElementById("error-msg").classList.remove("hidden");
+        }
       });
-    }
-
-    function salvarBlueprint() {
-      localStorage.setItem('blueprintCultivo', JSON.stringify(etapas));
-      alert('Blueprint salvo com sucesso!');
-    }
-
-    renderTabela();
-  </script>
-
-</body>
+    </script>
+  </body>
 </html>
