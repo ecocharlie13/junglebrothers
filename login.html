@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -26,7 +26,8 @@
       projectId: "cultivoapp-a59c5",
       storageBucket: "cultivoapp-a59c5.appspot.com",
       messagingSenderId: "1002856699445",
-      appId: "1:1002856699445:web:881f274eee0a931bb0837c"
+      appId: "1:1002856699445:web:881f274eee0a931bb0837c",
+      measurementId: "G-75YELFQ94M"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -36,7 +37,7 @@
     document.getElementById("login-btn").addEventListener("click", async () => {
       try {
         await signInWithPopup(auth, provider);
-        window.location.href = "/cultivoapp/blueprints.html";
+        window.location.href = "/dashboard.html"; // ← redireciona para dashboard após login
       } catch (error) {
         console.error(error);
         const msg = document.getElementById("error-msg");
