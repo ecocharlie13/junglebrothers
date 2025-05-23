@@ -5,51 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blueprints - CultivoApp</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #fff;
-    }
-    header, footer {
-      background: #ccc;
-      padding: 10px;
-      text-align: right;
-    }
-    h1, h2, p {
-      text-align: center;
-    }
-    table {
-      margin: auto;
-      border-collapse: collapse;
-      width: 90%;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-    }
-    th {
-      background-color: orange;
-    }
-    input[type="text"], input[type="number"] {
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .actions {
-      text-align: center;
-      margin-top: 20px;
-    }
-    .btn {
-      padding: 10px 20px;
-      background: rebeccapurple;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    .dropdown {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-    }
+    body { font-family: Arial, sans-serif; margin: 0; background: #fff; }
+    header, footer { background: #ccc; padding: 10px; text-align: right; }
+    h1, h2, p { text-align: center; }
+    table { margin: auto; border-collapse: collapse; width: 90%; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background-color: orange; }
+    input[type="text"], input[type="number"] { width: 100%; box-sizing: border-box; }
+    .actions { text-align: center; margin-top: 20px; }
+    .btn { padding: 10px 20px; background: rebeccapurple; color: #fff; border: none; cursor: pointer; }
+    .dropdown { position: absolute; top: 10px; left: 10px; }
   </style>
 </head>
 <body>
@@ -58,7 +23,8 @@
       <select id="blueprint-select"></select>
       <button onclick="loadBlueprint()">Carregar</button>
     </div>
-    <span id="user-email"></span> <img id="user-pic" src="" width="32" height="32" style="border-radius:50%; vertical-align:middle;" />
+    <span id="user-email"></span>
+    <img id="user-pic" src="" width="32" height="32" style="border-radius:50%; vertical-align:middle;" />
   </header>
 
   <h1>Blueprint do Cultivo</h1>
@@ -67,34 +33,34 @@
     Nome da Blueprint: <input type="text" id="nome-blueprint" placeholder="Ex: BP Teste" />
   </div>
 
-  <tr class="linha">
-    <td><input class="evento" value="Clonar" /></td>
-    <td><input class="dias" value="1" /></td>
-    <td><input class="ajuste" value="0" /></td>
-    <td><input class="notas" value="" /></td>
-  </tr>
+  <table id="tabela">
+    <thead>
+      <tr>
+        <th>Evento</th>
+        <th>Dias</th>
+        <th>Ajuste (dias)</th>
+        <th>Notas</th>
+      </tr>
     </thead>
     <tbody>
-      <tr><td><input type="text" value="Clonar"/></td><td><input type="number" value="1"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
-      <tr><td><input type="text" value="Enraizar Clones"/></td><td><input type="number" value="14"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
-      <tr><td><input type="text" value="Tamponar"/></td><td><input type="number" value="2"/></td><td><input type="number" value="0"/></td><td><input type="text" value="Dois dias antes do fim de 'Enraizar Clones', deve ser feita a Tamponação"/></td></tr>
-      <tr><td><input type="text" value="Transplantar"/></td><td><input type="number" value="1"/></td><td><input type="number" value="0"/></td><td><input type="text" value="O transplante coincide com o fim das etapas 'Enraizar Clones' e 'Tamponar'"/></td></tr>
-      <tr><td><input type="text" value="Enraizar"/></td><td><input type="number" value="7"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
-      <tr><td><input type="text" value="Vega"/></td><td><input type="number" value="14"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
-      <tr><td><input type="text" value="Estiramento"/></td><td><input type="number" value="28"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
-      <tr><td><input type="text" value="Engorda"/></td><td><input type="number" value="14"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
-      <tr><td><input type="text" value="Finalizacao"/></td><td><input type="number" value="14"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
-      <tr><td><input type="text" value="Colheita"/></td><td><input type="number" value="1"/></td><td><input type="number" value="0"/></td><td><input type="text" /></td></tr>
+      <tr class="linha"><td><input class="evento" value="Clonar"/></td><td><input class="dias" value="1"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Enraizar Clones"/></td><td><input class="dias" value="14"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Tamponar"/></td><td><input class="dias" value="2"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas" value="Dois dias antes do fim de 'Enraizar Clones', deve ser feita a Tamponação"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Transplantar"/></td><td><input class="dias" value="1"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas" value="O transplante coincide com o fim das etapas 'Enraizar Clones' e 'Tamponar'"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Enraizar"/></td><td><input class="dias" value="7"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Vega"/></td><td><input class="dias" value="14"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Estiramento"/></td><td><input class="dias" value="28"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Engorda"/></td><td><input class="dias" value="14"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Finalizacao"/></td><td><input class="dias" value="14"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
+      <tr class="linha"><td><input class="evento" value="Colheita"/></td><td><input class="dias" value="1"/></td><td><input class="ajuste" value="0"/></td><td><input class="notas"/></td></tr>
     </tbody>
   </table>
 
   <div class="actions">
-    <button class="btn" onclick="salvarBlueprint()">Salvar</button>
+    <button class="btn" id="salvar">Salvar</button>
   </div>
 
-  <footer>
-    Jungle Brothers CultivoApp
-  </footer>
+  <footer>Jungle Brothers CultivoApp</footer>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
@@ -102,17 +68,15 @@
     import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
 
     const firebaseConfig = {
-    apiKey: "AIzaSyCy1Rikp-zFBbtmGMrx4qh-iVVPf4_pzc",
-    authDomain: "cultivoapp-a59c5.firebaseapp.com",
-    projectId: "cultivoapp-a59c5",
-    storageBucket: "cultivoapp-a59c5.appspot.com",
-    messagingSenderId: "1002856699445",
-    appId: "1:1002856699445:web:881f274eee0a931bb0837c",
-    measurementId: "G-75YELFQ94M"
-  };
+      apiKey: "AIzaSyCy1Rikp-zFBbtmGMrx4qh-iVVPf4_pzc",
+      authDomain: "cultivoapp-a59c5.firebaseapp.com",
+      projectId: "cultivoapp-a59c5",
+      storageBucket: "cultivoapp-a59c5.appspot.com",
+      messagingSenderId: "1002856699445",
+      appId: "1:1002856699445:web:881f274eee0a931bb0837c"
+    };
 
-const app = initializeApp(firebaseConfig);
-
+    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     let usuario = null;
@@ -120,12 +84,12 @@ const app = initializeApp(firebaseConfig);
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = "/login.html";
-      } else {
-        usuario = user;
-        document.getElementById("user-email").textContent = user.email;
-        document.getElementById("user-pic").src = user.photoURL;
-        carregarBluePrintsSalvas(user.email);
+        return;
       }
+      usuario = user;
+      document.getElementById("user-email").textContent = user.email;
+      document.getElementById("user-pic").src = user.photoURL;
+      carregarBluePrintsSalvas(user.email);
     });
 
     async function carregarBluePrintsSalvas(email) {
@@ -141,34 +105,31 @@ const app = initializeApp(firebaseConfig);
       });
     }
 
-    window.salvarBlueprint = async () => {
-      const nome = document.getElementById("nome-blueprint").value;
+    document.getElementById("salvar").addEventListener("click", async () => {
+      const nome = document.getElementById("nome-blueprint").value.trim();
       if (!nome) return alert("Dê um nome à sua blueprint.");
       const linhas = document.querySelectorAll("#tabela tbody tr");
       const eventos = [];
       linhas.forEach(row => {
-        const inputs = row.querySelectorAll("input");
-        eventos.push({
-          evento: inputs[0].value,
-          dias: Number(inputs[1].value),
-          ajuste: Number(inputs[2].value),
-          notas: inputs[3].value
-        });
+        const evento = row.querySelector(".evento")?.value || "";
+        const dias = parseInt(row.querySelector(".dias")?.value || "0");
+        const ajuste = parseInt(row.querySelector(".ajuste")?.value || "0");
+        const notas = row.querySelector(".notas")?.value || "";
+        eventos.push({ evento, dias, ajuste, notas });
       });
+
       await setDoc(doc(db, "blueprints", nome + "_" + usuario.uid), {
         usuario: usuario.email,
-        nome: nome,
-        eventos: eventos,
+        nome,
+        eventos,
         criado: new Date().toISOString()
       });
       alert("Blueprint salva com sucesso!");
-    }
+    });
 
     window.loadBlueprint = async () => {
-      const nome = document.getElementById("blueprint-select").value;
-      // carregar blueprint específica futuramente
       alert("Carregamento ainda não implementado.");
-    }
+    };
   </script>
 </body>
 </html>
