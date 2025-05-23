@@ -23,7 +23,8 @@
       import { app } from "/cultivo-app/js/firebase.js";
       import {
         getAuth,
-        signInWithPopup,
+        signInWithRedirect,
+        getRedirectResult,
         GoogleAuthProvider
       } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
       import {
@@ -36,25 +37,31 @@
       const db = getFirestore(app);
       const provider = new GoogleAuthProvider();
 
-      document.getElementById("login-btn").addEventListener("click", async () => {
-        try {
-          const result = await signInWithPopup(auth, provider);
-          const email = result.user.email;
+      // Se redirecionou e voltou, tratamos o resultado aqui
+      getRedirectResult(auth)
+        .then(async (result) => {
+          if (result && result.user) {
+            const email = result.user.email;
+            const docRef = doc(db, "autorizados", email);
+            const docSnap = await getDoc(docRef);
 
-          const docRef = doc(db, "autorizados", email);
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists() && docSnap.data().ativo === "sim") {
-            window.location.href = "/cultivo-app/home.html";
-          } else {
-            document.getElementById("error-msg").innerText = "Acesso negado. Email não autorizado.";
-            document.getElementById("error-msg").classList.remove("hidden");
+            if (docSnap.exists() && docSnap.data().ativo === "sim") {
+              window.location.href = "/cultivo-app/home.html";
+            } else {
+              document.getElementById("error-msg").innerText = "Acesso negado. Email não autorizado.";
+              document.getElementById("error-msg").classList.remove("hidden");
+            }
           }
-        } catch (error) {
+        })
+        .catch((error) => {
           console.error(error);
           document.getElementById("error-msg").innerText = "Erro ao autenticar. Tente novamente.";
           document.getElementById("error-msg").classList.remove("hidden");
-        }
+        });
+
+      // Dispara o login
+      document.getElementById("login-btn").addEventListener("click", async () => {
+        await signInWithRedirect(auth, provider);
       });
     </script>
   </body>
