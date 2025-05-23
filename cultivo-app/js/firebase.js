@@ -1,8 +1,7 @@
-// js/firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyC07MoowfRaolBp0oBQo9YJ-4NL0CJYFKE",
+  apiKey: "AIzaSyC07MowfRaaIrDgBo0gVJ4-YNL4OCJYfXE",
   authDomain: "jungle-brothers-938e0.firebaseapp.com",
   projectId: "jungle-brothers-938e0",
   storageBucket: "jungle-brothers-938e0.appspot.com",
