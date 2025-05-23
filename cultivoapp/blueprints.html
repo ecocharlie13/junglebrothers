@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Blueprints | CultivoApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/estilo.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: white;
+      margin: 0;
+    }
+    .container {
+      padding: 40px;
+      max-width: 960px;
+      margin: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    th {
+      background: orange;
+      color: black;
+    }
+    footer {
+      background: #ccc;
+      padding: 10px;
+      text-align: center;
+      font-style: italic;
+    }
+    .btn {
+      padding: 10px 20px;
+      background-color: rebeccapurple;
+      color: white;
+      border: none;
+      margin: 5px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+    }
+    .topbar img {
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar" style="background: #ccc;">
+    <img src="/JBLogoBranco.png" alt="Logo Jungle Brothers">
+    <div id="username">Olá, Grower</div>
+  </div>
+
+  <div class="container">
+    <h2>Blueprint do Cultivo</h2>
+    <p id="subtext">Aqui você pode criar e ajustar a Blueprint do seu cultivo.</p>
+    
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>Evento</th>
+          <th>Dias</th>
+          <th>Ajuste (dias)</th>
+          <th>Notas</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div style="margin-top: 20px;">
+      <button class="btn" onclick="renomearBlueprint()">Renomear Blueprint</button>
+      <button class="btn" onclick="salvarBlueprint()">Salvar</button>
+    </div>
+  </div>
+
+  <footer>Jungle Brothers CultivoApp</footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+      authDomain: "jungle-brothers-938e0.firebaseapp.com",
+      projectId: "jungle-brothers-938e0",
+      appId: "1:221354970870:web:a7f68c75480dc094bbad67"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let blueprintId = "";
+    const modelo = [
+      ["Clonar", 1, 0, ""],
+      ["Enraizar Clones", 14, 0, ""],
+      ["Tamponar", 2, -2, 'Dois dias antes do fim de "Enraizar Clones"'],
+      ["Transplantar", 1, 0, 'Coincide com o fim de "Tamponar"'],
+      ["Enraizar", 7, 0, ""],
+      ["Vega", 14, 0, ""],
+      ["Estiramento", 28, 0, ""],
+      ["Engorda", 14, 0, ""],
+      ["Finalizacao", 14, 0, ""],
+      ["Colheita", 1, 0, ""]
+    ];
+
+    function renderTabela(data) {
+      const tbody = document.querySelector("tbody");
+      tbody.innerHTML = "";
+      data.forEach((linha, i) => {
+        const tr = document.createElement("tr");
+        linha.forEach((col, j) => {
+          const td = document.createElement("td");
+          if (j === 0) {
+            td.textContent = col;
+          } else if (j === 3) {
+            const input = document.createElement("input");
+            input.value = col;
+            input.style.width = "100%";
+            input.oninput = (e) => modelo[i][j] = e.target.value;
+            td.appendChild(input);
+          } else {
+            const input = document.createElement("input");
+            input.type = "number";
+            input.value = col;
+            input.style.width = "60px";
+            input.oninput = (e) => modelo[i][j] = Number(e.target.value);
+            td.appendChild(input);
+          }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function salvarBlueprint() {
+      if (!blueprintId) return alert("Nenhuma blueprint carregada");
+      setDoc(doc(db, "blueprints", blueprintId), {
+        uid: auth.currentUser.uid,
+        nome: blueprintId,
+        dados: modelo
+      }).then(() => alert("Salvo com sucesso"));
+    }
+
+    function renomearBlueprint() {
+      const novo = prompt("Digite o novo nome:");
+      if (novo) {
+        blueprintId = novo;
+        document.getElementById("subtext").innerText = `Blueprint: ${novo}`;
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        location.href = "/login.html";
+        return;
+      }
+      document.getElementById("username").innerText = `Olá, ${user.email}`;
+
+      const ref = doc(db, "blueprints", user.uid);
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) {
+        const dados = snap.data();
+        blueprintId = dados.nome || user.uid;
+        document.getElementById("subtext").innerText = `Blueprint: ${blueprintId}`;
+        dados.dados.forEach((linha, i) => modelo[i] = linha);
+      } else {
+        blueprintId = prompt("Nomeie sua Blueprint:", "Minha Blueprint");
+        await setDoc(ref, {
+          uid: user.uid,
+          nome: blueprintId,
+          dados: modelo
+        });
+      }
+
+      renderTabela(modelo);
+    });
+  </script>
+</body>
+</html>
