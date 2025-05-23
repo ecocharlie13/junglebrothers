@@ -3,66 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cultivo-App | Login</title>
+    <title>CultivoApp Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-100 h-screen flex items-center justify-center">
-    <div class="bg-white p-10 rounded-2xl shadow-xl max-w-md w-full text-center">
-      <h1 class="text-2xl font-bold mb-4">Cultivo-App</h1>
-      <p class="mb-6 text-gray-600">Bem-vindo ao sistema de gestão da Jungle Brothers</p>
-      <button
-        id="login-btn"
-        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl w-full"
-      >
+    <div class="bg-white p-8 rounded shadow text-center max-w-md w-full">
+      <h1 class="text-2xl font-bold mb-4">CultivoApp</h1>
+      <p class="mb-6 text-gray-600">Login com conta Google</p>
+      <button id="login" class="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded w-full">
         Entrar com Google
       </button>
-      <p id="error-msg" class="mt-4 text-red-600 hidden"></p>
+      <p id="error-msg" class="text-red-600 mt-4 hidden"></p>
     </div>
 
     <script type="module">
-      import { app } from "/cultivo-app/js/firebase.js";
+      import { app } from "./js/firebase.js";
       import {
         getAuth,
+        GoogleAuthProvider,
         signInWithRedirect,
-        getRedirectResult,
-        GoogleAuthProvider
+        getRedirectResult
       } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-      import {
-        getFirestore,
-        doc,
-        getDoc
-      } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
       const auth = getAuth(app);
-      const db = getFirestore(app);
       const provider = new GoogleAuthProvider();
 
-      // Se redirecionou e voltou, tratamos o resultado aqui
-      getRedirectResult(auth)
-        .then(async (result) => {
-          if (result && result.user) {
-            const email = result.user.email;
-            const docRef = doc(db, "autorizados", email);
-            const docSnap = await getDoc(docRef);
+      // Inicia o login com redirecionamento
+      document.getElementById("login").addEventListener("click", () => {
+        signInWithRedirect(auth, provider);
+      });
 
-            if (docSnap.exists() && docSnap.data().ativo === "sim") {
-              window.location.href = "/cultivo-app/home.html";
-            } else {
-              document.getElementById("error-msg").innerText = "Acesso negado. Email não autorizado.";
-              document.getElementById("error-msg").classList.remove("hidden");
-            }
+      // Quando retornar do Google, tenta capturar o usuário
+      getRedirectResult(auth)
+        .then((result) => {
+          if (result && result.user) {
+            alert(`Login bem-sucedido: ${result.user.email}`);
+            // Redirecionar se quiser:
+            // window.location.href = "/cultivo-app/home.html";
           }
         })
         .catch((error) => {
           console.error(error);
-          document.getElementById("error-msg").innerText = "Erro ao autenticar. Tente novamente.";
+          document.getElementById("error-msg").innerText = "Erro ao autenticar. Verifique o console.";
           document.getElementById("error-msg").classList.remove("hidden");
         });
-
-      // Dispara o login
-      document.getElementById("login-btn").addEventListener("click", async () => {
-        await signInWithRedirect(auth, provider);
-      });
     </script>
   </body>
 </html>
