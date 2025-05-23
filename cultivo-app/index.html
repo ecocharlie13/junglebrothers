@@ -3,50 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CultivoApp Login</title>
+    <title>CultivoApp</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body class="bg-gray-100 h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded shadow text-center max-w-md w-full">
+  <body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded shadow max-w-md w-full text-center">
       <h1 class="text-2xl font-bold mb-4">CultivoApp</h1>
-      <p class="mb-6 text-gray-600">Login com conta Google</p>
-      <button id="login" class="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded w-full">
-        Entrar com Google
-      </button>
-      <p id="error-msg" class="text-red-600 mt-4 hidden"></p>
+      <p id="user-email" class="text-gray-700">Verificando login...</p>
     </div>
 
     <script type="module">
       import { app } from "./js/firebase.js";
-      import {
-        getAuth,
-        GoogleAuthProvider,
-        signInWithRedirect,
-        getRedirectResult
-      } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+      import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
       const auth = getAuth(app);
-      const provider = new GoogleAuthProvider();
 
-      // Inicia o login com redirecionamento
-      document.getElementById("login").addEventListener("click", () => {
-        signInWithRedirect(auth, provider);
+      onAuthStateChanged(auth, (user) => {
+        const userEmail = document.getElementById("user-email");
+
+        if (user) {
+          userEmail.textContent = `Bem-vindo, ${user.email}`;
+        } else {
+          window.location.href = "/restrito/"; // redireciona de volta pro painel de login se não estiver logado
+        }
       });
-
-      // Quando retornar do Google, tenta capturar o usuário
-      getRedirectResult(auth)
-        .then((result) => {
-          if (result && result.user) {
-            alert(`Login bem-sucedido: ${result.user.email}`);
-            // Redirecionar se quiser:
-            // window.location.href = "/cultivo-app/home.html";
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-          document.getElementById("error-msg").innerText = "Erro ao autenticar. Verifique o console.";
-          document.getElementById("error-msg").classList.remove("hidden");
-        });
     </script>
   </body>
 </html>
