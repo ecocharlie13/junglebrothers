@@ -3,186 +3,190 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blueprints | CultivoApp</title>
+  <title>Blueprints - CultivoApp</title>
+  <link rel="stylesheet" href="../css/estilo.css" />
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #fff;
-    }
-    .container {
-      display: flex;
-      min-height: 100vh;
-    }
-    .lateral {
-      background-color: #8b44f3;
-      width: 80px;
-    }
-    .conteudo {
-      flex-grow: 1;
-      padding: 30px;
-      display: flex;
-      flex-direction: column;
+      margin: 0;
     }
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 20px;
     }
     .logo {
       height: 60px;
     }
-    .menu-user {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .menu-user select {
-      padding: 4px;
-    }
-    .foto-perfil {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-    }
-    h1, p {
-      text-align: center;
+    select, button {
+      padding: 6px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
+      margin: 20px 0;
     }
     th {
       background-color: orange;
+      padding: 8px;
     }
-    .footer-actions {
+    td {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+    td[contenteditable] {
+      background: #fdfdfd;
+    }
+    footer {
+      background-color: #ccc;
       display: flex;
       justify-content: space-between;
-      margin-top: 20px;
-      background-color: #ccc;
-      padding: 10px;
-    }
-    .footer-actions button {
       padding: 10px 20px;
-      border: none;
+    }
+    .highlight {
       font-weight: bold;
-      cursor: pointer;
-    }
-    .footer-actions button.nova {
-      background-color: #8b44f3;
-      color: white;
-      border-radius: 12px 0 12px 0;
-    }
-    .footer-actions button.salvar {
-      background-color: #8b44f3;
-      color: white;
-      border-radius: 12px 0 12px 0;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="lateral"></div>
-    <div class="conteudo">
-      <header>
-        <img src="/JBLogoBranco.png" alt="Logo Jungle Brothers" class="logo">
-        <div class="menu-user">
-          <span id="user-email">Grower</span>
-          <select>
-            <option>Home</option>
-            <option value="dashboard.html">Área Restrita</option>
-            <option value="perfil.html">Perfil</option>
-            <option value="index.html">Sair</option>
-          </select>
-          <img id="user-pic" src="" alt="Perfil" class="foto-perfil" />
-        </div>
-      </header>
-
-      <main>
-        <h1>Eko Grower, aqui você pode ajustar a Blueprint do seu cultivo</h1>
-        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
-          <select><option>Blueprints</option></select>
-          <button>SELECIONAR</button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Evento</th>
-              <th>Dias</th>
-              <th>Ajuste (dias)</th>
-              <th>Notas</th>
-            </tr>
-          </thead>
-          <tbody id="tabela-blueprint">
-            <!-- Linhas dinâmicas -->
-          </tbody>
-        </table>
-      </main>
-
-      <div class="footer-actions">
-        <span><em>Renomear Blueprint</em></span>
-        <span><em>Adicionar/ Remover Linha</em></span>
-        <div>
-          <button class="nova">NOVA</button>
-          <button class="salvar">SALVAR</button>
-        </div>
-      </div>
+  <header>
+    <img src="../JBLogoBranco.png" alt="Logo" class="logo">
+    <div>
+      <span id="user-email"></span>
+      <select id="blueprint-select"></select>
+      <button onclick="carregarBlueprint()">SELECIONAR</button>
     </div>
-    <div class="lateral"></div>
-  </div>
+  </header>
+
+  <main>
+    <h2><span class="highlight" id="user-name"></span>, aqui você pode ajustar a Blueprint do seu cultivo</h2>
+    <label>Nome da Blueprint: <input type="text" id="nome-blueprint" /></label>
+    <table id="tabela-blueprint">
+      <thead>
+        <tr>
+          <th>Evento</th>
+          <th>Dias</th>
+          <th>Ajuste (dias)</th>
+          <th>Notas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Linhas da tabela geradas via JS -->
+      </tbody>
+    </table>
+  </main>
+
+  <footer>
+    <button onclick="renomearBlueprint()">Renomear Blueprint</button>
+    <button onclick="novaBlueprint()">NOVA</button>
+    <button onclick="salvarBlueprint()">SALVAR</button>
+  </footer>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    const app = initializeApp({
+    const firebaseConfig = {
       apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
       authDomain: "jungle-brothers-938e0.firebaseapp.com",
       projectId: "jungle-brothers-938e0",
       appId: "1:221354970870:web:a7f68c75480dc094bbad67"
-    });
+    };
 
+    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "/login.html";
-      } else {
-        document.getElementById("user-email").textContent = user.email;
-        document.getElementById("user-pic").src = user.photoURL;
-      }
-    });
+    const db = getFirestore(app);
 
-    // Adiciona blueprint modelo
-    const eventos = [
-      { evento: "Clonar", dias: 1, ajuste: 0, nota: "" },
-      { evento: "Enraizar Clones", dias: 14, ajuste: 0, nota: "" },
-      { evento: "Tamponar", dias: 2, ajuste: -2, nota: "Dois dias antes do fim de \"Enraizar Clones\", deve ser feita a Tamponação" },
-      { evento: "Transplantar", dias: 1, ajuste: 0, nota: "O transplante coincide com o fim das etapas \"Enraizar Clones\" e \"Tamponar\"" },
-      { evento: "Enraizar", dias: 7, ajuste: 0, nota: "" },
-      { evento: "Vega", dias: 14, ajuste: 0, nota: "" },
-      { evento: "Estiramento", dias: 28, ajuste: 0, nota: "" },
-      { evento: "Engorda", dias: 14, ajuste: 0, nota: "" },
-      { evento: "Finalizacao", dias: 14, ajuste: 0, nota: "" },
-      { evento: "Colheita", dias: 1, ajuste: 0, nota: "" }
+    const padrao = [
+      ["Clonar", 1, 0, ""],
+      ["Enraizar Clones", 14, 0, ""],
+      ["Tamponar", 2, -2, "Dois dias antes do fim de \"Enraizar Clones\", deve ser feita a Tamponação"],
+      ["Transplantar", 1, 0, "O transplante coincide com o fim das etapas \"Enraizar Clones\" e \"Tamponar\""],
+      ["Enraizar", 7, 0, ""],
+      ["Vega", 14, 0, ""],
+      ["Estiramento", 28, 0, ""],
+      ["Engorda", 14, 0, ""],
+      ["Finalizacao", 14, 0, ""],
+      ["Colheita", 1, 0, ""]
     ];
 
-    const tbody = document.getElementById("tabela-blueprint");
-    eventos.forEach(ev => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${ev.evento}</td>
-        <td>${ev.dias}</td>
-        <td>${ev.ajuste}</td>
-        <td>${ev.nota}</td>
-      `;
-      tbody.appendChild(tr);
+    let uid = "";
+    let blueprintAtual = "default";
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) window.location.href = "/login.html";
+      uid = user.uid;
+      document.getElementById("user-email").textContent = user.email;
+      document.getElementById("user-name").textContent = user.displayName || "Grower";
+      await listarBlueprints();
+      await carregarBlueprint();
     });
+
+    async function listarBlueprints() {
+      const bpRef = collection(db, "blueprints", uid, "listas");
+      const snap = await getDocs(bpRef);
+      const select = document.getElementById("blueprint-select");
+      select.innerHTML = "";
+      snap.forEach(doc => {
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = doc.id;
+        select.appendChild(opt);
+      });
+    }
+
+    async function carregarBlueprint() {
+      blueprintAtual = document.getElementById("blueprint-select").value || "default";
+      const bpRef = doc(db, "blueprints", uid, "listas", blueprintAtual);
+      const snap = await getDoc(bpRef);
+      const dados = snap.exists() ? snap.data().dados : padrao;
+      document.getElementById("nome-blueprint").value = blueprintAtual;
+      desenharTabela(dados);
+    }
+
+    function desenharTabela(linhas) {
+      const tbody = document.querySelector("#tabela-blueprint tbody");
+      tbody.innerHTML = "";
+      linhas.forEach(([evento, dias, ajuste, nota]) => {
+        const tr = document.createElement("tr");
+        [evento, dias, ajuste, nota].forEach((valor, i) => {
+          const td = document.createElement("td");
+          td.textContent = valor;
+          td.contentEditable = true;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function salvarBlueprint() {
+      const nome = document.getElementById("nome-blueprint").value.trim();
+      const linhas = Array.from(document.querySelectorAll("#tabela-blueprint tbody tr")).map(tr =>
+        Array.from(tr.children).map(td => td.textContent.trim())
+      );
+      await setDoc(doc(db, "blueprints", uid, "listas", nome), {
+        dados: linhas
+      });
+      alert("Blueprint salva com sucesso.");
+      await listarBlueprints();
+    }
+
+    function novaBlueprint() {
+      const nome = prompt("Nome da nova blueprint:");
+      if (!nome) return;
+      document.getElementById("nome-blueprint").value = nome;
+      desenharTabela(padrao);
+    }
+
+    function renomearBlueprint() {
+      const novo = prompt("Novo nome para a blueprint:", blueprintAtual);
+      if (!novo || novo === blueprintAtual) return;
+      document.getElementById("nome-blueprint").value = novo;
+    }
+
+    window.onbeforeunload = () => "Tem certeza que deseja sair sem salvar?";
   </script>
 </body>
 </html>
