@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home - CultivoApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center text-center">
+  <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+    <h1 class="text-2xl font-bold mb-4">Bem-vindo ao CultivoApp</h1>
+    <p class="mb-6 text-gray-600">Olá, <span id="user-email">...</span></p>
+    <div class="flex flex-col gap-4">
+      <button onclick="location.href='blueprints.html'" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-xl">
+        Acessar Blueprints
+      </button>
+      <button onclick="logout()" class="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-xl">
+        Sair
+      </button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCy1Rikp-zFBbtmGMrx4qh-iVVPf4_pzc",
+      authDomain: "cultivoapp-a59c5.firebaseapp.com",
+      projectId: "cultivoapp-a59c5",
+      storageBucket: "cultivoapp-a59c5.appspot.com",
+      messagingSenderId: "1002856699445",
+      appId: "1:1002856699445:web:881f274eee0a931bb0837c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+      } else {
+        document.getElementById("user-email").textContent = user.email;
+      }
+    });
+
+    window.logout = () => {
+      signOut(auth).then(() => {
+        window.location.href = "/login.html";
+      });
+    }
+  </script>
+</body>
+</html>
