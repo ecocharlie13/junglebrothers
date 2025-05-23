@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Home - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 h-screen flex items-center justify-center">
-  <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl text-center">
-    <h1 class="text-3xl font-bold mb-4">Bem-vindo ao CultivoApp</h1>
-    <p class="mb-6 text-gray-700">Esta é a página inicial da sua área autenticada.</p>
-    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-xl">
-      Sair
-    </button>
-  </div>
+<body class="bg-white h-screen text-center flex flex-col justify-center items-center">
+
+  <h1 class="text-2xl font-bold mb-4">Bem-vindo ao CultivoApp</h1>
+  <p class="mb-6" id="user-info">Verificando autenticação...</p>
+
+  <a href="/cultivoapp/blueprints.html" class="bg-purple-600 text-white px-6 py-2 rounded-xl hover:bg-purple-700">
+    Acessar Blueprints
+  </a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
@@ -35,14 +35,9 @@
       if (!user) {
         window.location.href = "/login.html";
       } else {
-        console.log("Logado como:", user.email);
+        document.getElementById("user-info").textContent = `Logado como ${user.email}`;
       }
     });
-
-    window.logout = async function () {
-      await signOut(auth);
-      window.location.href = "/login.html";
-    }
   </script>
 </body>
 </html>
