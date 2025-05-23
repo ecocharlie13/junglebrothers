@@ -20,13 +20,14 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
+    // ✅ Configuração oficial do projeto Jungle Brothers
     const firebaseConfig = {
       apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
       authDomain: "jungle-brothers-93e80.firebaseapp.com",
       projectId: "jungle-brothers-93e80",
       storageBucket: "jungle-brothers-93e80.appspot.com",
       messagingSenderId: "221354970870",
-      appId: "1:221354970870:web:a7f68c75480dc094bba6d7"
+      appId: "1:221354970870:web:a7f68c75480dc094bbad67"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -36,9 +37,9 @@
     document.getElementById("login-btn").addEventListener("click", async () => {
       try {
         await signInWithPopup(auth, provider);
-        window.location.href = "/dashboard.html";
+        window.location.href = "/dashboard.html";  // Redirecionamento pós-login
       } catch (error) {
-        console.error("Erro ao fazer login:", error.message);
+        console.error("Erro ao autenticar:", error);
         const msg = document.getElementById("error-msg");
         msg.textContent = "Erro ao autenticar. Tente novamente.";
         msg.classList.remove("hidden");
