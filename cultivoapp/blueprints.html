@@ -103,12 +103,17 @@
     import { getFirestore, collection, doc, setDoc, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
     import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
 
-    const app = initializeApp({
-      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
-      authDomain: "jungle-brothers-938e0.firebaseapp.com",
-      projectId: "jungle-brothers-938e0",
-      appId: "1:221354970870:web:a7f68c75480dc094bbad67"
-    });
+    const firebaseConfig = {
+    apiKey: "AIzaSyCy1Rikp-zFBbtmGMrx4qh-iVVPf4_pzc",
+    authDomain: "cultivoapp-a59c5.firebaseapp.com",
+    projectId: "cultivoapp-a59c5",
+    storageBucket: "cultivoapp-a59c5.appspot.com",
+    messagingSenderId: "1002856699445",
+    appId: "1:1002856699445:web:881f274eee0a931bb0837c",
+    measurementId: "G-75YELFQ94M"
+  };
+
+const app = initializeApp(firebaseConfig);
 
     const auth = getAuth(app);
     const db = getFirestore(app);
