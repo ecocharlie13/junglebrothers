@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -20,14 +20,14 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
+    // 🔐 Configuração do projeto Jungle Brothers
     const firebaseConfig = {
-      apiKey: "AIzaSyCy1Rikp-zFBbtmGMrx4qh-iVVPf4_pzc",
-      authDomain: "cultivoapp-a59c5.firebaseapp.com",
-      projectId: "cultivoapp-a59c5",
-      storageBucket: "cultivoapp-a59c5.appspot.com",
-      messagingSenderId: "1002856699445",
-      appId: "1:1002856699445:web:881f274eee0a931bb0837c",
-      measurementId: "G-75YELFQ94M"
+      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+      authDomain: "jungle-brothers-938e0.firebaseapp.com",
+      projectId: "jungle-brothers-938e0",
+      storageBucket: "jungle-brothers-938e0.appspot.com",
+      messagingSenderId: "221354970870",
+      appId: "1:221354970870:web:a7f68c75480dc094bbad67"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -37,9 +37,9 @@
     document.getElementById("login-btn").addEventListener("click", async () => {
       try {
         await signInWithPopup(auth, provider);
-        window.location.href = "/dashboard.html"; // ← redireciona para dashboard após login
+        window.location.href = "/dashboard.html"; // 🔁 Redirecionamento pós-login
       } catch (error) {
-        console.error(error);
+        console.error("Erro ao fazer login:", error.message);
         const msg = document.getElementById("error-msg");
         msg.textContent = "Erro ao autenticar. Tente novamente.";
         msg.classList.remove("hidden");
