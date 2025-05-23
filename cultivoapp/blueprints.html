@@ -19,10 +19,6 @@
 </head>
 <body>
   <header>
-    <div class="dropdown">
-      <select id="blueprint-select"></select>
-      <button onclick="loadBlueprint()">Carregar</button>
-    </div>
     <span id="user-email"></span>
     <img id="user-pic" src="" width="32" height="32" style="border-radius:50%; vertical-align:middle;" />
   </header>
@@ -59,54 +55,38 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
-    import { getFirestore, collection, doc, setDoc, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+    import { getFirestore, collection, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
     import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCy1Rikp-zFBbtmGMrx4qh-iVVPf4_pzc",
-      authDomain: "cultivoapp-a59c5.firebaseapp.com",
-      projectId: "cultivoapp-a59c5",
-      storageBucket: "cultivoapp-a59c5.appspot.com",
-      messagingSenderId: "1002856699445",
-      appId: "1:1002856699445:web:881f274eee0a931bb0837c"
+      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+      authDomain: "jungle-brothers-938e0.firebaseapp.com",
+      projectId: "jungle-brothers-938e0",
+      storageBucket: "jungle-brothers-938e0.appspot.com",
+      messagingSenderId: "221354970870",
+      appId: "1:221354970870:web:a7f68c75480dc094bbad67"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let usuario = null;
-
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       console.log("Verificando login:", user);
       if (!user) {
         window.location.href = "/login.html";
-      } else {
-        usuario = user;
-        document.getElementById("user-email").textContent = user.email;
-        document.getElementById("user-pic").src = user.photoURL;
-        carregarBluePrintsSalvas(user.email);
+        return;
       }
-    });
 
-    async function carregarBluePrintsSalvas(email) {
-      const bpRef = collection(db, "blueprints");
-      const q = query(bpRef, where("usuario", "==", email));
-      const snapshot = await getDocs(q);
-      const select = document.getElementById("blueprint-select");
-      snapshot.forEach((doc) => {
-        const opt = document.createElement("option");
-        opt.value = doc.id;
-        opt.textContent = doc.data().nome;
-        select.appendChild(opt);
-      });
-    }
+      document.getElementById("user-email").textContent = user.email;
+      document.getElementById("user-pic").src = user.photoURL;
+    });
 
     document.getElementById("salvar").addEventListener("click", async () => {
       const nome = document.getElementById("nome-blueprint").value.trim();
       if (!nome) return alert("Dê um nome à sua blueprint.");
 
-      const linhas = document.querySelectorAll("#tabela tbody tr");
+      const linhas = document.querySelectorAll(".linha");
       const eventos = [];
 
       linhas.forEach(row => {
@@ -117,8 +97,8 @@
         eventos.push({ evento, dias, ajuste, notas });
       });
 
-      await setDoc(doc(db, "blueprints", nome + "_" + usuario.uid), {
-        usuario: usuario.email,
+      await setDoc(doc(db, "blueprints", nome + "_" + auth.currentUser.uid), {
+        usuario: auth.currentUser.email,
         nome,
         eventos,
         criado: new Date().toISOString()
@@ -126,10 +106,6 @@
 
       alert("Blueprint salva com sucesso!");
     });
-
-    window.loadBlueprint = async () => {
-      alert("(em breve) Carregamento de blueprint ainda não implementado.");
-    };
   </script>
 </body>
 </html>
