@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todos os Eventos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <div class="flex justify-between items-center mb-4">
+    <span id="user-email" class="text-sm text-gray-600">Verificando login...</span>
+    <img id="user-pic" class="w-8 h-8 rounded-full" />
+  </div>
+
+  <h1 class="text-2xl font-bold text-center mb-2">Todos os Eventos</h1>
+  <p class="text-center text-sm mb-6 text-gray-600">Eventos de todos os cultivos selecionados</p>
+
+  <div class="overflow-x-auto">
+    <table class="w-full max-w-6xl mx-auto bg-white border border-gray-300">
+      <thead class="bg-orange-400 text-white">
+        <tr>
+          <th class="px-2 py-1">Cultivo</th>
+          <th class="px-2 py-1">Evento</th>
+          <th class="px-2 py-1">Dias</th>
+          <th class="px-2 py-1">Início</th>
+          <th class="px-2 py-1">Fim</th>
+          <th class="px-2 py-1">Notas</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-eventos">
+        <!-- Populado via JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex justify-center gap-4 mt-6">
+    <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded">Salvar</button>
+    <button class="bg-gray-400 hover:bg-gray-500 text-white font-bold px-4 py-2 rounded">Cancelar</button>
+    <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-4 py-2 rounded">Salvar PDF</button>
+    <button class="bg-gray-600 hover:bg-gray-700 text-white font-bold px-4 py-2 rounded">Exibir/Ocultar Eventos Passados</button>
+  </div>
+
+  <script type="module">
+    import { auth, db } from "../js/firebase-init.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+        return;
+      }
+
+      document.getElementById("user-email").textContent = user.email;
+      document.getElementById("user-pic").src = user.photoURL;
+
+      const cultivoselecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+
+      for (const cultivo of cultivoselecionados) {
+        const docRef = doc(db, "cultivos", cultivo);
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          data.eventos.forEach(ev => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="border px-2 py-1">${data.titulo}</td>
+              <td class="border px-2 py-1">${ev.evento}</td>
+              <td class="border px-2 py-1">${ev.dias}</td>
+              <td class="border px-2 py-1"><input type="date" class="border rounded w-full px-1" /></td>
+              <td class="border px-2 py-1"><input type="date" class="border rounded w-full px-1" /></td>
+              <td class="border px-2 py-1"><input type="text" class="border rounded w-full px-1" value="${ev.notas || ""}" /></td>
+            `;
+            document.getElementById("tabela-eventos").appendChild(tr);
+          });
+        }
+      }
+    });
+  </script>
+</body>
+</html>
