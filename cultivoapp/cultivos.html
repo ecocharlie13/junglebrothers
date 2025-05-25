@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,58 +7,58 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen p-6">
-  <div class="flex justify-between items-center mb-6">
+  <div class="flex justify-between items-center mb-4">
     <span id="user-email" class="text-sm text-gray-600">Verificando login...</span>
     <img id="user-pic" class="w-8 h-8 rounded-full" />
   </div>
 
-  <h1 class="text-2xl font-bold text-center mb-6">Gestão de Cultivos</h1>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- Novo Cultivo -->
-    <div class="bg-white p-4 rounded shadow">
-      <h2 class="font-bold text-lg mb-2">Novo Cultivo</h2>
-      <label class="block mb-1">Blueprint</label>
-      <select id="select-blueprint" class="w-full border px-3 py-1 rounded mb-3"></select>
-      <label class="block mb-1">Título</label>
-      <input type="text" id="titulo-cultivo" class="w-full border px-3 py-1 rounded mb-3" placeholder="Ex: Cultivo Junho" />
-      <label class="block mb-1">Data Inicial</label>
-      <input type="date" id="data-inicial" class="w-full border px-3 py-1 rounded mb-4" />
-      <button id="criar-cultivo" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">Criar</button>
-    </div>
+  <h1 class="text-2xl font-bold text-center mb-4">Novo Cultivo</h1>
 
-    <!-- Cultivos Disponíveis -->
-    <div class="bg-white p-4 rounded shadow">
-      <h2 class="font-bold text-lg mb-2">Cultivos Disponíveis</h2>
-      <ul id="lista-cultivos" class="mb-4 space-y-2"></ul>
-      <div class="flex gap-2">
-        <button id="abrir-cultivos" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Abrir</button>
-        <button id="deletar-cultivos" class="flex-1 bg-red-500 text-white py-2 rounded hover:bg-red-600">Deletar</button>
-      </div>
+  <div class="max-w-md mx-auto bg-white p-4 rounded shadow mb-8">
+    <label class="block mb-2">Blueprint:</label>
+    <select id="blueprint-select" class="w-full px-3 py-2 border rounded mb-4"></select>
+
+    <label class="block mb-2">Título do Cultivo:</label>
+    <input type="text" id="titulo-cultivo" class="w-full px-3 py-2 border rounded mb-4" placeholder="Nome do Cultivo" />
+
+    <label class="block mb-2">Data Inicial:</label>
+    <input type="date" id="data-inicial" class="w-full px-3 py-2 border rounded mb-4" />
+
+    <button id="criar-cultivo" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">Criar</button>
+  </div>
+
+  <h2 class="text-xl font-semibold text-center mb-2">Cultivos Disponíveis</h2>
+  <div class="max-w-2xl mx-auto bg-white p-4 rounded shadow">
+    <ul id="lista-cultivos" class="space-y-2 mb-4"></ul>
+
+    <div class="flex justify-between">
+      <button id="abrir-cultivos" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Abrir</button>
+      <button id="deletar-cultivos" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Deletar</button>
     </div>
   </div>
 
   <script type="module">
-    import { auth, db } from "../js/firebase-init.js";
+    import { app, db, auth } from "../js/firebase-init.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { collection, doc, setDoc, getDocs, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { collection, getDocs, doc, getDoc, setDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
     let usuario = null;
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "/login.html";
+      if (!user) return (window.location.href = "/login.html");
       usuario = user;
       document.getElementById("user-email").textContent = user.email;
       document.getElementById("user-pic").src = user.photoURL;
       await carregarBlueprints();
-      await listarCultivos();
+      await carregarCultivos();
     });
 
     async function carregarBlueprints() {
       const ref = collection(db, "blueprints");
       const q = query(ref, where("usuario", "==", usuario.email));
-      const snap = await getDocs(q);
-      const select = document.getElementById("select-blueprint");
-      snap.forEach(doc => {
+      const snapshot = await getDocs(q);
+      const select = document.getElementById("blueprint-select");
+      snapshot.forEach(doc => {
         const opt = document.createElement("option");
         opt.value = doc.id;
         opt.textContent = doc.data().nome;
@@ -67,50 +66,53 @@
       });
     }
 
-    document.getElementById("criar-cultivo").addEventListener("click", async () => {
-      const blueprintId = document.getElementById("select-blueprint").value;
-      const titulo = document.getElementById("titulo-cultivo").value.trim();
-      const data = document.getElementById("data-inicial").value;
-      if (!titulo || !data || !blueprintId) return alert("Preencha todos os campos.");
-
-      const cultivoRef = doc(collection(db, "cultivos"));
-      await setDoc(cultivoRef, {
-        blueprintId,
-        titulo,
-        dataInicial: data,
-        usuario: usuario.email,
-        criado: new Date().toISOString()
-      });
-      alert("Cultivo criado com sucesso!");
-      await listarCultivos();
-    });
-
-    async function listarCultivos() {
-      const ul = document.getElementById("lista-cultivos");
-      ul.innerHTML = "";
-      const q = query(collection(db, "cultivos"), where("usuario", "==", usuario.email));
-      const snap = await getDocs(q);
-      snap.forEach(doc => {
+    async function carregarCultivos() {
+      const ref = collection(db, "cultivos");
+      const q = query(ref, where("usuario", "==", usuario.email));
+      const snapshot = await getDocs(q);
+      const lista = document.getElementById("lista-cultivos");
+      lista.innerHTML = "";
+      snapshot.forEach(doc => {
         const li = document.createElement("li");
-        li.innerHTML = `<label><input type="checkbox" value="${doc.id}" class="mr-2"> ${doc.data().titulo}</label>`;
-        ul.appendChild(li);
+        li.innerHTML = `<label><input type='checkbox' value='${doc.id}' class='cultivo-check mr-2'/>${doc.data().titulo}</label>`;
+        lista.appendChild(li);
       });
     }
 
+    document.getElementById("criar-cultivo").addEventListener("click", async () => {
+      const blueprintId = document.getElementById("blueprint-select").value;
+      const titulo = document.getElementById("titulo-cultivo").value.trim();
+      const dataInicial = document.getElementById("data-inicial").value;
+      if (!blueprintId || !titulo || !dataInicial) return alert("Preencha todos os campos.");
+
+      const cultivoId = titulo.replaceAll(" ", "_") + "_" + usuario.uid;
+      const blueprintDoc = await getDoc(doc(db, "blueprints", blueprintId));
+
+      await setDoc(doc(db, "cultivos", cultivoId), {
+        usuario: usuario.email,
+        blueprintId,
+        titulo,
+        dataInicial,
+        eventos: blueprintDoc.data().eventos
+      });
+
+      await carregarCultivos();
+      alert("Cultivo criado com sucesso!");
+    });
+
     document.getElementById("deletar-cultivos").addEventListener("click", async () => {
-      if (!confirm("Tem certeza que deseja deletar os cultivos selecionados?")) return;
-      const checks = document.querySelectorAll("#lista-cultivos input:checked");
-      for (let checkbox of checks) {
-        await deleteDoc(doc(db, "cultivos", checkbox.value));
+      const checks = document.querySelectorAll(".cultivo-check:checked");
+      if (!checks.length) return alert("Selecione pelo menos um cultivo.");
+      for (const check of checks) {
+        await deleteDoc(doc(db, "cultivos", check.value));
       }
-      await listarCultivos();
+      await carregarCultivos();
     });
 
     document.getElementById("abrir-cultivos").addEventListener("click", () => {
-      const selecionados = Array.from(document.querySelectorAll("#lista-cultivos input:checked"))
-        .map(cb => cb.value);
-      if (selecionados.length === 0) return alert("Selecione pelo menos um cultivo.");
-      localStorage.setItem("cultivosSelecionados", JSON.stringify(selecionados));
+      const selecionados = Array.from(document.querySelectorAll(".cultivo-check:checked")).map(e => e.value);
+      if (!selecionados.length) return alert("Selecione ao menos um cultivo.");
+      localStorage.setItem("cultivosAtivos", JSON.stringify(selecionados));
       window.location.href = "/cultivoapp/eventos.html";
     });
   </script>
