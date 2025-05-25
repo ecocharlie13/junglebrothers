@@ -91,32 +91,34 @@
       }
     };
 
-    document.getElementById("salvar").addEventListener("click", async () => {
-      const nome = document.getElementById("nome-blueprint").value.trim();
-      if (!nome) return alert("Dê um nome à sua blueprint.");
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("salvar").addEventListener("click", async () => {
+        const nome = document.getElementById("nome-blueprint").value.trim();
+        if (!nome) return alert("Dê um nome à sua blueprint.");
 
-      const linhas = document.querySelectorAll("#tabela tr");
-      const eventos = [];
-      linhas.forEach(row => {
-        eventos.push({
-          evento: row.querySelector(".evento")?.value || "",
-          dias: parseInt(row.querySelector(".dias")?.value || "0"),
-          ajuste: parseInt(row.querySelector(".ajuste")?.value || "0"),
-          notas: row.querySelector(".notas")?.value || ""
+        const linhas = document.querySelectorAll("#tabela tr");
+        const eventos = [];
+        linhas.forEach(row => {
+          eventos.push({
+            evento: row.querySelector(".evento")?.value || "",
+            dias: parseInt(row.querySelector(".dias")?.value || "0"),
+            ajuste: parseInt(row.querySelector(".ajuste")?.value || "0"),
+            notas: row.querySelector(".notas")?.value || ""
+          });
         });
-      });
 
-      const docRef = doc(db, "blueprints", nome + "_" + usuario.uid);
-      await setDoc(docRef, {
-        usuario: usuario.email,
-        nome,
-        eventos,
-        criado: new Date().toISOString()
-      });
+        const docRef = doc(db, "blueprints", nome + "_" + usuario.uid);
+        await setDoc(docRef, {
+          usuario: usuario.email,
+          nome,
+          eventos,
+          criado: new Date().toISOString()
+        });
 
-      document.getElementById("status").textContent = "✅ Blueprint salva com sucesso!";
-      setTimeout(() => document.getElementById("status").textContent = "", 4000);
-      await carregarDropdown();
+        document.getElementById("status").textContent = "✅ Blueprint salva com sucesso!";
+        setTimeout(() => document.getElementById("status").textContent = "", 4000);
+        await carregarDropdown();
+      });
     });
   </script>
 </body>
