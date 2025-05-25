@@ -7,6 +7,7 @@ import {
   doc,
   setDoc,
   getDocs,
+  getDoc,
   deleteDoc,
   query,
   where
@@ -54,7 +55,10 @@ async function carregarCultivos() {
   lista.innerHTML = "";
   snap.forEach((doc) => {
     const div = document.createElement("div");
-    div.innerHTML = `<label class="flex items-center gap-2"><input type="checkbox" value="${doc.id}" /> ${doc.data().titulo}</label>`;
+    div.innerHTML = `<label class="flex items-center gap-2">
+      <input type="checkbox" value="${doc.id}" />
+      ${doc.data().titulo}
+    </label>`;
     lista.appendChild(div);
   });
 }
@@ -64,16 +68,24 @@ async function criarCultivo() {
   const titulo = document.getElementById("titulo").value.trim();
   const dataInput = document.getElementById("data-inicial").value;
 
-  if (!blueprintId || !titulo || !dataInput) return alert("Preencha todos os campos");
+  if (!blueprintId || !titulo || !dataInput) {
+    alert("Preencha todos os campos");
+    return;
+  }
 
-  const blueprintSnap = await doc(db, "blueprints", blueprintId).get();
-  const blueprint = (await getDoc(doc(db, "blueprints", blueprintId))).data();
+  const blueprintSnap = await getDoc(doc(db, "blueprints", blueprintId));
+  if (!blueprintSnap.exists()) {
+    alert("Blueprint não encontrada.");
+    return;
+  }
+
+  const blueprint = blueprintSnap.data();
 
   const dataISO = new Date(
     dataInput.split("/").reverse().join("-")
   ).toISOString();
 
-  const novo = {
+  const novoCultivo = {
     blueprint: blueprintId,
     titulo,
     data: dataISO,
@@ -81,21 +93,37 @@ async function criarCultivo() {
     usuario: usuario.email
   };
 
-  await setDoc(doc(db, "cultivos", `${titulo}_${usuario.uid}`), novo);
+  await setDoc(doc(db, "cultivos", `${titulo}_${usuario.uid}`), novoCultivo);
   await carregarCultivos();
 }
 
 async function abrirCultivos() {
-  const ids = [...document.querySelectorAll("#lista-cultivos input:checked")].map(el => el.value);
-  if (ids.length === 0) return alert("Selecione pelo menos um cultivo.");
+  const ids = [...document.querySelectorAll("#lista-cultivos input:checked")]
+    .map(el => el.value);
+
+  if (ids.length === 0) {
+    alert("Selecione pelo menos um cultivo.");
+    return;
+  }
+
   localStorage.setItem("cultivosSelecionados", JSON.stringify(ids));
   window.location.href = "/cultivoapp/eventos.html";
 }
 
 async function deletarCultivos() {
-  const ids = [...document.querySelectorAll("#lista-cultivos input:checked")].map(el => el.value);
-  if (ids.length === 0) return alert("Selecione pelo menos um cultivo.");
+  const ids = [...document.querySelectorAll("#lista-cultivos input:checked")]
+    .map(el => el.value);
+
+  if (ids.length === 0) {
+    alert("Selecione pelo menos um cultivo.");
+    return;
+  }
+
   if (!confirm("Tem certeza que deseja excluir permanentemente?")) return;
-  for (const id of ids) await deleteDoc(doc(db, "cultivos", id));
+
+  for (const id of ids) {
+    await deleteDoc(doc(db, "cultivos", id));
+  }
+
   await carregarCultivos();
 }
