@@ -34,7 +34,7 @@
   </div>
 
   <div class="flex justify-center gap-4 mt-6">
-    <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded">Salvar</button>
+    <button id="atualizar" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded">Atualizar</button>
     <button class="bg-gray-400 hover:bg-gray-500 text-white font-bold px-4 py-2 rounded">Cancelar</button>
     <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-4 py-2 rounded">Salvar PDF</button>
     <button class="bg-gray-600 hover:bg-gray-700 text-white font-bold px-4 py-2 rounded">Exibir/Ocultar Eventos Passados</button>
@@ -43,7 +43,10 @@
   <script type="module">
     import { auth, db } from "../js/firebase-init.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    let cultivos = [];
+    let eventos = [];
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -56,26 +59,64 @@
 
       const cultivoselecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
 
-      for (const cultivo of cultivoselecionados) {
-        const docRef = doc(db, "cultivos", cultivo);
+      for (const cultivoId of cultivoselecionados) {
+        const docRef = doc(db, "cultivos", cultivoId);
         const snap = await getDoc(docRef);
         if (snap.exists()) {
           const data = snap.data();
-          data.eventos.forEach(ev => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td class="border px-2 py-1">${data.titulo}</td>
-              <td class="border px-2 py-1">${ev.evento}</td>
-              <td class="border px-2 py-1">${ev.dias}</td>
-              <td class="border px-2 py-1"><input type="date" class="border rounded w-full px-1" /></td>
-              <td class="border px-2 py-1"><input type="date" class="border rounded w-full px-1" /></td>
-              <td class="border px-2 py-1"><input type="text" class="border rounded w-full px-1" value="${ev.notas || ""}" /></td>
-            `;
-            document.getElementById("tabela-eventos").appendChild(tr);
-          });
+          cultivos.push({ id: cultivoId, ...data });
         }
       }
+
+      renderTabela();
     });
+
+    function renderTabela() {
+      const tbody = document.getElementById("tabela-eventos");
+      tbody.innerHTML = "";
+
+      cultivos.forEach(cultivo => {
+        let data = new Date(cultivo.data);
+        cultivo.eventos.forEach((ev, index) => {
+          const inicio = new Date(data);
+          inicio.setDate(inicio.getDate() + (ev.ajuste || 0));
+          const fim = new Date(inicio);
+          fim.setDate(fim.getDate() + Number(ev.dias || 0));
+
+          ev._inicio = inicio;
+          ev._fim = fim;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="border px-2 py-1">${cultivo.titulo}</td>
+            <td class="border px-2 py-1">${ev.evento}</td>
+            <td class="border px-2 py-1"><input type="number" class="dias-input border rounded w-full px-1" data-cultivo="${cultivo.id}" data-index="${index}" value="${ev.dias}" /></td>
+            <td class="border px-2 py-1">${formatDate(inicio)}</td>
+            <td class="border px-2 py-1">${formatDate(fim)}</td>
+            <td class="border px-2 py-1"><input type="text" class="notas-input border rounded w-full px-1" value="${ev.notas || ""}" /></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    document.getElementById("atualizar").addEventListener("click", async () => {
+      const diasInputs = document.querySelectorAll(".dias-input");
+      diasInputs.forEach(input => {
+        const cultivoId = input.dataset.cultivo;
+        const index = input.dataset.index;
+        const novoDias = parseInt(input.value);
+        const cultivo = cultivos.find(c => c.id === cultivoId);
+        if (cultivo) cultivo.eventos[index].dias = novoDias;
+      });
+
+      await Promise.all(cultivos.map(c => updateDoc(doc(db, "cultivos", c.id), { eventos: c.eventos })));
+      renderTabela();
+    });
+
+    function formatDate(date) {
+      return date.toLocaleDateString("pt-BR").split("/").map(d => d.padStart(2, "0")).join("/");
+    }
   </script>
 </body>
 </html>
