@@ -3,168 +3,125 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Todos os Eventos</title>
+  <title>Cultivos - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    thead th {
-      position: sticky;
-      top: 0;
-      background-color: #fb923c;
-      z-index: 1;
-    }
-  </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-6">
-  <div class="flex justify-between items-center mb-4">
+  <div class="flex justify-between items-center mb-6">
     <span id="user-email" class="text-sm text-gray-600">Verificando login...</span>
     <img id="user-pic" class="w-8 h-8 rounded-full" />
   </div>
 
-  <h1 class="text-2xl font-bold text-center mb-2">Todos os Eventos</h1>
-  <p class="text-center text-sm mb-4 text-gray-600">Eventos de todos os cultivos selecionados</p>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Novo Cultivo -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4">Novo Cultivo</h2>
+      <label class="block mb-2 font-medium">Blueprint</label>
+      <select id="blueprint-select" class="w-full border rounded px-3 py-2 mb-4"></select>
 
-  <div class="flex justify-center gap-4 mb-4">
-    <input id="filtro-cultivo" type="text" placeholder="Filtrar por cultivo..." class="border px-2 py-1 rounded w-64" />
-    <input id="filtro-data" type="date" class="border px-2 py-1 rounded" />
-  </div>
+      <label class="block mb-2 font-medium">Título</label>
+      <input id="titulo" type="text" class="w-full border rounded px-3 py-2 mb-4" placeholder="Ex: Cultivo Verão" />
 
-  <div class="overflow-x-auto">
-    <table class="w-full max-w-6xl mx-auto bg-white border border-gray-300">
-      <thead class="bg-orange-400 text-white">
-        <tr>
-          <th class="px-2 py-1">Cultivo</th>
-          <th class="px-2 py-1">Evento</th>
-          <th class="px-2 py-1">Dias</th>
-          <th class="px-2 py-1">Início</th>
-          <th class="px-2 py-1">Fim</th>
-          <th class="px-2 py-1">Notas</th>
-        </tr>
-      </thead>
-      <tbody id="tabela-eventos"></tbody>
-    </table>
-  </div>
+      <label class="block mb-2 font-medium">Data inicial</label>
+      <input id="data-inicial" type="date" class="w-full border rounded px-3 py-2 mb-6" />
 
-  <div class="flex justify-center gap-4 mt-6">
-    <button id="salvar-eventos" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded">Salvar</button>
-    <button class="bg-gray-400 hover:bg-gray-500 text-white font-bold px-4 py-2 rounded">Cancelar</button>
-    <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-4 py-2 rounded">Salvar PDF</button>
-    <button id="toggle-passados" class="bg-gray-600 hover:bg-gray-700 text-white font-bold px-4 py-2 rounded">Exibir/Ocultar Eventos Passados</button>
+      <button id="criar" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full">CRIAR</button>
+    </div>
+
+    <!-- Cultivos Disponíveis -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4">Cultivos Disponíveis</h2>
+      <div id="lista-cultivos" class="space-y-2 max-h-64 overflow-y-auto"></div>
+      <div class="flex gap-2 mt-6">
+        <button id="abrir" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full">ABRIR</button>
+        <button id="deletar" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full">DELETAR</button>
+      </div>
+    </div>
   </div>
 
   <script type="module">
     import { auth, db } from "../js/firebase-init.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { getDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { collection, getDocs, setDoc, getDoc, doc, deleteDoc, query, where, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    let mostrarPassados = false;
-    let eventosSalvos = {};
-
-    function calcularDataFim(inicio, dias) {
-      const data = new Date(inicio);
-      data.setDate(data.getDate() + parseInt(dias));
-      return data.toISOString().split("T")[0];
-    }
-
-    function isPassado(dataFim) {
-      const hoje = new Date().toISOString().split("T")[0];
-      return dataFim < hoje;
-    }
+    let usuario = null;
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "/login.html";
-
+      if (!user) return (window.location.href = "/login.html");
+      usuario = user;
       document.getElementById("user-email").textContent = user.email;
       document.getElementById("user-pic").src = user.photoURL;
+      carregarBlueprints();
+      carregarCultivos();
+    });
 
-      const ids = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
-      const tbody = document.getElementById("tabela-eventos");
-      tbody.innerHTML = "";
-      eventosSalvos = {};
+    async function carregarBlueprints() {
+      const ref = collection(db, "blueprints");
+      const q = query(ref, where("usuario", "==", usuario.email));
+      const snap = await getDocs(q);
+      const select = document.getElementById("blueprint-select");
+      snap.forEach(doc => {
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = doc.data().nome;
+        select.appendChild(opt);
+      });
+    }
 
-      for (const cultivoId of ids) {
-        const snap = await getDoc(doc(db, "cultivos", cultivoId));
-        if (!snap.exists()) continue;
+    async function carregarCultivos() {
+      const ref = collection(db, "cultivos");
+      const q = query(ref, where("uid", "==", usuario.uid));
+      const snap = await getDocs(q);
+      const lista = document.getElementById("lista-cultivos");
+      lista.innerHTML = "";
+      snap.forEach(doc => {
+        const div = document.createElement("div");
+        div.innerHTML = `<label class='flex items-center gap-2'><input type='checkbox' value='${doc.id}' class='cultivo-checkbox' />${doc.data().titulo}</label>`;
+        lista.appendChild(div);
+      });
+    }
 
-        const { titulo, dataInicial, eventos } = snap.data();
-        let dataAtual = new Date(dataInicial);
+    document.getElementById("criar").addEventListener("click", async () => {
+      const blueprintId = document.getElementById("blueprint-select").value;
+      const titulo = document.getElementById("titulo").value.trim();
+      const dataInicial = document.getElementById("data-inicial").value;
+      if (!titulo || !dataInicial || !blueprintId) return alert("Preencha todos os campos.");
 
-        eventosSalvos[cultivoId] = { titulo, eventos: [] };
+      const bpSnap = await getDoc(doc(db, "blueprints", blueprintId));
+      if (!bpSnap.exists()) return alert("Blueprint não encontrada.");
 
-        eventos.forEach((ev, index) => {
-          const inicio = dataAtual.toISOString().split("T")[0];
-          const fim = calcularDataFim(inicio, ev.dias);
-          dataAtual.setDate(dataAtual.getDate() + parseInt(ev.dias));
+      const eventos = bpSnap.data().eventos;
 
-          const tr = document.createElement("tr");
-          tr.dataset.fim = fim;
-          tr.dataset.cultivo = cultivoId;
+      await addDoc(collection(db, "cultivos"), {
+        uid: usuario.uid,
+        titulo,
+        blueprint: blueprintId,
+        dataInicial,
+        eventos
+      });
 
-          tr.innerHTML = `
-            <td class="border px-2 py-1">${titulo}</td>
-            <td class="border px-2 py-1">${ev.evento}</td>
-            <td class="border px-2 py-1">${ev.dias}</td>
-            <td class="border px-2 py-1"><input type="date" value="${inicio}" class="data-inicio border rounded w-full px-1" /></td>
-            <td class="border px-2 py-1"><input type="date" value="${fim}" class="data-fim border rounded w-full px-1" /></td>
-            <td class="border px-2 py-1"><input type="text" value="${ev.notas || ''}" class="notas border rounded w-full px-1" /></td>
-          `;
+      document.getElementById("titulo").value = "";
+      document.getElementById("data-inicial").value = "";
+      carregarCultivos();
+    });
 
-          if (isPassado(fim)) tr.classList.add("evento-passado");
+    document.getElementById("deletar").addEventListener("click", async () => {
+      const selecionados = document.querySelectorAll(".cultivo-checkbox:checked");
+      if (selecionados.length === 0) return alert("Nenhum cultivo selecionado.");
+      if (!confirm("Deseja deletar os cultivos selecionados?")) return;
 
-          tbody.appendChild(tr);
-          eventosSalvos[cultivoId].eventos.push({ ...ev, inicio, fim });
-        });
+      for (const checkbox of selecionados) {
+        await deleteDoc(doc(db, "cultivos", checkbox.value));
       }
+      carregarCultivos();
     });
 
-    document.getElementById("toggle-passados").addEventListener("click", () => {
-      mostrarPassados = !mostrarPassados;
-      document.querySelectorAll(".evento-passado").forEach(row => {
-        row.style.display = mostrarPassados ? "table-row" : "none";
-      });
-    });
-
-    document.getElementById("salvar-eventos").addEventListener("click", async () => {
-      const linhas = document.querySelectorAll("#tabela-eventos tr");
-      const atualizados = {};
-
-      linhas.forEach(tr => {
-        const cultivo = tr.dataset.cultivo;
-        const evento = tr.children[1].textContent;
-        const dias = parseInt(tr.children[2].textContent);
-        const notas = tr.querySelector(".notas").value;
-
-        if (!atualizados[cultivo]) atualizados[cultivo] = [];
-        atualizados[cultivo].push({ evento, dias, notas });
-      });
-
-      for (const cultivoId in atualizados) {
-        const snap = await getDoc(doc(db, "cultivos", cultivoId));
-        if (!snap.exists()) continue;
-        const data = snap.data();
-        await setDoc(doc(db, "cultivos", cultivoId), {
-          ...data,
-          eventos: atualizados[cultivoId]
-        });
-      }
-
-      alert("Eventos salvos com sucesso!");
-    });
-
-    // Filtro por cultivo
-    document.getElementById("filtro-cultivo").addEventListener("input", e => {
-      const termo = e.target.value.toLowerCase();
-      document.querySelectorAll("#tabela-eventos tr").forEach(tr => {
-        tr.style.display = tr.children[0].textContent.toLowerCase().includes(termo) ? "table-row" : "none";
-      });
-    });
-
-    // Filtro por data
-    document.getElementById("filtro-data").addEventListener("change", e => {
-      const dataLimite = e.target.value;
-      document.querySelectorAll("#tabela-eventos tr").forEach(tr => {
-        const inicio = tr.querySelector(".data-inicio").value;
-        tr.style.display = inicio >= dataLimite ? "table-row" : "none";
-      });
+    document.getElementById("abrir").addEventListener("click", () => {
+      const selecionados = Array.from(document.querySelectorAll(".cultivo-checkbox:checked"))
+        .map(cb => cb.value);
+      if (selecionados.length === 0) return alert("Nenhum cultivo selecionado.");
+      localStorage.setItem("cultivosSelecionados", JSON.stringify(selecionados));
+      window.location.href = "/cultivoapp/eventos.html";
     });
   </script>
 </body>
