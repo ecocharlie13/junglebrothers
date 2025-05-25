@@ -19,7 +19,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-    // ✅ Config do Firebase Jungle Brothers
     const firebaseConfig = {
       apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
       authDomain: "jungle-brothers-93e80.firebaseapp.com",
@@ -32,13 +31,11 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // 🔐 Verifica se o usuário está logado
     onAuthStateChanged(auth, (user) => {
       if (!user) {
-        // 🚨 Redireciona para o login CORRETO
-        window.location.href = "/cultivoapp/login.html";
+        // ✅ Corrigido: redireciona para a página correta fora da pasta /cultivoapp
+        window.location.href = "/login.html";
       } else {
-        // ✅ Mostra o e-mail do usuário
         document.getElementById("user-info").textContent = `Logado como ${user.email}`;
       }
     });
