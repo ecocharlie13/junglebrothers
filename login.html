@@ -20,7 +20,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-    // ✅ Configuração oficial do projeto Jungle Brothers
     const firebaseConfig = {
       apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
       authDomain: "jungle-brothers-93e80.firebaseapp.com",
@@ -37,7 +36,7 @@
     document.getElementById("login-btn").addEventListener("click", async () => {
       try {
         await signInWithPopup(auth, provider);
-        window.location.href = "/dashboard.html";  // Redirecionamento pós-login
+        window.location.href = "/cultivoapp/home.html"; // ✅ Redireciona para o app
       } catch (error) {
         console.error("Erro ao autenticar:", error);
         const msg = document.getElementById("error-msg");
