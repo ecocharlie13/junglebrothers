@@ -15,27 +15,16 @@
     Acessar Blueprints
   </a>
 
+  <!-- 🔐 Verificação de login -->
+  <script type="module" src="/js/auth.js"></script>
+
+  <!-- 👤 Mostrar usuário logado -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
-      authDomain: "jungle-brothers-93e80.firebaseapp.com",
-      projectId: "jungle-brothers-93e80",
-      storageBucket: "jungle-brothers-93e80.appspot.com",
-      messagingSenderId: "221354970870",
-      appId: "1:221354970870:web:a7f68c75480dc094bbad67"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    import { auth } from "/js/firebase-init.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
     onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        // ✅ Corrigido: redireciona para a página correta fora da pasta /cultivoapp
-        window.location.href = "/login.html";
-      } else {
+      if (user) {
         document.getElementById("user-info").textContent = `Logado como ${user.email}`;
       }
     });
