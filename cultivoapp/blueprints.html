@@ -26,13 +26,35 @@
 
   <table class="w-full max-w-4xl mx-auto bg-white border border-gray-300">
     <thead class="bg-orange-400 text-white">
-      <tr><th>Evento</th><th>Dias</th><th>Ajuste</th><th>Notas</th></tr>
+      <tr>
+        <th>Evento</th>
+        <th>Dias</th>
+        <th>Ajuste</th>
+        <th>Notas</th>
+        <th></th>
+      </tr>
     </thead>
     <tbody id="tabela">
-      <tr class="linha"><td><input class="evento" value="Clonar" /></td><td><input class="dias" value="1" /></td><td><input class="ajuste" value="0" /></td><td><input class="notas" /></td></tr>
-      <tr class="linha"><td><input class="evento" value="Enraizar Clones" /></td><td><input class="dias" value="14" /></td><td><input class="ajuste" value="0" /></td><td><input class="notas" /></td></tr>
+      <tr class="linha">
+        <td><input class="evento" value="Clonar" /></td>
+        <td><input class="dias" value="1" type="number" /></td>
+        <td><input class="ajuste" value="0" type="number" /></td>
+        <td><input class="notas" /></td>
+        <td><button onclick="removerLinha(this)" class="text-red-500">🗑️</button></td>
+      </tr>
+      <tr class="linha">
+        <td><input class="evento" value="Enraizar Clones" /></td>
+        <td><input class="dias" value="14" type="number" /></td>
+        <td><input class="ajuste" value="0" type="number" /></td>
+        <td><input class="notas" /></td>
+        <td><button onclick="removerLinha(this)" class="text-red-500">🗑️</button></td>
+      </tr>
     </tbody>
   </table>
+
+  <div class="text-center mt-4">
+    <button onclick="adicionarLinha()" class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700">+ Adicionar etapa</button>
+  </div>
 
   <div class="text-center mt-6">
     <button id="salvar" class="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">Salvar</button>
@@ -48,6 +70,27 @@
       document.getElementById("salvar").addEventListener("click", salvarBlueprint);
       carregarDropdown();
     });
+
+    // Adiciona nova linha à tabela
+    window.adicionarLinha = () => {
+      const tbody = document.getElementById("tabela");
+      const tr = document.createElement("tr");
+      tr.className = "linha";
+      tr.innerHTML = `
+        <td><input class='evento' /></td>
+        <td><input class='dias' type="number" value="0" /></td>
+        <td><input class='ajuste' type="number" value="0" /></td>
+        <td><input class='notas' /></td>
+        <td><button onclick="removerLinha(this)" class="text-red-500">🗑️</button></td>
+      `;
+      tbody.appendChild(tr);
+    };
+
+    // Remove linha da tabela
+    window.removerLinha = (btn) => {
+      const tr = btn.closest("tr");
+      if (tr) tr.remove();
+    };
   </script>
 </body>
 </html>
