@@ -6,36 +6,27 @@
   <title>Blueprints - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-200 min-h-screen flex flex-col justify-center items-center text-center">
-  <!-- Header com usuário -->
-  <div class="absolute top-2 right-4 text-sm text-gray-700">
-    <span id="user-email">carregando...</span>
-    <img id="user-pic" class="inline-block ml-2 w-8 h-8 rounded-full" />
+<body class="bg-gray-100 min-h-screen p-6">
+  <div class="flex justify-between items-center mb-6">
+    <span id="user-email" class="text-sm text-gray-600">Verificando login...</span>
+    <img id="user-pic" class="w-8 h-8 rounded-full" />
   </div>
 
-  <!-- Título -->
-  <h1 class="text-2xl font-bold mt-8">Blueprint do Cultivo</h1>
-  <p class="mb-4">Preencha abaixo sua blueprint e salve para começar.</p>
+  <h1 class="text-2xl font-bold text-center mb-2">Blueprint do Cultivo</h1>
+  <p class="text-center mb-4">Preencha abaixo sua blueprint e salve para começar.</p>
 
-  <!-- Nome e carregamento -->
-  <div class="mb-4">
-    <label class="block font-bold">Nome da Blueprint:</label>
-    <input id="nome-blueprint" type="text" placeholder="Ex: BP Teste" class="border px-4 py-1 rounded-md" />
+  <div class="mb-6 text-center">
+    <label class="block font-semibold mb-1">Nome da Blueprint:</label>
+    <input id="nome-blueprint" type="text" placeholder="Ex: BP Teste" class="px-3 py-1 border rounded" />
     <div class="flex justify-center mt-2 gap-2">
-      <select id="blueprint-select" class="px-2 py-1 rounded-md"></select>
-      <button onclick="loadBlueprint()" class="bg-blue-600 text-white px-4 py-1 rounded-md">Carregar</button>
+      <select id="blueprint-select" class="px-2 py-1 border rounded"></select>
+      <button onclick="loadBlueprint()" class="bg-blue-600 text-white px-4 py-1 rounded">Carregar</button>
     </div>
   </div>
 
-  <!-- Tabela -->
-  <table class="w-full max-w-4xl bg-white border border-gray-300">
-    <thead>
-      <tr class="bg-orange-400 text-white">
-        <th class="py-2">Evento</th>
-        <th>Dias</th>
-        <th>Ajuste</th>
-        <th>Notas</th>
-      </tr>
+  <table class="w-full max-w-4xl mx-auto bg-white border border-gray-300">
+    <thead class="bg-orange-400 text-white">
+      <tr><th>Evento</th><th>Dias</th><th>Ajuste</th><th>Notas</th></tr>
     </thead>
     <tbody id="tabela">
       <tr class="linha"><td><input class="evento" value="Clonar" /></td><td><input class="dias" value="1" /></td><td><input class="ajuste" value="0" /></td><td><input class="notas" /></td></tr>
@@ -43,25 +34,90 @@
     </tbody>
   </table>
 
-  <!-- Botão de salvar -->
-  <div class="mt-6">
-    <button id="salvar" class="bg-purple-600 text-white px-6 py-2 rounded-xl hover:bg-purple-700">Salvar</button>
-    <div id="status" class="mt-3 text-sm text-green-700 font-semibold"></div>
+  <div class="text-center mt-6">
+    <button id="salvar" class="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">Salvar</button>
+    <p id="status" class="mt-3 text-green-700 font-semibold"></p>
   </div>
 
-  <footer class="mt-12 text-sm text-gray-500">Jungle Brothers CultivoApp</footer>
-
-  <!-- Firebase + Proteção -->
-  <script type="module" src="/js/firebase-init.js"></script>
-  <script type="module" src="/js/auth.js"></script>
-
-  <!-- Script principal -->
   <script type="module">
-    import { carregarDropdown, loadBlueprint, salvarBlueprint } from "/js/blueprints.js";
+    import { app, auth, db } from "../js/firebase-init.js";
+    import { getDoc, getDocs, setDoc, doc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-    window.loadBlueprint = loadBlueprint;
-    document.addEventListener("DOMContentLoaded", carregarDropdown);
-    document.getElementById("salvar").addEventListener("click", salvarBlueprint);
+    let usuario = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+        return;
+      }
+      usuario = user;
+      document.getElementById("user-email").textContent = user.email;
+      document.getElementById("user-pic").src = user.photoURL;
+      await carregarDropdown();
+    });
+
+    async function carregarDropdown() {
+      const ref = collection(db, "blueprints");
+      const q = query(ref, where("usuario", "==", usuario.email));
+      const snap = await getDocs(q);
+      const select = document.getElementById("blueprint-select");
+      select.innerHTML = "<option disabled selected hidden>Escolha uma blueprint</option>";
+      snap.forEach((doc) => {
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = doc.data().nome;
+        select.appendChild(opt);
+      });
+    }
+
+    window.loadBlueprint = async () => {
+      const id = document.getElementById("blueprint-select").value;
+      const ref = doc(db, "blueprints", id);
+      const docSnap = await getDoc(ref);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("nome-blueprint").value = data.nome;
+        const tbody = document.getElementById("tabela");
+        tbody.innerHTML = "";
+        data.eventos.forEach(ev => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td><input class='evento' value="${ev.evento}"/></td>
+                          <td><input class='dias' value="${ev.dias}"/></td>
+                          <td><input class='ajuste' value="${ev.ajuste}"/></td>
+                          <td><input class='notas' value="${ev.notas}"/></td>`;
+          tbody.appendChild(tr);
+        });
+      }
+    };
+
+    document.getElementById("salvar").addEventListener("click", async () => {
+      const nome = document.getElementById("nome-blueprint").value.trim();
+      if (!nome) return alert("Dê um nome à sua blueprint.");
+
+      const linhas = document.querySelectorAll("#tabela tr");
+      const eventos = [];
+      linhas.forEach(row => {
+        eventos.push({
+          evento: row.querySelector(".evento")?.value || "",
+          dias: parseInt(row.querySelector(".dias")?.value || "0"),
+          ajuste: parseInt(row.querySelector(".ajuste")?.value || "0"),
+          notas: row.querySelector(".notas")?.value || ""
+        });
+      });
+
+      const docRef = doc(db, "blueprints", nome + "_" + usuario.uid);
+      await setDoc(docRef, {
+        usuario: usuario.email,
+        nome,
+        eventos,
+        criado: new Date().toISOString()
+      });
+
+      document.getElementById("status").textContent = "✅ Blueprint salva com sucesso!";
+      setTimeout(() => document.getElementById("status").textContent = "", 4000);
+      await carregarDropdown();
+    });
   </script>
 </body>
 </html>
