@@ -25,7 +25,7 @@
       <label class="block mb-2 font-medium">Data inicial</label>
       <input id="data-inicial" type="date" class="w-full border rounded px-3 py-2 mb-6" />
 
-      <button id="criar" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full">CRIAR</button>
+      <button id="criar-cultivo" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full">CRIAR</button>
     </div>
 
     <!-- Cultivos Disponíveis -->
@@ -33,96 +33,12 @@
       <h2 class="text-xl font-bold mb-4">Cultivos Disponíveis</h2>
       <div id="lista-cultivos" class="space-y-2 max-h-64 overflow-y-auto"></div>
       <div class="flex gap-2 mt-6">
-        <button id="abrir" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full">ABRIR</button>
-        <button id="deletar" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full">DELETAR</button>
+        <button id="abrir-cultivo" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full">ABRIR</button>
+        <button id="deletar-cultivo" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full">DELETAR</button>
       </div>
     </div>
   </div>
 
-  <script type="module">
-    import { auth, db } from "../js/firebase-init.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { collection, getDocs, setDoc, getDoc, doc, deleteDoc, query, where, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-    let usuario = null;
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return (window.location.href = "/login.html");
-      usuario = user;
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
-      carregarBlueprints();
-      carregarCultivos();
-    });
-
-    async function carregarBlueprints() {
-      const ref = collection(db, "blueprints");
-      const q = query(ref, where("usuario", "==", usuario.email));
-      const snap = await getDocs(q);
-      const select = document.getElementById("blueprint-select");
-      snap.forEach(doc => {
-        const opt = document.createElement("option");
-        opt.value = doc.id;
-        opt.textContent = doc.data().nome;
-        select.appendChild(opt);
-      });
-    }
-
-    async function carregarCultivos() {
-      const ref = collection(db, "cultivos");
-      const q = query(ref, where("uid", "==", usuario.uid));
-      const snap = await getDocs(q);
-      const lista = document.getElementById("lista-cultivos");
-      lista.innerHTML = "";
-      snap.forEach(doc => {
-        const div = document.createElement("div");
-        div.innerHTML = `<label class='flex items-center gap-2'><input type='checkbox' value='${doc.id}' class='cultivo-checkbox' />${doc.data().titulo}</label>`;
-        lista.appendChild(div);
-      });
-    }
-
-    document.getElementById("criar").addEventListener("click", async () => {
-      const blueprintId = document.getElementById("blueprint-select").value;
-      const titulo = document.getElementById("titulo").value.trim();
-      const dataInicial = document.getElementById("data-inicial").value;
-      if (!titulo || !dataInicial || !blueprintId) return alert("Preencha todos os campos.");
-
-      const bpSnap = await getDoc(doc(db, "blueprints", blueprintId));
-      if (!bpSnap.exists()) return alert("Blueprint não encontrada.");
-
-      const eventos = bpSnap.data().eventos;
-
-      await addDoc(collection(db, "cultivos"), {
-        uid: usuario.uid,
-        titulo,
-        blueprint: blueprintId,
-        dataInicial,
-        eventos
-      });
-
-      document.getElementById("titulo").value = "";
-      document.getElementById("data-inicial").value = "";
-      carregarCultivos();
-    });
-
-    document.getElementById("deletar").addEventListener("click", async () => {
-      const selecionados = document.querySelectorAll(".cultivo-checkbox:checked");
-      if (selecionados.length === 0) return alert("Nenhum cultivo selecionado.");
-      if (!confirm("Deseja deletar os cultivos selecionados?")) return;
-
-      for (const checkbox of selecionados) {
-        await deleteDoc(doc(db, "cultivos", checkbox.value));
-      }
-      carregarCultivos();
-    });
-
-    document.getElementById("abrir").addEventListener("click", () => {
-      const selecionados = Array.from(document.querySelectorAll(".cultivo-checkbox:checked"))
-        .map(cb => cb.value);
-      if (selecionados.length === 0) return alert("Nenhum cultivo selecionado.");
-      localStorage.setItem("cultivosSelecionados", JSON.stringify(selecionados));
-      window.location.href = "/cultivoapp/eventos.html";
-    });
-  </script>
+  <script type="module" src="../js/cultivos.js"></script>
 </body>
 </html>
