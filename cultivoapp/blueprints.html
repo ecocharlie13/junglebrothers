@@ -40,85 +40,13 @@
   </div>
 
   <script type="module">
-    import { app, auth, db } from "../js/firebase-init.js";
-    import { getDoc, getDocs, setDoc, doc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { carregarDropdown, loadBlueprint, salvarBlueprint } from "../js/blueprints.js";
 
-    let usuario = null;
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "/login.html";
-        return;
-      }
-      usuario = user;
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
-      await carregarDropdown();
-    });
-
-    async function carregarDropdown() {
-      const ref = collection(db, "blueprints");
-      const q = query(ref, where("usuario", "==", usuario.email));
-      const snap = await getDocs(q);
-      const select = document.getElementById("blueprint-select");
-      select.innerHTML = "<option disabled selected hidden>Escolha uma blueprint</option>";
-      snap.forEach((doc) => {
-        const opt = document.createElement("option");
-        opt.value = doc.id;
-        opt.textContent = doc.data().nome;
-        select.appendChild(opt);
-      });
-    }
-
-    window.loadBlueprint = async () => {
-      const id = document.getElementById("blueprint-select").value;
-      const ref = doc(db, "blueprints", id);
-      const docSnap = await getDoc(ref);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        document.getElementById("nome-blueprint").value = data.nome;
-        const tbody = document.getElementById("tabela");
-        tbody.innerHTML = "";
-        data.eventos.forEach(ev => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td><input class='evento' value="${ev.evento}"/></td>
-                          <td><input class='dias' value="${ev.dias}"/></td>
-                          <td><input class='ajuste' value="${ev.ajuste}"/></td>
-                          <td><input class='notas' value="${ev.notas}"/></td>`;
-          tbody.appendChild(tr);
-        });
-      }
-    };
+    window.loadBlueprint = loadBlueprint;
 
     window.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("salvar").addEventListener("click", async () => {
-        const nome = document.getElementById("nome-blueprint").value.trim();
-        if (!nome) return alert("Dê um nome à sua blueprint.");
-
-        const linhas = document.querySelectorAll("#tabela tr");
-        const eventos = [];
-        linhas.forEach(row => {
-          eventos.push({
-            evento: row.querySelector(".evento")?.value || "",
-            dias: parseInt(row.querySelector(".dias")?.value || "0"),
-            ajuste: parseInt(row.querySelector(".ajuste")?.value || "0"),
-            notas: row.querySelector(".notas")?.value || ""
-          });
-        });
-
-        const docRef = doc(db, "blueprints", nome + "_" + usuario.uid);
-        await setDoc(docRef, {
-          usuario: usuario.email,
-          nome,
-          eventos,
-          criado: new Date().toISOString()
-        });
-
-        document.getElementById("status").textContent = "✅ Blueprint salva com sucesso!";
-        setTimeout(() => document.getElementById("status").textContent = "", 4000);
-        await carregarDropdown();
-      });
+      document.getElementById("salvar").addEventListener("click", salvarBlueprint);
+      carregarDropdown();
     });
   </script>
 </body>
