@@ -1,84 +1,52 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | Jungle Brothers</title>
-  <link rel="stylesheet" href="css/estilo.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - CultivoApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>Área Restrita</h1>
-  <p id="status">Verificando acesso...</p>
-  <button id="logout" style="display: none;">Sair</button>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <div class="p-6 max-w-4xl mx-auto">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">🏠 Área Restrita</h1>
+      <div>
+        <span id="status" class="text-sm"></span>
+        <button id="logout" class="ml-4 px-3 py-1 bg-red-500 text-white rounded hidden">Sair</button>
+        <a href="/index.html" id="link-voltar" class="ml-2 text-sm text-blue-600 hidden">← Voltar para o site</a>
+      </div>
+    </header>
 
-  <!-- Menu principal da área restrita -->
-<nav id="menu" style="display: none; margin: 20px 0;">
-  <ul style="list-style: none; padding: 0; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
-    <li><a href="dashboard.html">🏠 Início</a></li>
-    <li><a href="regulamento.html">📄 Regulamento</a></li>
-    <li><a href="perfil.html">👤 Perfil</a></li>
-    <li><a href="suporte.html">📞 Suporte</a></li>
-    <a href="https://junglebrothers.com.br/cultivoapp/home.html">🧪 CultivoApp</a>
-  </ul>
-</nav>
+    <nav id="menu" class="space-x-4 mb-6 hidden">
+      <a href="#" id="link-classroom" class="text-blue-600 hidden">📖 Google Classroom</a>
+      <a href="#" id="pasta-compartilhada" class="text-blue-600 hidden">📁 Pasta Compartilhada</a>
+    </nav>
 
-  <p>
-    <a href="index.html" id="link-voltar" style="display: none;">
-      ← Voltar para a página inicial
-    </a>
-  </p>
-
-  <!-- Painel apenas para administradores -->
-  <div id="painel" style="display: none;">
-    <h2>Painel de Administração</h2>
-    <form id="form-add">
-      <input type="email" id="email-novo" placeholder="Novo e-mail autorizado" required />
-      <select id="papel-novo" required>
-        <option value="cliente">Cliente</option>
-        <option value="equipe">Equipe</option>
-        <option value="administrador">Administrador</option>
-      </select>
-      <button type="submit">Adicionar</button>
-    </form>
-
-    <table id="tabela">
-      <thead>
-        <tr>
-          <th>E-mail</th>
-          <th>Status</th>
-          <th>Papel</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody id="tabela-usuarios"></tbody>
-    </table>
+    <section id="painel" class="hidden">
+      <h2 class="text-xl font-semibold mb-2">Painel de Administração</h2>
+      <form id="form-add" class="flex gap-2 mb-4">
+        <input type="email" id="email-novo" placeholder="Email do novo usuário" class="border px-2 py-1 flex-1">
+        <select id="papel-novo" class="border px-2 py-1">
+          <option value="cliente">Cliente</option>
+          <option value="equipe">Equipe</option>
+          <option value="administrador">Administrador</option>
+        </select>
+        <button type="submit" class="bg-green-600 text-white px-4 py-1 rounded">Adicionar</button>
+      </form>
+      <table class="w-full border text-sm" id="tabela-usuarios">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border px-2 py-1 text-left">Email</th>
+            <th class="border px-2 py-1">Ativo</th>
+            <th class="border px-2 py-1">Nível</th>
+            <th class="border px-2 py-1">Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
   </div>
 
-  <!-- Link para o Classroom (admin e equipe) -->
-  <div id="link-classroom" style="display: none; margin-top: 40px;">
-    <a href="https://classroom.google.com/u/1/c/Njg5ODIzMjczMzM4" target="_blank" style="
-      display: inline-block;
-      padding: 12px 24px;
-      background-color: #34a853;
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-      border-radius: 6px;
-    ">
-      Acessar Sala de Aula
-    </a>
-  </div>
-
-  <!-- Visualização da pasta compartilhada -->
-  <div id="pasta-compartilhada" style="display: none; margin-top: 40px;">
-    <h2>Materiais Compartilhados</h2>
-    <iframe
-      src="https://drive.google.com/embeddedfolderview?id=1fJDlMeFpoUvZ4_JfIJEAVauezYmWdHqd#grid"
-      style="width:100%; height:500px; border:1px solid #ccc;">
-    </iframe>
-  </div>
-
-  <!-- Firebase e JS -->
-  <script type="module" src="js/dashboard.js"></script>
+  <script type="module" src="/js/dashboard.js"></script>
 </body>
 </html>
