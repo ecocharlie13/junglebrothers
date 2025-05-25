@@ -30,7 +30,7 @@ export async function carregarDropdown() {
   const q = query(ref, where("usuario", "==", usuario.email));
   const snap = await getDocs(q);
   const select = document.getElementById("blueprint-select");
-  select.innerHTML = "";
+  select.innerHTML = "<option disabled selected hidden>Escolha uma blueprint</option>";
   snap.forEach((doc) => {
     const opt = document.createElement("option");
     opt.value = doc.id;
@@ -49,13 +49,15 @@ export async function loadBlueprint() {
 
     const tbody = document.getElementById("tabela");
     tbody.innerHTML = "";
+
     data.eventos.forEach((ev) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><input class='evento' value="${ev.evento}"/></td>
-        <td><input class='dias' value="${ev.dias}"/></td>
-        <td><input class='ajuste' value="${ev.ajuste}"/></td>
-        <td><input class='notas' value="${ev.notas}"/></td>
+        <td><input class='evento' value="${ev.evento}" /></td>
+        <td><input class='dias' type="number" value="${ev.dias}" /></td>
+        <td><input class='ajuste' type="number" value="${ev.ajuste}" /></td>
+        <td><input class='notas' value="${ev.notas}" /></td>
+        <td><button onclick="removerLinha(this)" class="text-red-500">🗑️</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -68,9 +70,13 @@ export async function salvarBlueprint() {
 
   const linhas = document.querySelectorAll("#tabela tr");
   const eventos = [];
+
   linhas.forEach((row) => {
+    const evento = row.querySelector(".evento")?.value.trim();
+    if (!evento) return; // ignora linhas sem nome de evento
+
     eventos.push({
-      evento: row.querySelector(".evento")?.value || "",
+      evento,
       dias: parseInt(row.querySelector(".dias")?.value || "0"),
       ajuste: parseInt(row.querySelector(".ajuste")?.value || "0"),
       notas: row.querySelector(".notas")?.value || ""
@@ -89,3 +95,9 @@ export async function salvarBlueprint() {
   setTimeout(() => (document.getElementById("status").textContent = ""), 4000);
   await carregarDropdown();
 }
+
+// Função global para remover linha
+window.removerLinha = (btn) => {
+  const tr = btn.closest("tr");
+  if (tr) tr.remove();
+};
