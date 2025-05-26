@@ -1,3 +1,5 @@
+// painel.js
+
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
@@ -138,25 +140,10 @@ function atualizarGantt() {
 
       if (!mostrarPassados && fimEv < hoje) continue;
 
-      console.log("Evento:", {
-        cultivo: cultivo.titulo,
-        evento: ev.evento,
-        dias: dias,
-        inicio: inicioEv.toISOString(),
-        fim: fimEv.toISOString()
-      });
-
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
-        borderRadius: 4,
-        barPercentage: 1,
-        categoryPercentage: 1,
-        data: [{
-          x: inicioEv,
-          x2: fimEv,
-          y: `${cultivo.titulo} - ${ev.evento}`
-        }]
+        data: [{ x: [inicioEv, fimEv], y: cultivo.titulo }]
       });
     }
     corIndex++;
@@ -164,15 +151,13 @@ function atualizarGantt() {
 
   canvas.height = Math.min(Math.max(datasets.length * 40, 300), 1200);
 
-  console.log("Datasets para Gantt:", datasets);
   window.ganttChart = new Chart(ctx, {
-    type: "bar",
+    type: "timeline",
     data: {
       labels: [...new Set(sorted.map(([_, c]) => c.titulo))],
       datasets
     },
     options: {
-      parsing: false,
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
