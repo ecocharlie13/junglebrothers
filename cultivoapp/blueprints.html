@@ -28,22 +28,7 @@
     <thead class="bg-orange-400 text-white">
       <tr><th>Evento</th><th>Dias</th><th>Ajuste</th><th>Notas</th><th></th></tr>
     </thead>
-    <tbody id="tabela">
-      <tr class="linha">
-        <td><input class="evento" value="Clonar" /></td>
-        <td><input class="dias" value="1" type="number" /></td>
-        <td><input class="ajuste" value="0" type="number" /></td>
-        <td><input class="notas" /></td>
-        <td><button class="text-red-500" onclick="removerLinha(this)">🗑️</button></td>
-      </tr>
-      <tr class="linha">
-        <td><input class="evento" value="Enraizar Clones" /></td>
-        <td><input class="dias" value="14" type="number" /></td>
-        <td><input class="ajuste" value="0" type="number" /></td>
-        <td><input class="notas" /></td>
-        <td><button class="text-red-500" onclick="removerLinha(this)">🗑️</button></td>
-      </tr>
-    </tbody>
+    <tbody id="tabela"></tbody>
   </table>
 
   <div class="text-center mt-4">
@@ -56,7 +41,12 @@
   </div>
 
   <script type="module">
-    import { carregarDropdown, loadBlueprint, salvarBlueprint, adicionarLinha } from "../js/blueprints.js";
+    import {
+      carregarDropdown,
+      loadBlueprint,
+      salvarBlueprint,
+      adicionarLinha
+    } from "../js/blueprints.js";
 
     window.addEventListener("DOMContentLoaded", () => {
       document.getElementById("salvar").addEventListener("click", salvarBlueprint);
@@ -64,12 +54,6 @@
       document.getElementById("adicionar").addEventListener("click", adicionarLinha);
       carregarDropdown();
     });
-
-    // expor globalmente para botão 🗑️ inline
-    window.removerLinha = (btn) => {
-      const tr = btn.closest("tr");
-      if (tr) tr.remove();
-    };
   </script>
 </body>
 </html>
