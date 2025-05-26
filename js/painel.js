@@ -1,8 +1,8 @@
 import { auth, db } from "./firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import {
-  getDoc,
-  doc
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let eventosMap = {};
@@ -74,7 +74,6 @@ function atualizarStickers() {
 
   for (const cultivo of Object.values(eventosMap)) {
     const base = new Date(cultivo.data);
-
     cultivo.eventos.forEach(ev => {
       const inicioEv = new Date(base);
       inicioEv.setDate(inicioEv.getDate() + (parseInt(ev.ajuste) || 0));
@@ -154,15 +153,15 @@ function atualizarGantt() {
       scales: {
         x: {
           type: "time",
-          adapters: {
-            date: {
-              zone: 'America/Sao_Paulo'
-            }
-          },
           time: {
             unit: "day",
             tooltipFormat: "dd MMM yyyy",
             displayFormats: { day: "dd MMM" }
+          },
+          adapters: {
+            date: {
+              zone: 'America/Sao_Paulo'
+            }
           }
         }
       }
