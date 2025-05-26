@@ -90,7 +90,7 @@ function atualizarStickers() {
       const ajuste = ev.ajuste !== undefined ? parseInt(ev.ajuste) : 0;
       inicioEv.setDate(inicioEv.getDate() + ajuste);
 
-      const dias = Math.max(1, parseInt(ev.dias) || 0); // garantir mínimo de 1
+      const dias = Math.max(1, parseInt(ev.dias) || 0);
       const fimEv = new Date(inicioEv);
       fimEv.setDate(fimEv.getDate() + dias);
 
@@ -150,7 +150,11 @@ function atualizarGantt() {
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
-        data: [{ x: [inicioEv, fimEv], y: `${cultivo.titulo} - ${ev.evento}` }]
+        data: [{
+          x: inicioEv,
+          x2: fimEv,
+          y: cultivo.titulo
+        }]
       });
     }
     corIndex++;
