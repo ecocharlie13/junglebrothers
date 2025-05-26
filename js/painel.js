@@ -86,7 +86,9 @@ function atualizarGantt() {
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
 
-  if (window.ganttChart) window.ganttChart.destroy();
+  if (window.ganttChart && typeof window.ganttChart.destroy === "function") {
+  window.ganttChart.destroy();
+}
 
   const datasets = [];
   const hoje = new Date();
