@@ -6,14 +6,16 @@
   <title>Painel - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Chart.js com Luxon adapter -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.js"></script>
+  <!-- Frappe Gantt -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.css" />
+  <script src="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.min.js"></script>
 
   <style>
-    .chart-container canvas {
-      max-height: 400px;
+    .gantt-container {
+      overflow-x: auto;
+    }
+    .gantt .bar {
+      cursor: pointer;
     }
   </style>
 </head>
@@ -47,8 +49,8 @@
 
   <!-- Gráfico Gantt -->
   <section class="p-6">
-    <div class="chart-container max-w-6xl mx-auto bg-white p-4 rounded shadow">
-      <canvas id="ganttChart" style="height: 600px;"></canvas>
+    <div class="gantt-container max-w-6xl mx-auto bg-white p-4 rounded shadow">
+      <div id="gantt"></div>
     </div>
     <div class="text-center mt-4 text-sm italic text-gray-600">
       <label>
@@ -62,6 +64,3 @@
   <script type="module" src="/cultivoapp/js/painel.js"></script>
 </body>
 </html>
-
-
-console.log(window.__debugEventosMap)
