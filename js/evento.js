@@ -1,93 +1,78 @@
-// js/eventos.js
-
 import { auth, db } from "./firebase-init.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { verificarLogin, sair } from "./auth.js";
 import {
   getDoc,
   doc,
-  updateDoc,
-  Timestamp
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-let usuario = null;
+let eventosMap = {};
+let cultivosSelecionados = [];
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return (window.location.href = "/login.html");
-  usuario = user;
+verificarLogin(async (user) => {
   document.getElementById("user-email").textContent = user.email;
-  document.getElementById("user-pic").src = user.photoURL;
-  await carregarEventos();
-});
+  document.getElementById("btn-sair").addEventListener("click", sair);
 
-async function carregarEventos() {
-  const cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
-  const tabela = document.getElementById("tabela-eventos");
-  tabela.innerHTML = "";
-
+  cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
   for (const cultivoId of cultivosSelecionados) {
     const ref = doc(db, "cultivos", cultivoId);
     const snap = await getDoc(ref);
-    if (!snap.exists()) continue;
+    if (snap.exists()) {
+      eventosMap[cultivoId] = snap.data();
+    }
+  }
+  atualizarTabela();
+});
 
-    const data = snap.data();
-    const eventos = data.eventos || [];
-    const dataInicial = new Date(data.data);
+function atualizarTabela() {
+  const tbody = document.getElementById("tabela-eventos");
+  tbody.innerHTML = "";
 
-    let inicio = new Date(dataInicial);
+  for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
+    let inicio = new Date(cultivo.data);
 
-    eventos.forEach((ev, index) => {
-      const ajuste = parseInt(ev.ajuste) || 0;
-      const dias = parseInt(ev.dias) || 0;
-
-      if (index > 0) {
-        inicio.setDate(inicio.getDate() + ajuste);
-      } else {
-        inicio.setDate(inicio.getDate() + ajuste);
-      }
-
+    cultivo.eventos.forEach((ev, i) => {
+      inicio.setDate(inicio.getDate() + (parseInt(ev.ajuste) || 0));
       const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + dias);
+      fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
 
       const tr = document.createElement("tr");
-
-      const tdCultivo = document.createElement("td");
-      tdCultivo.className = "border px-2 py-1";
-      tdCultivo.textContent = data.titulo;
-
-      const tdEvento = document.createElement("td");
-      tdEvento.className = "border px-2 py-1";
-      tdEvento.textContent = ev.evento;
-
-      const tdDias = document.createElement("td");
-      tdDias.className = "border px-2 py-1";
-      const inputDias = document.createElement("input");
-      inputDias.type = "number";
-      inputDias.value = dias;
-      inputDias.className = "dias border rounded w-full px-1";
-      tdDias.appendChild(inputDias);
-
-      const tdInicio = document.createElement("td");
-      tdInicio.className = "border px-2 py-1";
-      tdInicio.textContent = inicio.toISOString().split("T")[0];
-
-      const tdFim = document.createElement("td");
-      tdFim.className = "border px-2 py-1";
-      tdFim.textContent = fim.toISOString().split("T")[0];
-
-      const tdNotas = document.createElement("td");
-      tdNotas.className = "border px-2 py-1";
-      const inputNotas = document.createElement("input");
-      inputNotas.value = ev.notas || "";
-      inputNotas.className = "notas border rounded w-full px-1";
-      tdNotas.appendChild(inputNotas);
-
-      tr.append(tdCultivo, tdEvento, tdDias, tdInicio, tdFim, tdNotas);
-      tabela.appendChild(tr);
-
-      inicio = new Date(fim); // próxima etapa começa após fim atual
+      tr.innerHTML = `
+        <td class="border px-2 py-1">${cultivo.titulo}</td>
+        <td class="border px-2 py-1">${ev.evento}</td>
+        <td class="border px-2 py-1">
+          <input class="dias w-16 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
+        </td>
+        <td class="border px-2 py-1">${ev.ajuste}</td>
+        <td class="border px-2 py-1">${inicio.toISOString().split("T")[0]}</td>
+        <td class="border px-2 py-1">${fim.toISOString().split("T")[0]}</td>
+        <td class="border px-2 py-1">
+          <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
+        </td>
+      `;
+      tbody.appendChild(tr);
+      inicio = new Date(fim); // próximo começa no fim do anterior
     });
   }
 }
 
-// TODO: Adicionar função de salvar atualizações no Firestore caso necessário
-// TODO: Botão para recalcular datas se o número de dias mudar
+document.getElementById("atualizar").addEventListener("click", async () => {
+  document.querySelectorAll(".dias").forEach((input) => {
+    const { cultivo, index } = input.dataset;
+    eventosMap[cultivo].eventos[index].dias = parseInt(input.value);
+  });
+
+  document.querySelectorAll(".notas").forEach((input) => {
+    const { cultivo, index } = input.dataset;
+    eventosMap[cultivo].eventos[index].notas = input.value;
+  });
+
+  for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
+    await updateDoc(doc(db, "cultivos", cultivoId), {
+      eventos: cultivo.eventos
+    });
+  }
+
+  atualizarTabela();
+  alert("✅ Eventos atualizados com sucesso!");
+});
