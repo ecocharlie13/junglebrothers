@@ -1,153 +1,53 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  deleteDoc,
-  getDocs,
-  collection
-} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - CultivoApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 p-6 font-sans">
+  <div class="max-w-5xl mx-auto">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">🏠 Área Restrita</h1>
+      <div>
+        <span id="status" class="text-sm"></span>
+        <button id="logout" class="ml-4 px-3 py-1 bg-red-500 text-white rounded hidden">Sair</button>
+        <a href="/index.html" id="link-voltar" class="ml-2 text-sm text-blue-600 hidden">← Voltar</a>
+      </div>
+    </header>
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
-  authDomain: "jungle-brothers-93e80.firebaseapp.com",
-  projectId: "jungle-brothers-93e80",
-  storageBucket: "jungle-brothers-93e80.appspot.com",
-  messagingSenderId: "221354970870",
-  appId: "1:221354970870:web:a7f68c75480dc094bb6ad7"
-};
+    <nav id="menu" class="space-x-4 mb-6 hidden">
+      <a id="link-classroom" href="#" class="text-blue-600 hidden">📖 Google Classroom</a>
+      <a id="pasta-compartilhada" href="#" class="text-blue-600 hidden">📁 Pasta Compartilhada</a>
+    </nav>
 
-// Inicialização
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    <section id="painel" class="hidden">
+      <h2 class="text-xl font-semibold mb-4">Painel de Administração</h2>
+      <form id="form-add" class="flex flex-wrap gap-2 mb-4">
+        <input type="email" id="email-novo" placeholder="Email do novo usuário" class="border px-2 py-1 flex-1" />
+        <select id="papel-novo" class="border px-2 py-1">
+          <option value="cliente">Cliente</option>
+          <option value="equipe">Equipe</option>
+          <option value="administrador">Administrador</option>
+        </select>
+        <button type="submit" class="bg-green-600 text-white px-4 py-1 rounded">Adicionar</button>
+      </form>
 
-// Elementos DOM
-const status = document.getElementById("status");
-const logoutBtn = document.getElementById("logout");
-const linkVoltar = document.getElementById("link-voltar");
-const painel = document.getElementById("painel");
-const menu = document.getElementById("menu");
-const linkClassroom = document.getElementById("link-classroom");
-const pastaCompartilhada = document.getElementById("pasta-compartilhada");
-const tabela = document.getElementById("tabela-usuarios");
-const formAdd = document.getElementById("form-add");
-const emailNovo = document.getElementById("email-novo");
-const papelNovo = document.getElementById("papel-novo");
+      <table class="w-full border text-sm" id="tabela-usuarios">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border px-2 py-1 text-left">Email</th>
+            <th class="border px-2 py-1">Ativo</th>
+            <th class="border px-2 py-1">Nível</th>
+            <th class="border px-2 py-1">Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </div>
 
-// Logout
-logoutBtn.onclick = async () => {
-  await signOut(auth);
-  window.location.href = "index.html";
-};
-
-// Login e permissões
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  const docRef = doc(db, "autorizados", user.email);
-  const docSnap = await getDoc(docRef);
-
-  if (!docSnap.exists() || docSnap.data().ativo !== "sim") {
-    await signOut(auth);
-    window.location.href = "login.html";
-    return;
-  }
-
-  const nivel = docSnap.data().nivel || "cliente";
-
-  status.textContent = `Logado como ${user.email}`;
-  logoutBtn.style.display = "inline-block";
-  linkVoltar.style.display = "inline-block";
-  menu.style.display = "block";
-
-  if (nivel === "administrador") {
-    painel.style.display = "block";
-    linkClassroom.style.display = "block";
-    pastaCompartilhada.style.display = "block";
-    carregarUsuarios();
-  } else if (nivel === "equipe") {
-    linkClassroom.style.display = "block";
-    pastaCompartilhada.style.display = "block";
-  }
-});
-
-// Carregar lista de usuários
-async function carregarUsuarios() {
-  tabela.innerHTML = "";
-  const snapshot = await getDocs(collection(db, "autorizados"));
-
-  snapshot.forEach((docu) => {
-    const email = docu.id;
-    const dados = docu.data();
-    const ativo = dados.ativo || "nao";
-    const nivel = dados.nivel || "cliente";
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${email}</td>
-      <td>${ativo}</td>
-      <td>${nivel}</td>
-      <td>
-        <button onclick="removerUsuario('${email}')">Remover</button>
-        <button onclick="toggleAtivo('${email}', '${ativo}', '${nivel}')">
-          ${ativo === "sim" ? "Desativar" : "Ativar"}
-        </button>
-      </td>
-    `;
-    tabela.appendChild(tr);
-  });
-}
-
-// Adicionar novo usuário
-formAdd.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = emailNovo.value.trim().toLowerCase();
-  const nivel = papelNovo.value;
-
-  if (!email || !nivel) {
-    alert("Preencha todos os campos!");
-    return;
-  }
-
-  try {
-    await setDoc(doc(db, "autorizados", email), {
-      ativo: "sim",
-      nivel: nivel
-    }, { merge: true });
-
-    emailNovo.value = "";
-    carregarUsuarios();
-  } catch (err) {
-    console.error("Erro ao adicionar usuário:", err.message);
-    alert("Erro ao adicionar usuário.");
-  }
-});
-
-// Remover usuário
-window.removerUsuario = async (email) => {
-  if (confirm(`Remover ${email}?`)) {
-    await deleteDoc(doc(db, "autorizados", email));
-    carregarUsuarios();
-  }
-};
-
-// Ativar/desativar usuário
-window.toggleAtivo = async (email, statusAtual, nivelAtual) => {
-  const novoStatus = statusAtual === "sim" ? "nao" : "sim";
-  await setDoc(doc(db, "autorizados", email), {
-    ativo: novoStatus,
-    nivel: nivelAtual
-  }, { merge: true });
-  carregarUsuarios();
-};
+  <script type="module" src="/js/dashboard.js"></script>
+</body>
+</html>
