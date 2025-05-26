@@ -1,5 +1,3 @@
-// painel.js
-
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
@@ -143,7 +141,10 @@ function atualizarGantt() {
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
-        data: [{ x: [inicioEv, fimEv], y: cultivo.titulo }]
+        data: [{
+          x: [inicioEv, fimEv],
+          y: cultivo.titulo
+        }]
       });
     }
     corIndex++;
@@ -152,7 +153,7 @@ function atualizarGantt() {
   canvas.height = Math.min(Math.max(datasets.length * 40, 300), 1200);
 
   window.ganttChart = new Chart(ctx, {
-    type: "timeline",
+    type: "bar",
     data: {
       labels: [...new Set(sorted.map(([_, c]) => c.titulo))],
       datasets
