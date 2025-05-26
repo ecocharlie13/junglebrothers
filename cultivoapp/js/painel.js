@@ -168,3 +168,5 @@ function atualizarGantt() {
     }
   });
 }
+
+window.__debugEventosMap = eventosMap;
