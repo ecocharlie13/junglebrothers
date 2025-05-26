@@ -150,7 +150,7 @@ function atualizarGantt() {
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
-        data: [{ x: [inicioEv, fimEv], y: cultivo.titulo }]
+        data: [{ x: [inicioEv, fimEv], y: `${cultivo.titulo} - ${ev.evento}` }]
       });
     }
     corIndex++;
