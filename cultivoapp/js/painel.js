@@ -1,5 +1,3 @@
-// painel.js
-
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
@@ -14,8 +12,8 @@ verificarLogin(async (user) => {
 
   const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
   for (const id of selecionados) {
-    const ref = doc(db, "cultivos", id);
-    const snap = await getDoc(ref);
+    const docRef = doc(db, "cultivos", id);
+    const snap = await getDoc(docRef);
     if (snap.exists()) {
       eventosMap[id] = snap.data();
     }
@@ -82,6 +80,7 @@ function atualizarStickers() {
       const inicioEv = new Date(base);
       const ajuste = ev.ajuste !== undefined ? parseInt(ev.ajuste) : 0;
       inicioEv.setDate(inicioEv.getDate() + ajuste);
+
       const dias = Math.max(1, parseInt(ev.dias) || 0);
       const fimEv = new Date(inicioEv);
       fimEv.setDate(fimEv.getDate() + dias);
@@ -132,9 +131,8 @@ function atualizarGantt() {
     const base = new Date(cultivo.data);
     for (const ev of cultivo.eventos) {
       const dias = Math.max(1, parseInt(ev.dias) || 0);
-      const ajuste = parseInt(ev.ajuste) || 0;
       const inicioEv = new Date(base);
-      inicioEv.setDate(inicioEv.getDate() + ajuste);
+      inicioEv.setDate(inicioEv.getDate() + (parseInt(ev.ajuste) || 0));
       const fimEv = new Date(inicioEv);
       fimEv.setDate(fimEv.getDate() + dias);
 
@@ -145,8 +143,8 @@ function atualizarGantt() {
         backgroundColor: cores[corIndex % cores.length],
         borderRadius: 4,
         data: [{
-          x: inicioEv,
-          x2: fimEv,
+          xMin: inicioEv,
+          xMax: fimEv,
           y: `${cultivo.titulo} - ${ev.evento}`
         }]
       });
@@ -159,6 +157,7 @@ function atualizarGantt() {
   window.ganttChart = new Chart(ctx, {
     type: "bar",
     data: {
+      labels: [...new Set(sorted.map(([_, c]) => c.titulo))],
       datasets
     },
     options: {
@@ -168,14 +167,7 @@ function atualizarGantt() {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              const data = ctx.raw;
-              return `${ctx.dataset.label}: ${new Date(data.x).toLocaleDateString()} → ${new Date(data.x2).toLocaleDateString()}`;
-            }
-          }
-        }
+        tooltip: { mode: "nearest" }
       },
       scales: {
         x: {
@@ -184,6 +176,10 @@ function atualizarGantt() {
             unit: "day",
             tooltipFormat: "dd MMM yyyy",
             displayFormats: { day: "dd MMM" }
+          },
+          title: {
+            display: true,
+            text: "Data"
           }
         }
       }
