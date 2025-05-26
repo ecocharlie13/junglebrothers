@@ -1,3 +1,5 @@
+// NOVO painel.js - CultivoApp Gantt Corrigido & Elegante
+
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
@@ -12,11 +14,9 @@ verificarLogin(async (user) => {
 
   const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
   for (const id of selecionados) {
-    const docRef = doc(db, "cultivos", id);
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-      eventosMap[id] = snap.data();
-    }
+    const ref = doc(db, "cultivos", id);
+    const snap = await getDoc(ref);
+    if (snap.exists()) eventosMap[id] = snap.data();
   }
 
   document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
@@ -58,10 +58,6 @@ function obterSemanas() {
   const domingoProximo = new Date(segundaProxima);
   domingoProximo.setDate(segundaProxima.getDate() + 6);
 
-  [segundaPassada, domingoPassado, segundaAtual, domingoAtual, segundaProxima, domingoProximo].forEach(d => {
-    d.setHours(0, 0, 0, 0);
-  });
-
   return {
     passada: { inicio: segundaPassada, fim: domingoPassado },
     atual: { inicio: segundaAtual, fim: domingoAtual },
@@ -75,50 +71,38 @@ function atualizarStickers() {
 
   for (const cultivo of Object.values(eventosMap)) {
     const base = new Date(cultivo.data);
-
     cultivo.eventos.forEach(ev => {
-      const inicioEv = new Date(base);
-      const ajuste = ev.ajuste !== undefined ? parseInt(ev.ajuste) : 0;
-      inicioEv.setDate(inicioEv.getDate() + ajuste);
-      const dias = Math.max(1, parseInt(ev.dias) || 0);
-      const fimEv = new Date(inicioEv);
-      fimEv.setDate(fimEv.getDate() + dias);
-
-      const fimDateOnly = new Date(fimEv.toDateString());
-
-      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimDateOnly.toLocaleDateString("pt-BR", {
-        day: '2-digit', month: 'short', year: 'numeric'
-      })}`;
-
-      if (fimDateOnly >= passada.inicio && fimDateOnly <= passada.fim) {
-        concluidos.push({ label, data: fimDateOnly });
-      } else if (fimDateOnly >= atual.inicio && fimDateOnly <= atual.fim) {
-        atuais.push({ label, data: fimDateOnly });
-      } else if (fimDateOnly >= proxima.inicio && fimDateOnly <= proxima.fim) {
-        proximos.push({ label, data: fimDateOnly });
-      }
+      const inicio = new Date(base);
+      inicio.setDate(inicio.getDate() + (parseInt(ev.ajuste) || 0));
+      const fim = new Date(inicio);
+      fim.setDate(fim.getDate() + Math.max(1, parseInt(ev.dias) || 0));
+      const fimData = new Date(fim.toDateString());
+      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimData.toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' })}`;
+      if (fimData >= passada.inicio && fimData <= passada.fim) concluidos.push({ label, data: fimData });
+      else if (fimData >= atual.inicio && fimData <= atual.fim) atuais.push({ label, data: fimData });
+      else if (fimData >= proxima.inicio && fimData <= proxima.fim) proximos.push({ label, data: fimData });
     });
   }
 
-  const stickers = document.getElementById("stickers");
-  stickers.innerHTML = "";
-  renderSticker("Semana Passada", concluidos.sort((a, b) => a.data - b.data).map(e => e.label), "bg-blue-100");
-  renderSticker("Semana Atual", atuais.sort((a, b) => a.data - b.data).map(e => e.label), "bg-yellow-100");
-  renderSticker("Semana Seguinte", proximos.sort((a, b) => a.data - b.data).map(e => e.label), "bg-green-100");
+  const div = document.getElementById("stickers");
+  div.innerHTML = "";
+  renderSticker("Semana Passada", concluidos.map(e => e.label), "bg-blue-100");
+  renderSticker("Semana Atual", atuais.map(e => e.label), "bg-yellow-100");
+  renderSticker("Semana Seguinte", proximos.map(e => e.label), "bg-green-100");
 }
 
 function renderSticker(titulo, lista, cor) {
-  const div = document.createElement("div");
-  div.className = `p-4 rounded shadow ${cor}`;
-  div.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` + lista.map(l => `<div class='text-sm mb-1'>${l}</div>`).join("");
-  document.getElementById("stickers").appendChild(div);
+  const d = document.createElement("div");
+  d.className = `p-4 rounded shadow ${cor}`;
+  d.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` + lista.map(l => `<div class='text-sm mb-1'>${l}</div>`).join("");
+  document.getElementById("stickers").appendChild(d);
 }
 
 function atualizarGantt() {
   const canvas = document.getElementById("ganttChart");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  if (window.ganttChart && typeof window.ganttChart.destroy === "function") window.ganttChart.destroy();
+  if (window.ganttChart) window.ganttChart.destroy();
 
   const hoje = new Date();
   let corIndex = 0;
@@ -134,16 +118,12 @@ function atualizarGantt() {
       inicio.setDate(inicio.getDate() + (parseInt(ev.ajuste) || 0));
       const fim = new Date(inicio);
       fim.setDate(fim.getDate() + dias);
-
       if (!mostrarPassados && fim < hoje) continue;
 
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
-        data: [{
-          x: [inicio, fim],
-          y: `${cultivo.titulo}`
-        }]
+        data: [{ x: [inicio, fim], y: cultivo.titulo }]
       });
     }
     corIndex++;
