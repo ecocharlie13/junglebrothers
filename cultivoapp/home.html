@@ -6,26 +6,67 @@
   <title>Home - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-white h-screen text-center flex flex-col justify-center items-center">
+<body class="bg-gray-50 min-h-screen flex flex-col justify-center items-center text-center px-4">
+  <div class="text-sm absolute top-4 left-4 text-gray-500" id="user-email">Verificando login...</div>
+  <button id="logout" class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded hidden">Sair</button>
 
-  <h1 class="text-2xl font-bold mb-4">Bem-vindo ao CultivoApp</h1>
-  <p class="mb-6" id="user-info">Verificando autenticação...</p>
+  <h1 class="text-2xl font-bold mb-2">Bem-vindo ao CultivoApp</h1>
+  <p class="mb-8 text-gray-600">Escolha uma das opções para continuar</p>
 
-  <a href="/cultivoapp/blueprints.html" class="bg-purple-600 text-white px-6 py-2 rounded-xl hover:bg-purple-700">
-    Acessar Blueprints
-  </a>
+  <div class="space-y-4 w-full max-w-xs">
+    <a href="/cultivoapp/blueprints.html" class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded text-center">
+      Acessar Blueprints
+    </a>
+    <a id="btn-cultivos" href="/cultivoapp/cultivos.html" class="block w-full bg-purple-400 text-white font-bold py-2 px-4 rounded text-center pointer-events-none opacity-50">
+      Acessar Cultivos
+    </a>
+    <a id="btn-eventos" href="/cultivoapp/eventos.html" class="block w-full bg-purple-400 text-white font-bold py-2 px-4 rounded text-center pointer-events-none opacity-50">
+      Acessar Eventos
+    </a>
+    <a href="/cultivoapp/painel.html" class="block w-full bg-gray-800 hover:bg-black text-white font-bold py-2 px-4 rounded text-center">
+      Painel (Gráfico Gantt)
+    </a>
+  </div>
 
-  <!-- 🔐 Verificação de login -->
-  <script type="module" src="/js/auth.js"></script>
-
-  <!-- 👤 Mostrar usuário logado -->
   <script type="module">
-    import { auth } from "/js/firebase-init.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { auth, db } from "../js/firebase-init.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import {
+      collection,
+      getDocs,
+      query,
+      where
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        document.getElementById("user-info").textContent = `Logado como ${user.email}`;
+    const btnCultivos = document.getElementById("btn-cultivos");
+    const btnEventos = document.getElementById("btn-eventos");
+    const logoutBtn = document.getElementById("logout");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "/login.html";
+
+      document.getElementById("user-email").textContent = `Logado como ${user.email}`;
+      logoutBtn.classList.remove("hidden");
+      logoutBtn.onclick = async () => {
+        await signOut(auth);
+        window.location.href = "/login.html";
+      };
+
+      const uid = user.uid;
+
+      const temBlueprint = await getDocs(query(collection(db, "blueprints"), where("usuario", "==", user.email)));
+      const temCultivo = await getDocs(query(collection(db, "cultivos"), where("usuario", "==", user.email)));
+
+      if (!temBlueprint.empty) {
+        btnCultivos.classList.remove("pointer-events-none", "opacity-50");
+        btnCultivos.classList.replace("bg-purple-400", "bg-purple-600");
+        btnCultivos.classList.add("hover:bg-purple-700");
+      }
+
+      if (!temBlueprint.empty && !temCultivo.empty) {
+        btnEventos.classList.remove("pointer-events-none", "opacity-50");
+        btnEventos.classList.replace("bg-purple-400", "bg-purple-600");
+        btnEventos.classList.add("hover:bg-purple-700");
       }
     });
   </script>
