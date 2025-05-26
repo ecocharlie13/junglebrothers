@@ -1,5 +1,14 @@
 import { auth, db } from "./firebase-init.js";
-import { doc, setDoc, getDocs, getDoc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import {
+  doc,
+  setDoc,
+  getDocs,
+  getDoc,
+  deleteDoc,
+  collection,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 import { verificarLogin, sair } from "./auth.js";
 
 let usuario = null;
@@ -14,6 +23,7 @@ verificarLogin(async (user) => {
   document.getElementById("salvar").addEventListener("click", salvarBlueprint);
   document.getElementById("carregar").addEventListener("click", loadBlueprint);
   document.getElementById("adicionar").addEventListener("click", adicionarLinha);
+  document.getElementById("deletar").addEventListener("click", deletarBlueprint);
   document.getElementById("logout").addEventListener("click", sair);
 });
 
@@ -72,6 +82,17 @@ export async function salvarBlueprint() {
 
   document.getElementById("status").textContent = "✅ Blueprint salva com sucesso!";
   setTimeout(() => (document.getElementById("status").textContent = ""), 4000);
+  carregarDropdown();
+}
+
+export async function deletarBlueprint() {
+  const id = document.getElementById("blueprint-select").value;
+  if (!id) return alert("Selecione uma blueprint.");
+  if (!confirm("Tem certeza que deseja deletar esta blueprint?")) return;
+
+  await deleteDoc(doc(db, "blueprints", id));
+  document.getElementById("nome-blueprint").value = "";
+  document.getElementById("tabela").innerHTML = "";
   carregarDropdown();
 }
 
