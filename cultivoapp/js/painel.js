@@ -1,11 +1,6 @@
-// painel.js
-
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
-import {
-  getDoc,
-  doc
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let eventosMap = {};
 let mostrarPassados = false;
@@ -143,10 +138,25 @@ function atualizarGantt() {
 
       if (!mostrarPassados && fimEv < hoje) continue;
 
+      console.log("Evento:", {
+        cultivo: cultivo.titulo,
+        evento: ev.evento,
+        dias: dias,
+        inicio: inicioEv.toISOString(),
+        fim: fimEv.toISOString()
+      });
+
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
-        data: [{ x: [inicioEv, fimEv], y: cultivo.titulo }]
+        borderRadius: 4,
+        barPercentage: 1,
+        categoryPercentage: 1,
+        data: [{
+          x: inicioEv,
+          x2: fimEv,
+          y: `${cultivo.titulo} - ${ev.evento}`
+        }]
       });
     }
     corIndex++;
@@ -162,6 +172,7 @@ function atualizarGantt() {
       datasets
     },
     options: {
+      parsing: false,
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
