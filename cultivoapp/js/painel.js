@@ -1,5 +1,3 @@
-// painel.js
-
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
@@ -44,13 +42,12 @@ function atualizarStickers() {
 }
 
 function renderizarGantt() {
-  const container = document.getElementById("ganttContainer");
+  const container = document.getElementById("gantt");
   container.innerHTML = "";
 
   const tarefas = [];
   const hoje = new Date();
   let corIndex = 0;
-
   const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
 
   Object.values(eventosMap).forEach((cultivo, idx) => {
@@ -76,6 +73,7 @@ function renderizarGantt() {
         dependencies: ""
       });
     });
+
     corIndex++;
   });
 
@@ -84,11 +82,11 @@ function renderizarGantt() {
     return;
   }
 
-  const gantt = new Gantt("#ganttContainer", tarefas, {
+  new Gantt("#gantt", tarefas, {
     view_mode: "Day",
     date_format: "YYYY-MM-DD",
     custom_popup_html: null
   });
-}  
+}
 
 window.__debugEventosMap = eventosMap;
