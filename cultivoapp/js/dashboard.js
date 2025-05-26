@@ -1,4 +1,4 @@
-import { auth, db } from "./firebase-init.js";
+import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
   doc,
