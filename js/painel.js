@@ -17,10 +17,14 @@ verificarLogin(async (user) => {
   document.getElementById("user-pic").src = user.photoURL;
   document.getElementById("logout").addEventListener("click", sair);
 
-  const snap = await getDocs(query(collection(db, "cultivos"), where("usuario", "==", user.email)));
-  snap.forEach(docSnap => {
-    eventosMap[docSnap.id] = docSnap.data();
-  });
+const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+for (const id of selecionados) {
+  const docRef = doc(db, "cultivos", id);
+  const snap = await getDoc(docRef);
+  if (snap.exists()) {
+    eventosMap[id] = snap.data();
+  }
+}
 
   document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
     day: '2-digit', month: 'short', year: 'numeric'
