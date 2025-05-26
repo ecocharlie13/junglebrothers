@@ -1,8 +1,11 @@
 import { auth, db } from "./firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import {
+  collection,
+  getDoc,
   doc,
-  getDoc
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let eventosMap = {};
@@ -23,7 +26,7 @@ verificarLogin(async (user) => {
   }
 
   document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
-    day: '2-digit', month: 'short', year: 'numeric'
+    day: '2-digit', month: 'long', year: 'numeric'
   });
 
   document.getElementById("exibir-passados").addEventListener("change", (e) => {
@@ -41,7 +44,7 @@ function renderizarDashboard() {
 
 function obterSemanas() {
   const hoje = new Date();
-  const diaSemana = hoje.getDay() === 0 ? 7 : hoje.getDay();
+  const diaSemana = hoje.getDay() === 0 ? 7 : hoje.getDay(); // transforma domingo em 7
   const segundaAtual = new Date(hoje);
   segundaAtual.setDate(hoje.getDate() - diaSemana + 1);
   segundaAtual.setHours(0, 0, 0, 0);
@@ -80,9 +83,7 @@ function atualizarStickers() {
       const fimEv = new Date(inicioEv);
       fimEv.setDate(fimEv.getDate() + (parseInt(ev.dias) || 0));
 
-      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimEv.toLocaleDateString("pt-BR", {
-        day: '2-digit', month: 'short', year: 'numeric'
-      })}`;
+      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimEv.toLocaleDateString("pt-BR", { day: '2-digit', month: 'long', year: 'numeric' })}`;
 
       if (fimEv >= passada.inicio && fimEv <= passada.fim) {
         concluidos.push({ label, data: fimEv });
@@ -104,8 +105,7 @@ function atualizarStickers() {
 function renderSticker(titulo, lista, cor) {
   const div = document.createElement("div");
   div.className = `p-4 rounded shadow ${cor}`;
-  div.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` +
-    lista.map(l => `<div class='text-sm mb-1'>${l}</div>`).join("");
+  div.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` + lista.map(l => `<div class='text-sm mb-1'>${l}</div>`).join("");
   document.getElementById("stickers").appendChild(div);
 }
 
@@ -149,19 +149,21 @@ function atualizarGantt() {
     options: {
       indexAxis: "y",
       responsive: true,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false }
+      },
       scales: {
         x: {
           type: "time",
+          adapters: {
+            date: {
+              zone: "utc"
+            }
+          },
           time: {
             unit: "day",
             tooltipFormat: "dd MMM yyyy",
             displayFormats: { day: "dd MMM" }
-          },
-          adapters: {
-            date: {
-              zone: 'America/Sao_Paulo'
-            }
           }
         }
       }
