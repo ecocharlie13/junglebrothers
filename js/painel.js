@@ -1,120 +1,143 @@
-// painel.js
+// js/painel.js
+
 import { auth, db } from "./firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import {
+  collection,
+  getDocs,
+  doc,
   getDoc,
-  doc
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-import { Chart } from 'https://cdn.jsdelivr.net/npm/frappe-charts@1.5.6/dist/frappe-charts.min.esm.js';
+import Chart from 'https://cdn.jsdelivr.net/npm/chart.js';
 
-let cultivosSelecionados = [];
-let eventosMap = {};
+let eventosMap = {}; // cultivos[id] = { titulo, data, eventos }
 let mostrarPassados = false;
 
 verificarLogin(async (user) => {
   document.getElementById("user-email").textContent = user.email;
-  document.getElementById("user-pic").src = user.photoURL;
   document.getElementById("logout").addEventListener("click", sair);
 
-  cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
-  for (const cultivoId of cultivosSelecionados) {
-    const snap = await getDoc(doc(db, "cultivos", cultivoId));
-    if (snap.exists()) eventosMap[cultivoId] = snap.data();
-  }
+  // Carregar todos os cultivos do usuário
+  const snap = await getDocs(query(collection(db, "cultivos"), where("usuario", "==", user.email)));
+  snap.forEach(docSnap => {
+    eventosMap[docSnap.id] = docSnap.data();
+  });
+
+  document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
+    day: '2-digit', month: 'short', year: 'numeric'
+  });
+
+  document.getElementById("ver").addEventListener("click", () => renderizarDashboard());
+  document.getElementById("exibir-passados").addEventListener("change", (e) => {
+    mostrarPassados = e.target.checked;
+    renderizarDashboard();
+  });
 
   renderizarDashboard();
 });
 
 function renderizarDashboard() {
+  atualizarStickers();
+  atualizarGantt();
+}
+
+function atualizarStickers() {
   const hoje = new Date();
   const concluidos = [], atuais = [], proximos = [];
-  const ganttData = [];
-  const corPorCultivo = {};
-  let corIndex = 0;
-  const paleta = ["#4f46e5", "#16a34a", "#f59e0b", "#10b981", "#ec4899", "#8b5cf6"];
 
-  for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
+  for (const [id, cultivo] of Object.entries(eventosMap)) {
     const eventos = cultivo.eventos;
-    let cor = paleta[corIndex % paleta.length];
-    corPorCultivo[cultivo.titulo] = cor;
-    corIndex++;
-
-    let dataRef = new Date(cultivo.data);
-
-    eventos.forEach((ev, i) => {
-      const ajuste = parseInt(ev.ajuste || 0);
-      dataRef.setDate(dataRef.getDate() + ajuste);
-      const inicio = new Date(dataRef);
+    eventos.forEach(ev => {
+      const inicio = new Date(cultivo.data);
+      inicio.setDate(inicio.getDate() + (parseInt(ev.ajuste) || 0));
       const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + parseInt(ev.dias || 0));
+      fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
 
-      const hojeSemHoras = new Date();
-      hojeSemHoras.setHours(0, 0, 0, 0);
-
-      const status = fim < hojeSemHoras ? "concluido" : (inicio <= hojeSemHoras && fim >= hojeSemHoras ? "atual" : "proximo");
-
-      if (!mostrarPassados && status === "concluido") return;
-
-      const label = `${cultivo.titulo} - ${ev.evento}`;
-      const item = {
-        nome: cultivo.titulo,
-        evento: ev.evento,
-        fim: fim.toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' })
-      };
-
-      if (status === "concluido") concluidos.push(item);
-      if (status === "atual") atuais.push(item);
-      if (status === "proximo") proximos.push(item);
-
-      ganttData.push({
-        label,
-        start: inicio.toISOString().split("T")[0],
-        end: fim.toISOString().split("T")[0],
-        color: cor
-      });
-
-      dataRef = new Date(fim);
+      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fim.toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' })}`;
+      if (fim < hoje) {
+        concluidos.push(label);
+      } else if (inicio <= hoje && fim >= hoje) {
+        atuais.push(label);
+      } else {
+        proximos.push(label);
+      }
     });
   }
 
-  atualizarStickers(concluidos, atuais, proximos);
-  desenharGrafico(ganttData);
+  const stickers = document.getElementById("stickers");
+  stickers.innerHTML = "";
+
+  renderSticker("Eventos Concluídos", concluidos, "bg-blue-100");
+  renderSticker("Eventos Atuais", atuais, "bg-yellow-100");
+  renderSticker("Próximos Eventos", proximos, "bg-green-100");
 }
 
-function atualizarStickers(concluidos, atuais, proximos) {
-  const set = (id, lista, cor) => {
-    const el = document.getElementById(id);
-    el.innerHTML = "";
-    lista.forEach(ev => {
-      const div = document.createElement("div");
-      div.className = `bg-${cor}-100 text-${cor}-800 border-l-4 border-${cor}-500 p-2 mb-2 text-sm`;
-      div.textContent = `${ev.nome} - ${ev.evento} (${ev.fim})`;
-      el.appendChild(div);
+function renderSticker(titulo, lista, cor) {
+  const div = document.createElement("div");
+  div.className = `p-4 rounded shadow ${cor}`;
+  div.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` + lista.map(l => `<div class='text-sm mb-1'>${l}</div>`).join("");
+  document.getElementById("stickers").appendChild(div);
+}
+
+function atualizarGantt() {
+  const ctx = document.getElementById("ganttChart").getContext("2d");
+  if (window.ganttChart) {
+    window.ganttChart.destroy();
+  }
+
+  const datasets = [];
+  const hoje = new Date();
+  let corIndex = 0;
+  const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
+
+  const sorted = Object.entries(eventosMap).sort((a, b) => new Date(a[1].data) - new Date(b[1].data));
+  for (const [id, cultivo] of sorted) {
+    const base = new Date(cultivo.data);
+    cultivo.eventos.forEach((ev, i) => {
+      const inicio = new Date(base);
+      inicio.setDate(inicio.getDate() + (parseInt(ev.ajuste) || 0));
+      const fim = new Date(inicio);
+      fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
+
+      if (!mostrarPassados && fim < hoje) return;
+
+      datasets.push({
+        label: `${cultivo.titulo} - ${ev.evento}`,
+        backgroundColor: cores[corIndex % cores.length],
+        data: [{
+          x: [inicio, fim],
+          y: cultivo.titulo
+        }]
+      });
     });
-  };
+    corIndex++;
+  }
 
-  set("eventos-concluidos", concluidos, "blue");
-  set("eventos-atuais", atuais, "yellow");
-  set("eventos-proximos", proximos, "green");
-}
-
-function desenharGrafico(data) {
-  const chart = new Chart("grafico-gantt", {
+  window.ganttChart = new Chart(ctx, {
     type: 'bar',
-    height: 300,
     data: {
-      labels: data.map(e => e.label),
-      datasets: [{ values: data.map((_, i) => i + 1) }] // apenas visual
+      labels: [...new Set(sorted.map(([_, c]) => c.titulo))],
+      datasets
     },
-    colors: data.map(e => e.color),
-    barOptions: {
-      stacked: false
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'day',
+            tooltipFormat: 'dd MMM yyyy',
+            displayFormats: { day: 'dd MMM' }
+          }
+        }
+      }
     }
   });
 }
-
-document.getElementById("toggle-passados").addEventListener("click", () => {
-  mostrarPassados = !mostrarPassados;
-  renderizarDashboard();
-});
