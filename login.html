@@ -34,12 +34,15 @@
     const provider = new GoogleAuthProvider();
 
     document.getElementById("login-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("error-msg");
+      msg.classList.add("hidden");
+      msg.textContent = "";
+
       try {
         await signInWithPopup(auth, provider);
-        window.location.href = "/cultivoapp/home.html"; // ✅ Redireciona para o app
+        window.location.href = "/cultivoapp/home.html";
       } catch (error) {
         console.error("Erro ao autenticar:", error);
-        const msg = document.getElementById("error-msg");
         msg.textContent = "Erro ao autenticar. Tente novamente.";
         msg.classList.remove("hidden");
       }
