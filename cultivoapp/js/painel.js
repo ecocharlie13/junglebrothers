@@ -83,7 +83,8 @@ function atualizarStickers() {
 
     cultivo.eventos.forEach(ev => {
       const inicioEv = new Date(base);
-      inicioEv.setDate(inicioEv.getDate() + (parseInt(ev.ajuste) || 0));
+      const ajuste = ev.ajuste !== undefined ? parseInt(ev.ajuste) : 0;
+      inicioEv.setDate(inicioEv.getDate() + ajuste);
       const fimEv = new Date(inicioEv);
       fimEv.setDate(fimEv.getDate() + (parseInt(ev.dias) || 0));
 
