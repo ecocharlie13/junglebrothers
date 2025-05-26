@@ -91,7 +91,8 @@ function atualizarStickers() {
       const ajuste = ev.ajuste !== undefined ? parseInt(ev.ajuste) : 0;
       inicioEv.setDate(inicioEv.getDate() + ajuste);
       const fimEv = new Date(inicioEv);
-      fimEv.setDate(fimEv.getDate() + (parseInt(ev.dias) || 0));
+      const dias = Math.max(1, parseInt(ev.dias) || 0);  // garante pelo menos 1 dia
+      fimEv.setDate(fimEv.getDate() + dias);
 
       // Normalizar a data (remove hora)
       const fimDateOnly = new Date(fimEv.toDateString());
