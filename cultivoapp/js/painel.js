@@ -67,6 +67,11 @@ function obterSemanas() {
   const domingoProximo = new Date(segundaProxima);
   domingoProximo.setDate(segundaProxima.getDate() + 6);
 
+  // Remover hora das datas para comparação pura
+  [segundaPassada, domingoPassado, segundaAtual, domingoAtual, segundaProxima, domingoProximo].forEach(d => {
+    d.setHours(0, 0, 0, 0);
+  });
+
   return {
     passada: { inicio: segundaPassada, fim: domingoPassado },
     atual: { inicio: segundaAtual, fim: domingoAtual },
@@ -88,14 +93,19 @@ function atualizarStickers() {
       const fimEv = new Date(inicioEv);
       fimEv.setDate(fimEv.getDate() + (parseInt(ev.dias) || 0));
 
-      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimEv.toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' })}`;
+      // Normalizar a data (remove hora)
+      const fimDateOnly = new Date(fimEv.toDateString());
 
-      if (fimEv >= passada.inicio && fimEv <= passada.fim) {
-        concluidos.push({ label, data: fimEv });
-      } else if (fimEv >= atual.inicio && fimEv <= atual.fim) {
-        atuais.push({ label, data: fimEv });
-      } else if (fimEv >= proxima.inicio && fimEv <= proxima.fim) {
-        proximos.push({ label, data: fimEv });
+      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimDateOnly.toLocaleDateString("pt-BR", {
+        day: '2-digit', month: 'short', year: 'numeric'
+      })}`;
+
+      if (fimDateOnly >= passada.inicio && fimDateOnly <= passada.fim) {
+        concluidos.push({ label, data: fimDateOnly });
+      } else if (fimDateOnly >= atual.inicio && fimDateOnly <= atual.fim) {
+        atuais.push({ label, data: fimDateOnly });
+      } else if (fimDateOnly >= proxima.inicio && fimDateOnly <= proxima.fim) {
+        proximos.push({ label, data: fimDateOnly });
       }
     });
   }
