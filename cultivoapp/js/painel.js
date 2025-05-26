@@ -3,12 +3,8 @@
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import {
-  collection,
-  getDocs,
   getDoc,
-  doc,
-  query,
-  where
+  doc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let eventosMap = {};
@@ -150,17 +146,20 @@ function atualizarGantt() {
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
+        borderRadius: 4,
+        barPercentage: 1,
+        categoryPercentage: 1,
         data: [{
-          x: inicioEv,
-          x2: fimEv,
-          y: cultivo.titulo
+          x: inicioEv.toISOString(),
+          x2: fimEv.toISOString(),
+          y: `${cultivo.titulo} - ${ev.evento}`
         }]
       });
     }
     corIndex++;
   }
 
-  canvas.height = Math.min(Math.max(datasets.length * 40, 300), 1200); // altura dinâmica
+  canvas.height = Math.min(Math.max(datasets.length * 40, 300), 1200);
 
   console.log("Datasets para Gantt:", datasets);
   window.ganttChart = new Chart(ctx, {
@@ -170,6 +169,7 @@ function atualizarGantt() {
       datasets
     },
     options: {
+      parsing: false,
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
