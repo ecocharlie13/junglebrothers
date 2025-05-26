@@ -5,12 +5,11 @@ import { verificarLogin, sair } from "./auth.js";
 import {
   collection,
   getDocs,
-  query,
-  where,
+  getDoc,
   doc,
-  getDoc
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-import "https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns";
 
 let eventosMap = {};
 let mostrarPassados = false;
@@ -88,11 +87,7 @@ function atualizarStickers() {
       const fimEv = new Date(inicioEv);
       fimEv.setDate(fimEv.getDate() + (parseInt(ev.dias) || 0));
 
-      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimEv.toLocaleDateString("pt-BR", {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      })}`;
+      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimEv.toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' })}`;
 
       if (fimEv >= passada.inicio && fimEv <= passada.fim) {
         concluidos.push({ label, data: fimEv });
@@ -114,8 +109,7 @@ function atualizarStickers() {
 function renderSticker(titulo, lista, cor) {
   const div = document.createElement("div");
   div.className = `p-4 rounded shadow ${cor}`;
-  div.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` +
-    lista.map(l => `<div class='text-sm mb-1'>${l}</div>`).join("");
+  div.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` + lista.map(l => `<div class='text-sm mb-1'>${l}</div>`).join("");
   document.getElementById("stickers").appendChild(div);
 }
 
@@ -123,9 +117,7 @@ function atualizarGantt() {
   const canvas = document.getElementById("ganttChart");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  if (window.ganttChart && typeof window.ganttChart.destroy === "function") {
-    window.ganttChart.destroy();
-  }
+  if (window.ganttChart && typeof window.ganttChart.destroy === "function") window.ganttChart.destroy();
 
   const hoje = new Date();
   let corIndex = 0;
