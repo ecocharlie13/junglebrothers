@@ -1,5 +1,4 @@
 import { auth, db } from "./firebase-init.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
   collection,
   doc,
@@ -47,7 +46,7 @@ async function carregarCultivos() {
   const q = query(ref, where("usuario", "==", usuario.email));
   const snap = await getDocs(q);
   const lista = document.getElementById("lista-cultivos");
-  lista.innerHTML = "";
+  lista.textContent = "";
   snap.forEach((docSnap) => {
     const cultivo = docSnap.data();
     const checkbox = document.createElement("input");
@@ -86,6 +85,7 @@ async function criarCultivo() {
 
   await setDoc(doc(db, "cultivos", `${titulo}_${usuario.uid}`), novoCultivo);
   await carregarCultivos();
+  alert("✅ Cultivo criado com sucesso!");
 }
 
 async function abrirCultivos() {
@@ -105,4 +105,5 @@ async function deletarCultivos() {
   }
 
   await carregarCultivos();
+  alert("✅ Cultivos deletados!");
 }
