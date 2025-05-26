@@ -146,14 +146,7 @@ function atualizarGantt() {
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
-        borderRadius: 4,
-        barPercentage: 1,
-        categoryPercentage: 1,
-        data: [{
-          x: inicioEv,
-          x2: fimEv,
-          y: `${cultivo.titulo} - ${ev.evento}`
-        }]
+        data: [{ x: [inicioEv, fimEv], y: cultivo.titulo }]
       });
     }
     corIndex++;
@@ -169,7 +162,6 @@ function atualizarGantt() {
       datasets
     },
     options: {
-      parsing: false,
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
