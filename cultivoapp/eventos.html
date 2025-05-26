@@ -1,132 +1,77 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Eventos - CultivoApp</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 min-h-screen">
-  <!-- Menu -->
-  <header class="bg-white shadow p-4 flex justify-between items-center">
-    <nav class="space-x-4 text-purple-700 font-semibold">
-      <a href="/cultivoapp/blueprints.html">Blueprints</a>
-      <a href="/cultivoapp/cultivos.html">Cultivos</a>
-      <a href="/cultivoapp/eventos.html">Eventos</a>
-      <a href="/cultivoapp/painel.html">Painel</a>
-    </nav>
-    <div class="flex items-center gap-4">
-      <span id="user-email" class="text-sm text-gray-600">Verificando login...</span>
-      <img id="user-pic" class="w-8 h-8 rounded-full" alt="Foto de perfil" />
-      <button id="logout" class="bg-red-500 hover:bg-red-600 text-white font-semibold px-3 py-1 rounded">Sair</button>
-    </div>
-  </header>
+<script type="module">
+  import { auth, db } from "/cultivoapp/js/firebase-init.js";
+  import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
+  import { getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-  <!-- Conteúdo -->
-  <main class="p-6">
-    <h1 class="text-2xl font-bold text-center mb-2">Todos os Eventos</h1>
-    <p class="text-center text-sm mb-6 text-gray-600">Eventos de todos os cultivos selecionados</p>
+  let eventosMap = {};
+  let cultivosSelecionados = [];
 
-    <div class="overflow-x-auto">
-      <table class="w-full max-w-6xl mx-auto bg-white border border-gray-300">
-        <thead class="bg-orange-400 text-white">
-          <tr>
-            <th class="px-2 py-1">Cultivo</th>
-            <th class="px-2 py-1">Evento</th>
-            <th class="px-2 py-1">Dias</th>
-            <th class="px-2 py-1">Início</th>
-            <th class="px-2 py-1">Fim</th>
-            <th class="px-2 py-1">Notas</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-eventos"></tbody>
-      </table>
-    </div>
-
-    <div class="flex justify-center gap-4 mt-6">
-      <button id="atualizar" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded">Atualizar</button>
-      <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-4 py-2 rounded">Salvar PDF</button>
-    </div>
-  </main>
-
-  <!-- Scripts -->
-  <script type="module">
-    import { auth, db } from "../js/firebase-init.js";
-    import { verificarLogin, sair } from "../js/auth.js";
-    import { getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-    let eventosMap = {};
-    let cultivosSelecionados = [];
-
-    verificarLogin(async (user) => {
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
-
-      cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
-      for (const cultivoId of cultivosSelecionados) {
-        const snap = await getDoc(doc(db, "cultivos", cultivoId));
-        if (snap.exists()) eventosMap[cultivoId] = snap.data();
-      }
-
-      atualizarTabela();
-    });
-
+  verificarLogin(async (user) => {
+    document.getElementById("user-email").textContent = user.email;
+    document.getElementById("user-pic").src = user.photoURL;
     document.getElementById("logout").addEventListener("click", sair);
 
-    function formatarData(data) {
-      const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-      return `${data.getDate().toString().padStart(2, '0')} ${meses[data.getMonth()]} ${data.getFullYear()}`;
+    cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+    for (const cultivoId of cultivosSelecionados) {
+      const snap = await getDoc(doc(db, "cultivos", cultivoId));
+      if (snap.exists()) eventosMap[cultivoId] = snap.data();
     }
 
-    function atualizarTabela() {
-      const tbody = document.getElementById("tabela-eventos");
-      tbody.innerHTML = "";
+    atualizarTabela();
+  });
 
-      for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
-        let inicio = new Date(cultivo.data);
+  function formatarData(data) {
+    const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+    return `${data.getDate().toString().padStart(2, '0')} ${meses[data.getMonth()]} ${data.getFullYear()}`;
+  }
 
-        cultivo.eventos.forEach((ev, i) => {
-          const fim = new Date(inicio);
-          fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
+  function atualizarTabela() {
+    const tbody = document.getElementById("tabela-eventos");
+    tbody.innerHTML = "";
 
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td class="border px-2 py-1">${cultivo.titulo}</td>
-            <td class="border px-2 py-1">${ev.evento}</td>
-            <td class="border px-2 py-1">
-              <input class="dias w-16 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
-            </td>
-            <td class="border px-2 py-1">${formatarData(inicio)}</td>
-            <td class="border px-2 py-1">${formatarData(fim)}</td>
-            <td class="border px-2 py-1">
-              <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
-            </td>
-          `;
-          tbody.appendChild(tr);
+    for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
+      let inicio = new Date(cultivo.data);
 
-          inicio = new Date(fim); // encadeia o próximo evento
-        });
-      }
+      cultivo.eventos.forEach((ev, i) => {
+        const fim = new Date(inicio);
+        fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="border px-2 py-1">${cultivo.titulo}</td>
+          <td class="border px-2 py-1">${ev.evento}</td>
+          <td class="border px-2 py-1">
+            <input class="dias w-16 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
+          </td>
+          <td class="border px-2 py-1">${formatarData(inicio)}</td>
+          <td class="border px-2 py-1">${formatarData(fim)}</td>
+          <td class="border px-2 py-1">
+            <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
+          </td>
+        `;
+        tbody.appendChild(tr);
+
+        inicio = new Date(fim); // encadeia o próximo evento
+      });
     }
+  }
 
-    document.getElementById("atualizar").addEventListener("click", async () => {
-      document.querySelectorAll(".dias").forEach(input => {
-        const { cultivo, index } = input.dataset;
-        eventosMap[cultivo].eventos[index].dias = parseInt(input.value);
-      });
-
-      document.querySelectorAll(".notas").forEach(input => {
-        const { cultivo, index } = input.dataset;
-        eventosMap[cultivo].eventos[index].notas = input.value;
-      });
-
-      for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
-        await updateDoc(doc(db, "cultivos", cultivoId), { eventos: cultivo.eventos });
-      }
-
-      atualizarTabela();
-      alert("Eventos atualizados com sucesso!");
+  document.getElementById("atualizar").addEventListener("click", async () => {
+    document.querySelectorAll(".dias").forEach(input => {
+      const { cultivo, index } = input.dataset;
+      eventosMap[cultivo].eventos[index].dias = parseInt(input.value);
     });
-  </script>
-</body>
-</html>
+
+    document.querySelectorAll(".notas").forEach(input => {
+      const { cultivo, index } = input.dataset;
+      eventosMap[cultivo].eventos[index].notas = input.value;
+    });
+
+    for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
+      await updateDoc(doc(db, "cultivos", cultivoId), { eventos: cultivo.eventos });
+    }
+
+    atualizarTabela();
+    alert("Eventos atualizados com sucesso!");
+  });
+</script>
