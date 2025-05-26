@@ -1,12 +1,8 @@
 import { auth, db } from "./firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import {
-  collection,
-  getDocs,
   getDoc,
-  doc,
-  query,
-  where
+  doc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let eventosMap = {};
@@ -45,7 +41,7 @@ function renderizarDashboard() {
 
 function obterSemanas() {
   const hoje = new Date();
-  const diaSemana = hoje.getDay() === 0 ? 7 : hoje.getDay(); // transforma domingo em 7
+  const diaSemana = hoje.getDay() === 0 ? 7 : hoje.getDay();
   const segundaAtual = new Date(hoje);
   segundaAtual.setDate(hoje.getDate() - diaSemana + 1);
   segundaAtual.setHours(0, 0, 0, 0);
@@ -158,6 +154,11 @@ function atualizarGantt() {
       scales: {
         x: {
           type: "time",
+          adapters: {
+            date: {
+              zone: 'America/Sao_Paulo'
+            }
+          },
           time: {
             unit: "day",
             tooltipFormat: "dd MMM yyyy",
