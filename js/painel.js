@@ -19,8 +19,8 @@ verificarLogin(async (user) => {
 
   const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
   for (const id of selecionados) {
-    const docRef = doc(db, "cultivos", id);
-    const snap = await getDoc(docRef);
+    const ref = doc(db, "cultivos", id);
+    const snap = await getDoc(ref);
     if (snap.exists()) {
       eventosMap[id] = snap.data();
     }
@@ -85,7 +85,9 @@ function atualizarStickers() {
       const fimEv = new Date(inicioEv);
       fimEv.setDate(fimEv.getDate() + (parseInt(ev.dias) || 0));
 
-      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimEv.toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' })}`;
+      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimEv.toLocaleDateString("pt-BR", {
+        day: '2-digit', month: 'short', year: 'numeric'
+      })}`;
 
       if (fimEv >= passada.inicio && fimEv <= passada.fim) {
         concluidos.push({ label, data: fimEv });
@@ -107,7 +109,8 @@ function atualizarStickers() {
 function renderSticker(titulo, lista, cor) {
   const div = document.createElement("div");
   div.className = `p-4 rounded shadow ${cor}`;
-  div.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` + lista.map(l => `<div class='text-sm mb-1'>${l}</div>`).join("");
+  div.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` +
+    lista.map(l => `<div class='text-sm mb-1'>${l}</div>`).join("");
   document.getElementById("stickers").appendChild(div);
 }
 
