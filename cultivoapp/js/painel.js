@@ -150,8 +150,8 @@ function atualizarGantt() {
         barPercentage: 1,
         categoryPercentage: 1,
         data: [{
-          x: inicioEv.toISOString(),
-          x2: fimEv.toISOString(),
+          x: inicioEv,
+          x2: fimEv,
           y: `${cultivo.titulo} - ${ev.evento}`
         }]
       });
