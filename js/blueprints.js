@@ -1,3 +1,5 @@
+// js/blueprints.js (refatorado com createElement)
+
 import { db, auth } from "./firebase-init.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import {
@@ -17,7 +19,6 @@ onAuthStateChanged(auth, async (user) => {
     window.location.href = "/login.html";
     return;
   }
-
   usuario = user;
   document.getElementById("user-email").textContent = user.email;
   document.getElementById("user-pic").src = user.photoURL;
@@ -42,18 +43,39 @@ export async function loadBlueprint() {
   const id = document.getElementById("blueprint-select").value;
   const ref = doc(db, "blueprints", id);
   const docSnap = await getDoc(ref);
-  if (!docSnap.exists()) return;
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    document.getElementById("nome-blueprint").value = data.nome;
 
-  const data = docSnap.data();
-  document.getElementById("nome-blueprint").value = data.nome;
+    const tbody = document.getElementById("tabela");
+    tbody.innerHTML = "";
+    data.eventos.forEach((ev) => {
+      const tr = document.createElement("tr");
+      tr.className = "linha";
+      tr.appendChild(createTdInput("evento", ev.evento));
+      tr.appendChild(createTdInput("dias", ev.dias, "number"));
+      tr.appendChild(createTdInput("ajuste", ev.ajuste, "number"));
+      tr.appendChild(createTdInput("notas", ev.notas || ""));
+      const tdRemover = document.createElement("td");
+      const btn = document.createElement("button");
+      btn.className = "text-red-500";
+      btn.textContent = "🗑️";
+      btn.addEventListener("click", () => tr.remove());
+      tdRemover.appendChild(btn);
+      tr.appendChild(tdRemover);
+      tbody.appendChild(tr);
+    });
+  }
+}
 
-  const tbody = document.getElementById("tabela");
-  tbody.innerHTML = "";
-
-  data.eventos.forEach(ev => {
-    const tr = criarLinha(ev.evento, ev.dias, ev.ajuste, ev.notas);
-    tbody.appendChild(tr);
-  });
+function createTdInput(classe, valor = "", tipo = "text") {
+  const td = document.createElement("td");
+  const input = document.createElement("input");
+  input.className = classe;
+  input.type = tipo;
+  input.value = valor;
+  td.appendChild(input);
+  return td;
 }
 
 export async function salvarBlueprint() {
@@ -62,8 +84,7 @@ export async function salvarBlueprint() {
 
   const linhas = document.querySelectorAll("#tabela tr");
   const eventos = [];
-
-  linhas.forEach(row => {
+  linhas.forEach((row) => {
     eventos.push({
       evento: row.querySelector(".evento")?.value || "",
       dias: parseInt(row.querySelector(".dias")?.value || "0"),
@@ -86,48 +107,18 @@ export async function salvarBlueprint() {
 }
 
 export function adicionarLinha() {
-  const tbody = document.getElementById("tabela");
-  const tr = criarLinha("", 0, 0, "");
-  tbody.appendChild(tr);
-}
-
-function criarLinha(evento = "", dias = 0, ajuste = 0, notas = "") {
   const tr = document.createElement("tr");
   tr.className = "linha";
-
-  const tdEvento = document.createElement("td");
-  const inputEvento = document.createElement("input");
-  inputEvento.className = "evento";
-  inputEvento.value = evento;
-  tdEvento.appendChild(inputEvento);
-
-  const tdDias = document.createElement("td");
-  const inputDias = document.createElement("input");
-  inputDias.className = "dias";
-  inputDias.type = "number";
-  inputDias.value = dias;
-  tdDias.appendChild(inputDias);
-
-  const tdAjuste = document.createElement("td");
-  const inputAjuste = document.createElement("input");
-  inputAjuste.className = "ajuste";
-  inputAjuste.type = "number";
-  inputAjuste.value = ajuste;
-  tdAjuste.appendChild(inputAjuste);
-
-  const tdNotas = document.createElement("td");
-  const inputNotas = document.createElement("input");
-  inputNotas.className = "notas";
-  inputNotas.value = notas;
-  tdNotas.appendChild(inputNotas);
-
+  tr.appendChild(createTdInput("evento"));
+  tr.appendChild(createTdInput("dias", "0", "number"));
+  tr.appendChild(createTdInput("ajuste", "0", "number"));
+  tr.appendChild(createTdInput("notas"));
   const tdRemover = document.createElement("td");
-  const btnRemover = document.createElement("button");
-  btnRemover.textContent = "🗑️";
-  btnRemover.className = "text-red-500";
-  btnRemover.addEventListener("click", () => tr.remove());
-  tdRemover.appendChild(btnRemover);
-
-  tr.append(tdEvento, tdDias, tdAjuste, tdNotas, tdRemover);
-  return tr;
+  const btn = document.createElement("button");
+  btn.className = "text-red-500";
+  btn.textContent = "🗑️";
+  btn.addEventListener("click", () => tr.remove());
+  tdRemover.appendChild(btn);
+  tr.appendChild(tdRemover);
+  document.getElementById("tabela").appendChild(tr);
 }
