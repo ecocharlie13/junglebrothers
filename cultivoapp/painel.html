@@ -6,6 +6,8 @@
   <title>Painel - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1"></script>
   <style>
     .chart-container canvas {
       max-height: 400px;
@@ -34,11 +36,11 @@
   <!-- Cabeçalho -->
   <section class="text-center py-6">
     <h1 class="text-2xl font-bold">Relatório de Cultivo - <span id="data-hoje"></span></h1>
-    <div class="text-sm text-gray-600 mt-2 italic">Baseado nos cultivos selecionados</div>
+    <p class="text-sm italic text-gray-500">Baseado nos cultivos selecionados</p>
   </section>
 
   <!-- Stickers -->
-  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6" id="stickers"></section>
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6 mb-6" id="stickers"></section>
 
   <!-- Gráfico Gantt -->
   <section class="p-6">
