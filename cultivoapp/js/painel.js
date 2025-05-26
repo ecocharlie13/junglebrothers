@@ -42,12 +42,13 @@ function atualizarStickers() {
 }
 
 function renderizarGantt() {
-  const container = document.getElementById("gantt");
+  const container = document.getElementById("gantt");  // CORRETO AGORA
   container.innerHTML = "";
 
   const tarefas = [];
   const hoje = new Date();
   let corIndex = 0;
+
   const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
 
   Object.values(eventosMap).forEach((cultivo, idx) => {
@@ -73,7 +74,6 @@ function renderizarGantt() {
         dependencies: ""
       });
     });
-
     corIndex++;
   });
 
