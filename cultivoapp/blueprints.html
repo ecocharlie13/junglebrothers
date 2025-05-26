@@ -7,10 +7,20 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen p-6">
-  <div class="flex justify-between items-center mb-6">
-    <span id="user-email" class="text-sm text-gray-600">Verificando login...</span>
-    <img id="user-pic" class="w-8 h-8 rounded-full" />
-  </div>
+
+  <!-- MENU DE NAVEGAÇÃO -->
+  <nav class="bg-white shadow p-4 flex justify-between items-center mb-6">
+    <div class="flex gap-4">
+      <a href="/cultivoapp/blueprints.html" class="text-purple-600 hover:underline font-semibold">Blueprints</a>
+      <a href="/cultivoapp/cultivos.html" class="text-purple-600 hover:underline font-semibold">Cultivos</a>
+      <a href="/cultivoapp/eventos.html" class="text-purple-600 hover:underline font-semibold">Eventos</a>
+      <a href="/cultivoapp/painel.html" class="text-purple-600 hover:underline font-semibold">Painel</a>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="user-email" class="text-sm text-gray-500">Verificando login...</span>
+      <button id="logout" class="bg-red-500 text-white px-3 py-1 rounded hidden">Sair</button>
+    </div>
+  </nav>
 
   <h1 class="text-2xl font-bold text-center mb-2">Blueprint do Cultivo</h1>
   <p class="text-center mb-4">Preencha abaixo sua blueprint e salve para começar.</p>
@@ -47,6 +57,26 @@
       salvarBlueprint,
       adicionarLinha
     } from "../js/blueprints.js";
+
+    import { auth } from "../js/firebase-init.js";
+    import {
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+    // Proteção de rota e logout
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "/login.html";
+      } else {
+        document.getElementById("user-email").textContent = user.email;
+        document.getElementById("logout").classList.remove("hidden");
+        document.getElementById("logout").addEventListener("click", async () => {
+          await signOut(auth);
+          window.location.href = "/login.html";
+        });
+      }
+    });
 
     window.addEventListener("DOMContentLoaded", () => {
       document.getElementById("salvar").addEventListener("click", salvarBlueprint);
