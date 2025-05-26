@@ -1,5 +1,3 @@
-// painel.js
-
 import { auth, db } from "./firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import {
