@@ -1,3 +1,5 @@
+// painel.js
+
 import { auth, db } from "./firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import {
@@ -80,8 +82,9 @@ function renderSticker(titulo, lista, cor) {
 }
 
 function atualizarGantt() {
-  const ctx = document.getElementById("ganttChart")?.getContext("2d");
-  if (!ctx) return;
+  const canvas = document.getElementById("ganttChart");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
 
   if (window.ganttChart) window.ganttChart.destroy();
 
@@ -90,9 +93,7 @@ function atualizarGantt() {
   let corIndex = 0;
   const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
 
-  const sorted = Object.entries(eventosMap).sort((a, b) =>
-    new Date(a[1].data) - new Date(b[1].data)
-  );
+  const sorted = Object.entries(eventosMap).sort((a, b) => new Date(a[1].data) - new Date(b[1].data));
 
   for (const [_, cultivo] of sorted) {
     const base = new Date(cultivo.data);
