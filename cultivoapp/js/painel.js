@@ -80,7 +80,6 @@ function atualizarStickers() {
       const inicioEv = new Date(base);
       const ajuste = ev.ajuste !== undefined ? parseInt(ev.ajuste) : 0;
       inicioEv.setDate(inicioEv.getDate() + ajuste);
-
       const dias = Math.max(1, parseInt(ev.dias) || 0);
       const fimEv = new Date(inicioEv);
       fimEv.setDate(fimEv.getDate() + dias);
@@ -131,21 +130,19 @@ function atualizarGantt() {
     const base = new Date(cultivo.data);
     for (const ev of cultivo.eventos) {
       const dias = Math.max(1, parseInt(ev.dias) || 0);
-      const inicioEv = new Date(base);
-      inicioEv.setDate(inicioEv.getDate() + (parseInt(ev.ajuste) || 0));
-      const fimEv = new Date(inicioEv);
-      fimEv.setDate(fimEv.getDate() + dias);
+      const inicio = new Date(base);
+      inicio.setDate(inicio.getDate() + (parseInt(ev.ajuste) || 0));
+      const fim = new Date(inicio);
+      fim.setDate(fim.getDate() + dias);
 
-      if (!mostrarPassados && fimEv < hoje) continue;
+      if (!mostrarPassados && fim < hoje) continue;
 
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
-        borderRadius: 4,
         data: [{
-          xMin: inicioEv,
-          xMax: fimEv,
-          y: `${cultivo.titulo} - ${ev.evento}`
+          x: [inicio, fim],
+          y: `${cultivo.titulo}`
         }]
       });
     }
@@ -161,14 +158,10 @@ function atualizarGantt() {
       datasets
     },
     options: {
-      parsing: false,
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { mode: "nearest" }
-      },
+      plugins: { legend: { display: false } },
       scales: {
         x: {
           type: "time",
@@ -176,10 +169,6 @@ function atualizarGantt() {
             unit: "day",
             tooltipFormat: "dd MMM yyyy",
             displayFormats: { day: "dd MMM" }
-          },
-          title: {
-            display: true,
-            text: "Data"
           }
         }
       }
