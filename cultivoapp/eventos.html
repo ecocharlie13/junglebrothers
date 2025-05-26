@@ -28,9 +28,7 @@
           <th class="px-2 py-1">Notas</th>
         </tr>
       </thead>
-      <tbody id="tabela-eventos">
-        <!-- Populado via JS -->
-      </tbody>
+      <tbody id="tabela-eventos"></tbody>
     </table>
   </div>
 
@@ -77,7 +75,8 @@
         let inicio = new Date(cultivo.data);
 
         cultivo.eventos.forEach((ev, i) => {
-          inicio.setDate(inicio.getDate() + (parseInt(ev.ajuste) || 0));
+          const ajuste = parseInt(ev.ajuste) || 0;
+          inicio.setDate(inicio.getDate() + ajuste);
           const fim = new Date(inicio);
           fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
 
@@ -85,15 +84,19 @@
           tr.innerHTML = `
             <td class="border px-2 py-1">${cultivo.titulo}</td>
             <td class="border px-2 py-1">${ev.evento}</td>
-            <td class="border px-2 py-1"><input class="dias" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" /></td>
+            <td class="border px-2 py-1">
+              <input class="dias w-16 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
+            </td>
             <td class="border px-2 py-1">${ev.ajuste}</td>
             <td class="border px-2 py-1">${inicio.toISOString().split("T")[0]}</td>
             <td class="border px-2 py-1">${fim.toISOString().split("T")[0]}</td>
-            <td class="border px-2 py-1"><input class="notas" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" /></td>
+            <td class="border px-2 py-1">
+              <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
+            </td>
           `;
           tbody.appendChild(tr);
 
-          inicio = new Date(fim); // Encadeia o próximo evento a partir do fim deste
+          inicio = new Date(fim); // início do próximo evento = fim deste
         });
       }
     }
@@ -109,7 +112,6 @@
         eventosMap[cultivo].eventos[index].notas = input.value;
       });
 
-      // Salvar atualizações no Firestore
       for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
         await updateDoc(doc(db, "cultivos", cultivoId), {
           eventos: cultivo.eventos
