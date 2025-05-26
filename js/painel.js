@@ -21,15 +21,15 @@ verificarLogin(async (user) => {
 
   const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
   for (const id of selecionados) {
-    const ref = doc(db, "cultivos", id);
-    const snap = await getDoc(ref);
-    if (snap.exists()) eventosMap[id] = snap.data();
+    const docRef = doc(db, "cultivos", id);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      eventosMap[id] = snap.data();
+    }
   }
 
   document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
+    day: "2-digit", month: "short", year: "numeric"
   });
 
   document.getElementById("exibir-passados").addEventListener("change", (e) => {
@@ -47,47 +47,63 @@ function renderizarDashboard() {
 
 function obterSemanas() {
   const hoje = new Date();
-  const dia = hoje.getDay();
+  const diaSemana = hoje.getDay() === 0 ? 7 : hoje.getDay();
   const segundaAtual = new Date(hoje);
-  segundaAtual.setDate(hoje.getDate() - (dia === 0 ? 6 : dia - 1));
+  segundaAtual.setDate(hoje.getDate() - diaSemana + 1);
   segundaAtual.setHours(0, 0, 0, 0);
 
   const segundaPassada = new Date(segundaAtual);
   segundaPassada.setDate(segundaAtual.getDate() - 7);
 
-  const segundaSeguinte = new Date(segundaAtual);
-  segundaSeguinte.setDate(segundaAtual.getDate() + 7);
+  const segundaProxima = new Date(segundaAtual);
+  segundaProxima.setDate(segundaAtual.getDate() + 7);
+
+  const domingoAtual = new Date(segundaAtual);
+  domingoAtual.setDate(segundaAtual.getDate() + 6);
+
+  const domingoPassado = new Date(segundaPassada);
+  domingoPassado.setDate(segundaPassada.getDate() + 6);
+
+  const domingoProximo = new Date(segundaProxima);
+  domingoProximo.setDate(segundaProxima.getDate() + 6);
 
   return {
-    passada: { inicio: segundaPassada, fim: new Date(segundaAtual.getTime() - 1) },
-    atual: { inicio: segundaAtual, fim: new Date(segundaSeguinte.getTime() - 1) },
-    proxima: { inicio: segundaSeguinte, fim: new Date(segundaSeguinte.getTime() + 6 * 86400000) }
+    passada: { inicio: segundaPassada, fim: domingoPassado },
+    atual: { inicio: segundaAtual, fim: domingoAtual },
+    proxima: { inicio: segundaProxima, fim: domingoProximo }
   };
 }
 
 function atualizarStickers() {
   const { passada, atual, proxima } = obterSemanas();
-  const semanaPassada = [], semanaAtual = [], semanaSeguinte = [];
+  const concluidos = [], atuais = [], proximos = [];
 
   for (const cultivo of Object.values(eventosMap)) {
     const base = new Date(cultivo.data);
+
     cultivo.eventos.forEach(ev => {
-      const inicio = new Date(base);
-      inicio.setDate(inicio.getDate() + (parseInt(ev.ajuste) || 0));
-      const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
-      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fim.toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' })}`;
-      if (fim >= passada.inicio && fim <= passada.fim) semanaPassada.push({ label, data: fim });
-      else if (fim >= atual.inicio && fim <= atual.fim) semanaAtual.push({ label, data: fim });
-      else if (fim >= proxima.inicio && fim <= proxima.fim) semanaSeguinte.push({ label, data: fim });
+      const inicioEv = new Date(base);
+      inicioEv.setDate(inicioEv.getDate() + (parseInt(ev.ajuste) || 0));
+      const fimEv = new Date(inicioEv);
+      fimEv.setDate(fimEv.getDate() + (parseInt(ev.dias) || 0));
+
+      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimEv.toLocaleDateString("pt-BR", { day: '2-digit', month: 'short', year: 'numeric' })}`;
+
+      if (fimEv >= passada.inicio && fimEv <= passada.fim) {
+        concluidos.push({ label, data: fimEv });
+      } else if (fimEv >= atual.inicio && fimEv <= atual.fim) {
+        atuais.push({ label, data: fimEv });
+      } else if (fimEv >= proxima.inicio && fimEv <= proxima.fim) {
+        proximos.push({ label, data: fimEv });
+      }
     });
   }
 
   const stickers = document.getElementById("stickers");
   stickers.innerHTML = "";
-  renderSticker("Semana Passada", semanaPassada.sort((a,b)=>a.data-b.data).map(e=>e.label), "bg-blue-100");
-  renderSticker("Semana Atual", semanaAtual.sort((a,b)=>a.data-b.data).map(e=>e.label), "bg-yellow-100");
-  renderSticker("Semana Seguinte", semanaSeguinte.sort((a,b)=>a.data-b.data).map(e=>e.label), "bg-green-100");
+  renderSticker("Semana Passada", concluidos.sort((a, b) => a.data - b.data).map(e => e.label), "bg-blue-100");
+  renderSticker("Semana Atual", atuais.sort((a, b) => a.data - b.data).map(e => e.label), "bg-yellow-100");
+  renderSticker("Semana Seguinte", proximos.sort((a, b) => a.data - b.data).map(e => e.label), "bg-green-100");
 }
 
 function renderSticker(titulo, lista, cor) {
@@ -104,25 +120,25 @@ function atualizarGantt() {
   if (window.ganttChart && typeof window.ganttChart.destroy === "function") window.ganttChart.destroy();
 
   const hoje = new Date();
-  const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
   let corIndex = 0;
+  const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
   const datasets = [];
 
   const sorted = Object.entries(eventosMap).sort((a, b) => new Date(a[1].data) - new Date(b[1].data));
   for (const [_, cultivo] of sorted) {
     const base = new Date(cultivo.data);
     for (const ev of cultivo.eventos) {
-      const inicio = new Date(base);
-      inicio.setDate(inicio.getDate() + (parseInt(ev.ajuste) || 0));
-      const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
+      const inicioEv = new Date(base);
+      inicioEv.setDate(inicioEv.getDate() + (parseInt(ev.ajuste) || 0));
+      const fimEv = new Date(inicioEv);
+      fimEv.setDate(fimEv.getDate() + (parseInt(ev.dias) || 0));
 
-      if (!mostrarPassados && fim < hoje) continue;
+      if (!mostrarPassados && fimEv < hoje) continue;
 
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
-        data: [{ x: [inicio, fim], y: cultivo.titulo }]
+        data: [{ x: [inicioEv, fimEv], y: cultivo.titulo }]
       });
     }
     corIndex++;
@@ -141,7 +157,6 @@ function atualizarGantt() {
       scales: {
         x: {
           type: "time",
-          adapters: { date: luxon },
           time: {
             unit: "day",
             tooltipFormat: "dd MMM yyyy",
