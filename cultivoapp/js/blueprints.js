@@ -9,7 +9,7 @@ import {
   query,
   where
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-import { verificarLogin, sair } from "./auth.js";
+import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
 
 let usuario = null;
 
