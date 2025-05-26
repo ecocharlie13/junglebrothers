@@ -29,7 +29,7 @@
   </div>
 
   <script type="module">
-    import { auth, db } from "../js/firebase-init.js";
+    import { auth, db } from "/cultivoapp/js/firebase-init.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
     import {
       collection,
@@ -52,18 +52,16 @@
         window.location.href = "/login.html";
       };
 
-      const uid = user.uid;
+      const blueprintSnap = await getDocs(query(collection(db, "blueprints"), where("usuario", "==", user.email)));
+      const cultivoSnap = await getDocs(query(collection(db, "cultivos"), where("usuario", "==", user.email)));
 
-      const temBlueprint = await getDocs(query(collection(db, "blueprints"), where("usuario", "==", user.email)));
-      const temCultivo = await getDocs(query(collection(db, "cultivos"), where("usuario", "==", user.email)));
-
-      if (!temBlueprint.empty) {
+      if (!blueprintSnap.empty) {
         btnCultivos.classList.remove("pointer-events-none", "opacity-50");
         btnCultivos.classList.replace("bg-purple-400", "bg-purple-600");
         btnCultivos.classList.add("hover:bg-purple-700");
       }
 
-      if (!temBlueprint.empty && !temCultivo.empty) {
+      if (!blueprintSnap.empty && !cultivoSnap.empty) {
         btnEventos.classList.remove("pointer-events-none", "opacity-50");
         btnEventos.classList.replace("bg-purple-400", "bg-purple-600");
         btnEventos.classList.add("hover:bg-purple-700");
