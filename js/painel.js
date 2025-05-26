@@ -11,33 +11,21 @@ let eventosMap = {};
 let mostrarPassados = false;
 
 verificarLogin(async (user) => {
-  const emailSpan = document.getElementById("user-email");
-  const userPic = document.getElementById("user-pic");
-  const logoutBtn = document.getElementById("logout");
-
-  if (!emailSpan || !userPic || !logoutBtn) return;
-
-  emailSpan.textContent = user.email;
-  userPic.src = user.photoURL;
-  logoutBtn.addEventListener("click", sair);
+  document.getElementById("user-email").textContent = user.email;
+  document.getElementById("user-pic").src = user.photoURL;
+  document.getElementById("logout").addEventListener("click", sair);
 
   const snap = await getDocs(query(collection(db, "cultivos"), where("usuario", "==", user.email)));
   snap.forEach(docSnap => {
     eventosMap[docSnap.id] = docSnap.data();
   });
 
-  const hojeSpan = document.getElementById("data-hoje");
-  if (hojeSpan) {
-    hojeSpan.textContent = new Date().toLocaleDateString("pt-BR", {
-      day: '2-digit', month: 'short', year: 'numeric'
-    });
-  }
+  document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
+    day: '2-digit', month: 'short', year: 'numeric'
+  });
 
-  const verBtn = document.getElementById("ver");
-  const checkPassados = document.getElementById("exibir-passados");
-
-  if (verBtn) verBtn.addEventListener("click", renderizarDashboard);
-  if (checkPassados) checkPassados.addEventListener("change", (e) => {
+  document.getElementById("ver").addEventListener("click", renderizarDashboard);
+  document.getElementById("exibir-passados").addEventListener("change", (e) => {
     mostrarPassados = e.target.checked;
     renderizarDashboard();
   });
@@ -77,7 +65,6 @@ function atualizarStickers() {
   }
 
   const stickers = document.getElementById("stickers");
-  if (!stickers) return;
   stickers.innerHTML = "";
 
   renderSticker("Eventos Concluídos", concluidos, "bg-blue-100");
@@ -93,9 +80,8 @@ function renderSticker(titulo, lista, cor) {
 }
 
 function atualizarGantt() {
-  const canvas = document.getElementById("ganttChart");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
+  const ctx = document.getElementById("ganttChart")?.getContext("2d");
+  if (!ctx) return;
 
   if (window.ganttChart) window.ganttChart.destroy();
 
