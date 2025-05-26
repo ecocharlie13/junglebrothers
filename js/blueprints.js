@@ -42,25 +42,18 @@ export async function loadBlueprint() {
   const id = document.getElementById("blueprint-select").value;
   const ref = doc(db, "blueprints", id);
   const docSnap = await getDoc(ref);
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-    document.getElementById("nome-blueprint").value = data.nome;
+  if (!docSnap.exists()) return;
 
-    const tbody = document.getElementById("tabela");
-    tbody.innerHTML = "";
-    data.eventos.forEach((ev) => {
-      const tr = document.createElement("tr");
-      tr.className = "linha";
-      tr.innerHTML = `
-        <td><input class='evento' value="${ev.evento}"/></td>
-        <td><input class='dias' type="number" value="${ev.dias}"/></td>
-        <td><input class='ajuste' type="number" value="${ev.ajuste}"/></td>
-        <td><input class='notas' value="${ev.notas || ""}"/></td>
-        <td><button onclick="removerLinha(this)" class="text-red-500">🗑️</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
+  const data = docSnap.data();
+  document.getElementById("nome-blueprint").value = data.nome;
+
+  const tbody = document.getElementById("tabela");
+  tbody.innerHTML = "";
+
+  data.eventos.forEach(ev => {
+    const tr = criarLinha(ev.evento, ev.dias, ev.ajuste, ev.notas);
+    tbody.appendChild(tr);
+  });
 }
 
 export async function salvarBlueprint() {
@@ -69,7 +62,8 @@ export async function salvarBlueprint() {
 
   const linhas = document.querySelectorAll("#tabela tr");
   const eventos = [];
-  linhas.forEach((row) => {
+
+  linhas.forEach(row => {
     eventos.push({
       evento: row.querySelector(".evento")?.value || "",
       dias: parseInt(row.querySelector(".dias")?.value || "0"),
@@ -92,14 +86,48 @@ export async function salvarBlueprint() {
 }
 
 export function adicionarLinha() {
+  const tbody = document.getElementById("tabela");
+  const tr = criarLinha("", 0, 0, "");
+  tbody.appendChild(tr);
+}
+
+function criarLinha(evento = "", dias = 0, ajuste = 0, notas = "") {
   const tr = document.createElement("tr");
   tr.className = "linha";
-  tr.innerHTML = `
-    <td><input class='evento' /></td>
-    <td><input class='dias' type="number" value="0" /></td>
-    <td><input class='ajuste' type="number" value="0" /></td>
-    <td><input class='notas' /></td>
-    <td><button onclick="removerLinha(this)" class="text-red-500">🗑️</button></td>
-  `;
-  document.getElementById("tabela").appendChild(tr);
+
+  const tdEvento = document.createElement("td");
+  const inputEvento = document.createElement("input");
+  inputEvento.className = "evento";
+  inputEvento.value = evento;
+  tdEvento.appendChild(inputEvento);
+
+  const tdDias = document.createElement("td");
+  const inputDias = document.createElement("input");
+  inputDias.className = "dias";
+  inputDias.type = "number";
+  inputDias.value = dias;
+  tdDias.appendChild(inputDias);
+
+  const tdAjuste = document.createElement("td");
+  const inputAjuste = document.createElement("input");
+  inputAjuste.className = "ajuste";
+  inputAjuste.type = "number";
+  inputAjuste.value = ajuste;
+  tdAjuste.appendChild(inputAjuste);
+
+  const tdNotas = document.createElement("td");
+  const inputNotas = document.createElement("input");
+  inputNotas.className = "notas";
+  inputNotas.value = notas;
+  tdNotas.appendChild(inputNotas);
+
+  const tdRemover = document.createElement("td");
+  const btnRemover = document.createElement("button");
+  btnRemover.textContent = "🗑️";
+  btnRemover.className = "text-red-500";
+  btnRemover.addEventListener("click", () => tr.remove());
+  tdRemover.appendChild(btnRemover);
+
+  tr.append(tdEvento, tdDias, tdAjuste, tdNotas, tdRemover);
+  return tr;
 }
