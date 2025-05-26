@@ -5,76 +5,59 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" href="/JBLogoBranco.png" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .chart-container canvas {
+      max-height: 400px;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800">
+<body class="bg-gray-100 min-h-screen">
   <!-- Navbar -->
-  <header class="bg-white shadow p-4 flex justify-between items-center">
-    <div class="flex items-center gap-4">
-      <img src="/JBLogoBranco.png" alt="Jungle Brothers" class="h-10" />
-      <nav class="space-x-4 text-purple-700 font-semibold">
-        <a href="/cultivoapp/blueprints.html">Blueprints</a>
-        <a href="/cultivoapp/cultivos.html">Cultivos</a>
-        <a href="/cultivoapp/eventos.html">Eventos</a>
-        <a href="/cultivoapp/painel.html">Painel</a>
-      </nav>
-    </div>
+  <header class="bg-white shadow px-6 py-4 flex justify-between items-center">
+    <nav class="space-x-4 text-purple-700 font-semibold">
+      <a href="/cultivoapp/blueprints.html">Blueprints</a>
+      <a href="/cultivoapp/cultivos.html">Cultivos</a>
+      <a href="/cultivoapp/eventos.html">Eventos</a>
+      <a href="/cultivoapp/painel.html">Painel</a>
+    </nav>
     <div class="flex items-center gap-4">
       <span id="user-email" class="text-sm text-gray-600">Verificando login...</span>
       <img id="user-pic" class="w-8 h-8 rounded-full" alt="Foto de perfil" />
-      <button id="logout" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Sair</button>
+      <button id="logout" class="bg-red-500 text-white px-4 py-1 rounded">Sair</button>
     </div>
   </header>
 
-  <!-- Conteúdo principal -->
-  <main class="p-6 max-w-7xl mx-auto">
-    <h1 class="text-2xl font-bold text-center mb-6">Relatório de Cultivo - <span id="data-hoje"></span></h1>
-
-    <div class="flex justify-between items-center mb-6">
-      <div class="flex items-center gap-3">
-        <label class="font-semibold">Período:</label>
-        <select id="periodo" class="border px-2 py-1 rounded">
-          <option>Diário</option>
-          <option>Semanal</option>
-          <option>Mensal</option>
-          <option>Anual</option>
-        </select>
-        <button id="ver" class="bg-purple-600 text-white px-4 py-1 rounded">VER</button>
-        <button id="pdf" class="bg-blue-600 text-white px-4 py-1 rounded">PDF</button>
-      </div>
-      <label class="text-sm text-gray-600 italic">
-        <input type="checkbox" id="exibir-passados" class="mr-1" checked>
-        Exibir/ Ocultar Eventos passados
-      </label>
+  <!-- Título e controle -->
+  <section class="text-center py-6">
+    <img src="/JBLogoBranco.png" alt="Jungle Brothers" class="h-20 mx-auto mb-2">
+    <h1 class="text-2xl font-bold">Relatório de Cultivo - <span id="data-hoje"></span></h1>
+    <div class="flex justify-center gap-4 items-center mt-4">
+      <label class="font-semibold">Período:</label>
+      <select id="periodo" class="border px-2 py-1 rounded">
+        <option value="diario">Diário</option>
+        <option value="semanal">Semanal</option>
+        <option value="mensal" selected>Mensal</option>
+        <option value="anual">Anual</option>
+      </select>
+      <button id="ver" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-1 rounded">VER</button>
+      <button id="pdf" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-1 rounded">PDF</button>
     </div>
+  </section>
 
-    <!-- Stickers -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="bg-blue-100 p-4 rounded shadow">
-        <h2 class="font-bold text-lg mb-2">Eventos Concluídos</h2>
-        <div id="concluidos" class="space-y-1 text-sm"></div>
-      </div>
-      <div class="bg-yellow-100 p-4 rounded shadow">
-        <h2 class="font-bold text-lg mb-2">Eventos Atuais</h2>
-        <div id="atuais" class="space-y-1 text-sm"></div>
-      </div>
-      <div class="bg-green-100 p-4 rounded shadow">
-        <h2 class="font-bold text-lg mb-2">Próximos Eventos</h2>
-        <div id="proximos" class="space-y-1 text-sm"></div>
-      </div>
+  <!-- Stickers -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 px-6" id="stickers"></section>
+
+  <!-- Gantt chart -->
+  <section class="p-6">
+    <div class="chart-container max-w-6xl mx-auto bg-white p-4 rounded shadow">
+      <canvas id="ganttChart"></canvas>
     </div>
-
-    <!-- Gráfico Gantt -->
-    <div id="grafico-gantt" class="bg-white rounded shadow p-4">
-      <div class="text-center text-gray-400">(gráfico de eventos aparecerá aqui)</div>
+    <div class="text-center mt-4 text-sm italic text-gray-600">
+      <label><input type="checkbox" id="exibir-passados" class="mr-1" /> Exibir/ Ocultar Eventos passados</label>
     </div>
-  </main>
+  </section>
 
-  <script>
-    // Mostrar data atual formatada
-    const hoje = new Date();
-    const opcoes = { day: '2-digit', month: 'short', year: 'numeric' };
-    document.getElementById("data-hoje").textContent = hoje.toLocaleDateString("pt-BR", opcoes);
-  </script>
+  <script type="module" src="/js/painel.js"></script>
 </body>
 </html>
