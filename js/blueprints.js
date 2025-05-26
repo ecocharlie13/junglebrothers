@@ -105,13 +105,43 @@ function criarLinha(evento = "", dias = 0, ajuste = 0, notas = "") {
   const tr = document.createElement("tr");
   tr.className = "linha";
 
-  tr.innerHTML = `
-    <td><input class='evento px-2 py-1 border rounded w-full' value="${evento}" /></td>
-    <td><input class='dias px-2 py-1 border rounded w-full' type="number" value="${dias}" /></td>
-    <td><input class='ajuste px-2 py-1 border rounded w-full' type="number" value="${ajuste}" /></td>
-    <td><input class='notas px-2 py-1 border rounded w-full' value="${notas}" /></td>
-    <td><button class="text-red-500 font-bold px-2" onclick="this.closest('tr').remove()">🗑️</button></td>
-  `;
+  const tdEvento = document.createElement("td");
+  const inputEvento = document.createElement("input");
+  inputEvento.className = "evento px-2 py-1 border rounded w-full";
+  inputEvento.value = evento;
+  tdEvento.appendChild(inputEvento);
 
+  const tdDias = document.createElement("td");
+  const inputDias = document.createElement("input");
+  inputDias.className = "dias px-2 py-1 border rounded w-full";
+  inputDias.type = "number";
+  inputDias.value = dias;
+  tdDias.appendChild(inputDias);
+
+  const tdAjuste = document.createElement("td");
+  const inputAjuste = document.createElement("input");
+  inputAjuste.className = "ajuste px-2 py-1 border rounded w-full";
+  inputAjuste.type = "number";
+  inputAjuste.value = ajuste;
+  tdAjuste.appendChild(inputAjuste);
+
+  const tdNotas = document.createElement("td");
+  const inputNotas = document.createElement("input");
+  inputNotas.className = "notas px-2 py-1 border rounded w-full";
+  inputNotas.value = notas;
+  tdNotas.appendChild(inputNotas);
+
+  const tdRemover = document.createElement("td");
+  const btnRemover = document.createElement("button");
+  btnRemover.className = "text-red-500 font-bold px-2";
+  btnRemover.textContent = "🗑️";
+  btnRemover.addEventListener("click", () => {
+    if (confirm("Deseja remover esta etapa?")) {
+      tr.remove();
+    }
+  });
+  tdRemover.appendChild(btnRemover);
+
+  tr.append(tdEvento, tdDias, tdAjuste, tdNotas, tdRemover);
   return tr;
 }
