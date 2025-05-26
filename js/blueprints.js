@@ -1,23 +1,20 @@
-// Atualizado blueprints.js
-import { db, auth } from "./firebase-init.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import {
-  collection, doc, setDoc, getDocs, getDoc, query, where
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { auth, db } from "./firebase-init.js";
+import { doc, setDoc, getDocs, getDoc, collection, query, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { verificarLogin, sair } from "./auth.js";
 
 let usuario = null;
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return window.location.href = "/login.html";
+verificarLogin(async (user) => {
   usuario = user;
   document.getElementById("user-email").textContent = user.email;
   document.getElementById("user-pic").src = user.photoURL;
-  await carregarDropdown();
-});
 
-document.getElementById("logout")?.addEventListener("click", async () => {
-  await signOut(auth);
-  window.location.href = "/login.html";
+  carregarDropdown();
+
+  document.getElementById("salvar").addEventListener("click", salvarBlueprint);
+  document.getElementById("carregar").addEventListener("click", loadBlueprint);
+  document.getElementById("adicionar").addEventListener("click", adicionarLinha);
+  document.getElementById("logout").addEventListener("click", sair);
 });
 
 export async function carregarDropdown() {
@@ -26,10 +23,10 @@ export async function carregarDropdown() {
   const snap = await getDocs(q);
   const select = document.getElementById("blueprint-select");
   select.innerHTML = "<option disabled selected hidden>Escolha uma blueprint</option>";
-  snap.forEach((doc) => {
+  snap.forEach((docSnap) => {
     const opt = document.createElement("option");
-    opt.value = doc.id;
-    opt.textContent = doc.data().nome;
+    opt.value = docSnap.id;
+    opt.textContent = docSnap.data().nome;
     select.appendChild(opt);
   });
 }
@@ -75,52 +72,25 @@ export async function salvarBlueprint() {
 
   document.getElementById("status").textContent = "✅ Blueprint salva com sucesso!";
   setTimeout(() => (document.getElementById("status").textContent = ""), 4000);
-  await carregarDropdown();
+  carregarDropdown();
 }
 
 export function adicionarLinha() {
   const tbody = document.getElementById("tabela");
-  const tr = criarLinha("", 0, 0, "");
-  tbody.appendChild(tr);
+  tbody.appendChild(criarLinha("", 0, 0, ""));
 }
 
 function criarLinha(evento = "", dias = 0, ajuste = 0, notas = "") {
   const tr = document.createElement("tr");
   tr.className = "linha";
 
-  const tdEvento = document.createElement("td");
-  const inputEvento = document.createElement("input");
-  inputEvento.className = "evento";
-  inputEvento.value = evento;
-  tdEvento.appendChild(inputEvento);
+  tr.innerHTML = `
+    <td><input class='evento px-2 py-1 border rounded w-full' value="${evento}" /></td>
+    <td><input class='dias px-2 py-1 border rounded w-full' type="number" value="${dias}" /></td>
+    <td><input class='ajuste px-2 py-1 border rounded w-full' type="number" value="${ajuste}" /></td>
+    <td><input class='notas px-2 py-1 border rounded w-full' value="${notas}" /></td>
+    <td><button class="text-red-500 font-bold px-2" onclick="this.closest('tr').remove()">🗑️</button></td>
+  `;
 
-  const tdDias = document.createElement("td");
-  const inputDias = document.createElement("input");
-  inputDias.className = "dias";
-  inputDias.type = "number";
-  inputDias.value = dias;
-  tdDias.appendChild(inputDias);
-
-  const tdAjuste = document.createElement("td");
-  const inputAjuste = document.createElement("input");
-  inputAjuste.className = "ajuste";
-  inputAjuste.type = "number";
-  inputAjuste.value = ajuste;
-  tdAjuste.appendChild(inputAjuste);
-
-  const tdNotas = document.createElement("td");
-  const inputNotas = document.createElement("input");
-  inputNotas.className = "notas";
-  inputNotas.value = notas;
-  tdNotas.appendChild(inputNotas);
-
-  const tdRemover = document.createElement("td");
-  const btnRemover = document.createElement("button");
-  btnRemover.textContent = "🗑️";
-  btnRemover.className = "text-red-500";
-  btnRemover.addEventListener("click", () => tr.remove());
-  tdRemover.appendChild(btnRemover);
-
-  tr.append(tdEvento, tdDias, tdAjuste, tdNotas, tdRemover);
   return tr;
 }
