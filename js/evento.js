@@ -11,9 +11,12 @@ let cultivosSelecionados = [];
 
 verificarLogin(async (user) => {
   document.getElementById("user-email").textContent = user.email;
-  document.getElementById("btn-sair").addEventListener("click", sair);
+  document.getElementById("user-pic").src = user.photoURL;
+  document.getElementById("logout").addEventListener("click", sair);
+  document.getElementById("atualizar").addEventListener("click", atualizarEventos);
 
   cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+
   for (const cultivoId of cultivosSelecionados) {
     const ref = doc(db, "cultivos", cultivoId);
     const snap = await getDoc(ref);
@@ -21,6 +24,7 @@ verificarLogin(async (user) => {
       eventosMap[cultivoId] = snap.data();
     }
   }
+
   atualizarTabela();
 });
 
@@ -51,12 +55,12 @@ function atualizarTabela() {
         </td>
       `;
       tbody.appendChild(tr);
-      inicio = new Date(fim); // próximo começa no fim do anterior
+      inicio = new Date(fim); // Encadeia o próximo
     });
   }
 }
 
-document.getElementById("atualizar").addEventListener("click", async () => {
+async function atualizarEventos() {
   document.querySelectorAll(".dias").forEach((input) => {
     const { cultivo, index } = input.dataset;
     eventosMap[cultivo].eventos[index].dias = parseInt(input.value);
@@ -68,11 +72,9 @@ document.getElementById("atualizar").addEventListener("click", async () => {
   });
 
   for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
-    await updateDoc(doc(db, "cultivos", cultivoId), {
-      eventos: cultivo.eventos
-    });
+    await updateDoc(doc(db, "cultivos", cultivoId), { eventos: cultivo.eventos });
   }
 
   atualizarTabela();
   alert("✅ Eventos atualizados com sucesso!");
-});
+}
