@@ -155,6 +155,7 @@ function atualizarGantt() {
     corIndex++;
   }
 
+  console.log("Datasets para Gantt:", datasets);
   window.ganttChart = new Chart(ctx, {
     type: "bar",
     data: {
