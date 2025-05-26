@@ -1,9 +1,11 @@
-// painel.js (usando Frappe Gantt)
+// painel.js
+
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let eventosMap = {};
+let mostrarPassados = false;
 
 verificarLogin(async (user) => {
   document.getElementById("user-email").textContent = user.email;
@@ -12,50 +14,79 @@ verificarLogin(async (user) => {
 
   const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
   for (const id of selecionados) {
-    const snap = await getDoc(doc(db, "cultivos", id));
-    if (snap.exists()) eventosMap[id] = snap.data();
+    const docRef = doc(db, "cultivos", id);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      eventosMap[id] = snap.data();
+    }
   }
 
   document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit", month: "short", year: "numeric"
   });
 
-  renderizarGantt();
+  document.getElementById("exibir-passados").addEventListener("change", (e) => {
+    mostrarPassados = e.target.checked;
+    renderizarDashboard();
+  });
+
+  renderizarDashboard();
 });
 
+function renderizarDashboard() {
+  atualizarStickers();
+  renderizarGantt();
+}
+
+function atualizarStickers() {
+  const stickers = document.getElementById("stickers");
+  stickers.innerHTML = "<div class='text-gray-400 italic'>Stickers ainda não implementados com Frappe Gantt</div>";
+}
+
 function renderizarGantt() {
+  const container = document.getElementById("ganttContainer");
+  container.innerHTML = "";
+
   const tarefas = [];
-  const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
+  const hoje = new Date();
   let corIndex = 0;
 
-  for (const cultivo of Object.values(eventosMap)) {
-    const base = new Date(cultivo.data);
-    for (let i = 0; i < cultivo.eventos.length; i++) {
-      const ev = cultivo.eventos[i];
-      const ajuste = parseInt(ev.ajuste) || 0;
-      const dias = Math.max(1, parseInt(ev.dias) || 0);
+  const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
 
+  Object.values(eventosMap).forEach((cultivo, idx) => {
+    const base = new Date(cultivo.data);
+
+    cultivo.eventos.forEach((ev, i) => {
+      const ajuste = parseInt(ev.ajuste || 0);
+      const dias = Math.max(1, parseInt(ev.dias || 0));
       const inicio = new Date(base);
       inicio.setDate(inicio.getDate() + ajuste);
-
       const fim = new Date(inicio);
       fim.setDate(fim.getDate() + dias);
 
+      if (!mostrarPassados && fim < hoje) return;
+
       tarefas.push({
         id: `${cultivo.titulo}-${i}`,
-        name: ev.evento,
+        name: `${ev.evento}`,
         start: inicio.toISOString().split("T")[0],
         end: fim.toISOString().split("T")[0],
         progress: 100,
-        custom_class: "bar-cor" + (corIndex % cores.length)
+        custom_class: `cor-${corIndex % cores.length}`,
+        dependencies: ""
       });
-    }
+    });
     corIndex++;
+  });
+
+  if (tarefas.length === 0) {
+    container.innerHTML = "<div class='text-gray-400 italic text-center'>Nenhum evento para exibir</div>";
+    return;
   }
 
-  const gantt = new Gantt("#gantt", tarefas, {
+  const gantt = new Gantt("#ganttContainer", tarefas, {
     view_mode: "Day",
-    language: "pt-br",
+    date_format: "YYYY-MM-DD",
     custom_popup_html: null
   });
 }  
