@@ -67,7 +67,6 @@ function obterSemanas() {
   const domingoProximo = new Date(segundaProxima);
   domingoProximo.setDate(segundaProxima.getDate() + 6);
 
-  // Remover hora das datas para comparação pura
   [segundaPassada, domingoPassado, segundaAtual, domingoAtual, segundaProxima, domingoProximo].forEach(d => {
     d.setHours(0, 0, 0, 0);
   });
@@ -90,11 +89,11 @@ function atualizarStickers() {
       const inicioEv = new Date(base);
       const ajuste = ev.ajuste !== undefined ? parseInt(ev.ajuste) : 0;
       inicioEv.setDate(inicioEv.getDate() + ajuste);
+
+      const dias = Math.max(1, parseInt(ev.dias) || 0); // garantir mínimo de 1
       const fimEv = new Date(inicioEv);
-      const dias = Math.max(1, parseInt(ev.dias) || 0);  // garante pelo menos 1 dia
       fimEv.setDate(fimEv.getDate() + dias);
 
-      // Normalizar a data (remove hora)
       const fimDateOnly = new Date(fimEv.toDateString());
 
       const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimDateOnly.toLocaleDateString("pt-BR", {
@@ -140,10 +139,11 @@ function atualizarGantt() {
   for (const [_, cultivo] of sorted) {
     const base = new Date(cultivo.data);
     for (const ev of cultivo.eventos) {
+      const dias = Math.max(1, parseInt(ev.dias) || 0);
       const inicioEv = new Date(base);
       inicioEv.setDate(inicioEv.getDate() + (parseInt(ev.ajuste) || 0));
       const fimEv = new Date(inicioEv);
-      fimEv.setDate(fimEv.getDate() + (parseInt(ev.dias) || 0));
+      fimEv.setDate(fimEv.getDate() + dias);
 
       if (!mostrarPassados && fimEv < hoje) continue;
 
@@ -156,6 +156,8 @@ function atualizarGantt() {
     corIndex++;
   }
 
+  canvas.height = Math.min(Math.max(datasets.length * 40, 300), 1200); // altura dinâmica
+
   console.log("Datasets para Gantt:", datasets);
   window.ganttChart = new Chart(ctx, {
     type: "bar",
@@ -166,6 +168,7 @@ function atualizarGantt() {
     options: {
       indexAxis: "y",
       responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         x: {
