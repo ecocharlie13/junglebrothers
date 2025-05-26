@@ -1,3 +1,4 @@
+<!-- painel.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,16 +8,13 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Frappe Gantt -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.css" />
-  <script src="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/frappe-gantt/dist/frappe-gantt.css">
+  <script src="https://unpkg.com/frappe-gantt/dist/frappe-gantt.min.js"></script>
 
   <style>
-    .gantt-container {
-      overflow-x: auto;
-    }
-    .gantt .bar {
-      cursor: pointer;
-    }
+    .bar-verde { fill: #16a34a; }
+    .bar-azul { fill: #2563eb; }
+    .bar-roxa { fill: #7e22ce; }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -49,9 +47,7 @@
 
   <!-- Gráfico Gantt -->
   <section class="p-6">
-    <div class="gantt-container max-w-6xl mx-auto bg-white p-4 rounded shadow">
-      <div id="gantt"></div>
-    </div>
+    <div id="gantt" class="w-full bg-white p-4 rounded shadow overflow-auto h-[600px]"></div>
     <div class="text-center mt-4 text-sm italic text-gray-600">
       <label>
         <input type="checkbox" id="exibir-passados" class="mr-1" />
