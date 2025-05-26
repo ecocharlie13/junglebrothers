@@ -1,3 +1,5 @@
+// painel.js
+
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
@@ -14,7 +16,9 @@ verificarLogin(async (user) => {
   for (const id of selecionados) {
     const ref = doc(db, "cultivos", id);
     const snap = await getDoc(ref);
-    if (snap.exists()) eventosMap[id] = snap.data();
+    if (snap.exists()) {
+      eventosMap[id] = snap.data();
+    }
   }
 
   document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
@@ -36,22 +40,34 @@ function renderizarDashboard() {
 
 function obterSemanas() {
   const hoje = new Date();
-  const dia = hoje.getDay() === 0 ? 7 : hoje.getDay();
-  const segunda = new Date(hoje);
-  segunda.setDate(hoje.getDate() - dia + 1);
-  segunda.setHours(0, 0, 0, 0);
+  const diaSemana = hoje.getDay() === 0 ? 7 : hoje.getDay();
+  const segundaAtual = new Date(hoje);
+  segundaAtual.setDate(hoje.getDate() - diaSemana + 1);
+  segundaAtual.setHours(0, 0, 0, 0);
 
-  const anterior = new Date(segunda); anterior.setDate(segunda.getDate() - 7);
-  const seguinte = new Date(segunda); seguinte.setDate(segunda.getDate() + 7);
+  const segundaPassada = new Date(segundaAtual);
+  segundaPassada.setDate(segundaAtual.getDate() - 7);
 
-  const domingoAnt = new Date(anterior); domingoAnt.setDate(anterior.getDate() + 6);
-  const domingoAtual = new Date(segunda); domingoAtual.setDate(segunda.getDate() + 6);
-  const domingoSeg = new Date(seguinte); domingoSeg.setDate(seguinte.getDate() + 6);
+  const segundaProxima = new Date(segundaAtual);
+  segundaProxima.setDate(segundaAtual.getDate() + 7);
+
+  const domingoAtual = new Date(segundaAtual);
+  domingoAtual.setDate(segundaAtual.getDate() + 6);
+
+  const domingoPassado = new Date(segundaPassada);
+  domingoPassado.setDate(segundaPassada.getDate() + 6);
+
+  const domingoProximo = new Date(segundaProxima);
+  domingoProximo.setDate(segundaProxima.getDate() + 6);
+
+  [segundaPassada, domingoPassado, segundaAtual, domingoAtual, segundaProxima, domingoProximo].forEach(d => {
+    d.setHours(0, 0, 0, 0);
+  });
 
   return {
-    passada: { inicio: anterior, fim: domingoAnt },
-    atual: { inicio: segunda, fim: domingoAtual },
-    proxima: { inicio: seguinte, fim: domingoSeg }
+    passada: { inicio: segundaPassada, fim: domingoPassado },
+    atual: { inicio: segundaAtual, fim: domingoAtual },
+    proxima: { inicio: segundaProxima, fim: domingoProximo }
   };
 }
 
@@ -61,48 +77,50 @@ function atualizarStickers() {
 
   for (const cultivo of Object.values(eventosMap)) {
     const base = new Date(cultivo.data);
-    for (const ev of cultivo.eventos) {
-      const ajuste = parseInt(ev.ajuste) || 0;
+
+    cultivo.eventos.forEach(ev => {
+      const inicioEv = new Date(base);
+      const ajuste = ev.ajuste !== undefined ? parseInt(ev.ajuste) : 0;
+      inicioEv.setDate(inicioEv.getDate() + ajuste);
       const dias = Math.max(1, parseInt(ev.dias) || 0);
+      const fimEv = new Date(inicioEv);
+      fimEv.setDate(fimEv.getDate() + dias);
 
-      const inicio = new Date(base);
-      inicio.setDate(inicio.getDate() + ajuste);
-      const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + dias);
+      const fimDateOnly = new Date(fimEv.toDateString());
 
-      const fimFormat = new Date(fim.toDateString());
-      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimFormat.toLocaleDateString("pt-BR")}`;
+      const label = `<strong>${cultivo.titulo}</strong><br>${ev.evento} - ${fimDateOnly.toLocaleDateString("pt-BR", {
+        day: '2-digit', month: 'short', year: 'numeric'
+      })}`;
 
-      if (fimFormat >= passada.inicio && fimFormat <= passada.fim) {
-        concluidos.push({ label, data: fimFormat });
-      } else if (fimFormat >= atual.inicio && fimFormat <= atual.fim) {
-        atuais.push({ label, data: fimFormat });
-      } else if (fimFormat >= proxima.inicio && fimFormat <= proxima.fim) {
-        proximos.push({ label, data: fimFormat });
+      if (fimDateOnly >= passada.inicio && fimDateOnly <= passada.fim) {
+        concluidos.push({ label, data: fimDateOnly });
+      } else if (fimDateOnly >= atual.inicio && fimDateOnly <= atual.fim) {
+        atuais.push({ label, data: fimDateOnly });
+      } else if (fimDateOnly >= proxima.inicio && fimDateOnly <= proxima.fim) {
+        proximos.push({ label, data: fimDateOnly });
       }
-    }
+    });
   }
 
-  const el = document.getElementById("stickers");
-  el.innerHTML = "";
-  renderSticker("Semana Passada", concluidos, "bg-blue-100");
-  renderSticker("Semana Atual", atuais, "bg-yellow-100");
-  renderSticker("Semana Seguinte", proximos, "bg-green-100");
+  const stickers = document.getElementById("stickers");
+  stickers.innerHTML = "";
+  renderSticker("Semana Passada", concluidos.sort((a, b) => a.data - b.data).map(e => e.label), "bg-blue-100");
+  renderSticker("Semana Atual", atuais.sort((a, b) => a.data - b.data).map(e => e.label), "bg-yellow-100");
+  renderSticker("Semana Seguinte", proximos.sort((a, b) => a.data - b.data).map(e => e.label), "bg-green-100");
 }
 
-function renderSticker(titulo, itens, cor) {
-  const box = document.createElement("div");
-  box.className = `p-4 rounded shadow ${cor}`;
-  box.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` +
-    itens.sort((a, b) => a.data - b.data).map(e => `<div class='text-sm mb-1'>${e.label}</div>`).join("");
-  document.getElementById("stickers").appendChild(box);
+function renderSticker(titulo, lista, cor) {
+  const div = document.createElement("div");
+  div.className = `p-4 rounded shadow ${cor}`;
+  div.innerHTML = `<h3 class='font-bold mb-2'>${titulo}</h3>` + lista.map(l => `<div class='text-sm mb-1'>${l}</div>`).join("");
+  document.getElementById("stickers").appendChild(div);
 }
 
 function atualizarGantt() {
   const canvas = document.getElementById("ganttChart");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  if (window.ganttChart?.destroy) window.ganttChart.destroy();
+  if (window.ganttChart && typeof window.ganttChart.destroy === "function") window.ganttChart.destroy();
 
   const hoje = new Date();
   let corIndex = 0;
@@ -110,26 +128,26 @@ function atualizarGantt() {
   const datasets = [];
 
   const sorted = Object.entries(eventosMap).sort((a, b) => new Date(a[1].data) - new Date(b[1].data));
-
   for (const [_, cultivo] of sorted) {
     const base = new Date(cultivo.data);
     for (const ev of cultivo.eventos) {
-      const ajuste = parseInt(ev.ajuste) || 0;
       const dias = Math.max(1, parseInt(ev.dias) || 0);
+      const ajuste = parseInt(ev.ajuste) || 0;
+      const inicioEv = new Date(base);
+      inicioEv.setDate(inicioEv.getDate() + ajuste);
+      const fimEv = new Date(inicioEv);
+      fimEv.setDate(fimEv.getDate() + dias);
 
-      const inicio = new Date(base);
-      inicio.setDate(inicio.getDate() + ajuste);
-      const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + dias);
-
-      if (!mostrarPassados && fim < hoje) continue;
+      if (!mostrarPassados && fimEv < hoje) continue;
 
       datasets.push({
         label: `${cultivo.titulo} - ${ev.evento}`,
         backgroundColor: cores[corIndex % cores.length],
+        borderRadius: 4,
         data: [{
-          x: [inicio, fim],
-          y: cultivo.titulo
+          x: inicioEv,
+          x2: fimEv,
+          y: `${cultivo.titulo} - ${ev.evento}`
         }]
       });
     }
@@ -141,14 +159,24 @@ function atualizarGantt() {
   window.ganttChart = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: [...new Set(sorted.map(([_, c]) => c.titulo))],
       datasets
     },
     options: {
+      parsing: false,
       indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const data = ctx.raw;
+              return `${ctx.dataset.label}: ${new Date(data.x).toLocaleDateString()} → ${new Date(data.x2).toLocaleDateString()}`;
+            }
+          }
+        }
+      },
       scales: {
         x: {
           type: "time",
