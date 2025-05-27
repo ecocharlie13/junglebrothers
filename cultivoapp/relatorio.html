@@ -26,25 +26,23 @@
   </header>
 
   <!-- Conteúdo -->
-  <main class="p-6 max-w-6xl mx-auto">
-    <h1 class="text-2xl font-bold text-gray-800 mb-4">Eventos por Semana</h1>
-    <section id="stickers" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-      <div id="sticker-passada" class="bg-blue-100 border-l-4 border-blue-500 p-4 rounded shadow">
+  <main class="p-6 max-w-6xl mx-auto space-y-6">
+    <h1 class="text-2xl font-bold text-gray-800">Eventos por Semana</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="quadros">
+      <div id="quadro-passada" class="bg-blue-100 border-l-4 border-blue-500 p-4 rounded shadow">
         <h2 class="text-blue-800 font-bold text-lg">Semana Passada</h2>
-        <p class="text-sm text-gray-600" id="data-passada">(?? - ??)</p>
-        <ul class="mt-2 text-sm text-gray-800" id="lista-passada"></ul>
+        <ul class="mt-2 text-sm text-gray-800 space-y-1" id="lista-passada"></ul>
       </div>
-      <div id="sticker-atual" class="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded shadow">
+      <div id="quadro-atual" class="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded shadow">
         <h2 class="text-yellow-800 font-bold text-lg">Semana Atual</h2>
-        <p class="text-sm text-gray-600" id="data-atual">(?? - ??)</p>
-        <ul class="mt-2 text-sm text-gray-800" id="lista-atual"></ul>
+        <ul class="mt-2 text-sm text-gray-800 space-y-1" id="lista-atual"></ul>
       </div>
-      <div id="sticker-seguinte" class="bg-green-100 border-l-4 border-green-500 p-4 rounded shadow">
+      <div id="quadro-seguinte" class="bg-green-100 border-l-4 border-green-500 p-4 rounded shadow">
         <h2 class="text-green-800 font-bold text-lg">Semana Seguinte</h2>
-        <p class="text-sm text-gray-600" id="data-seguinte">(?? - ??)</p>
-        <ul class="mt-2 text-sm text-gray-800" id="lista-seguinte"></ul>
+        <ul class="mt-2 text-sm text-gray-800 space-y-1" id="lista-seguinte"></ul>
       </div>
-    </section>
+    </div>
   </main>
 
   <!-- Scripts -->
