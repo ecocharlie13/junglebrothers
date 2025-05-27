@@ -49,7 +49,7 @@ function atualizarStickers() {
 
   const hoje = new Date();
   const domingoAtual = new Date(hoje);
-  domingoAtual.setDate(hoje.getDate() - hoje.getDay());
+  domingoAtual.setDate(hoje.getDate() - hoje.getDay()); // volta pro domingo
 
   const semanas = [
     { label: "Semana Passada", cor: "bg-blue-600", inicio: -7 },
@@ -57,12 +57,32 @@ function atualizarStickers() {
     { label: "Semana Seguinte", cor: "bg-green-600", inicio: 7 }
   ];
 
+  const eventos = Object.values(eventosMap)
+    .flatMap(c => c.eventos.map(e => {
+      const base = new Date(c.data);
+      const inicio = new Date(base);
+      inicio.setDate(inicio.getDate() + parseInt(e.ajuste || 0));
+      const fim = new Date(inicio);
+      fim.setDate(fim.getDate() + parseInt(e.dias || 0));
+      return { ...e, cultivo: c.titulo, inicio, fim };
+    }));
+
   semanas.forEach(({ label, cor, inicio }) => {
-    const data = new Date(domingoAtual);
-    data.setDate(data.getDate() + inicio);
-    const texto = `${label} - ${data.toLocaleDateString("pt-BR")}`;
+    const ini = new Date(domingoAtual);
+    ini.setDate(ini.getDate() + inicio);
+    const fim = new Date(ini);
+    fim.setDate(fim.getDate() + 6);
+
+    const eventosSemana = eventos.filter(ev => {
+      return (
+        ev.inicio <= fim &&
+        ev.fim >= ini
+      );
+    });
+
+    const texto = `${label} - ${ini.toLocaleDateString("pt-BR")} (${eventosSemana.length} eventos)`;
     const sticker = document.createElement("div");
-    sticker.className = `px-4 py-2 rounded ${cor} shadow`;
+    sticker.className = `px-4 py-2 rounded ${cor} shadow text-white font-semibold text-sm`;
     sticker.textContent = texto;
     stickers.appendChild(sticker);
   });
