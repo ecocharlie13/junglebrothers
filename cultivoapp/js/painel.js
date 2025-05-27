@@ -1,10 +1,10 @@
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
-import { verificarLogin, sair } from "./auth.js";
+import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const semanaInicio = (date) => {
   const d = new Date(date);
-  d.setDate(d.getDate() - d.getDay()); // domingo
+  d.setDate(d.getDate() - d.getDay());
   return d;
 };
 
@@ -114,7 +114,6 @@ verificarLogin(async (user) => {
       custom_popup_html: null,
     });
 
-    // linha de hoje
     const svg = document.querySelector("#gantt svg");
     const hojeX = gantt.getXCoordinateForDate(new Date().toISOString().split("T")[0]);
     const height = svg.getBoundingClientRect().height;
