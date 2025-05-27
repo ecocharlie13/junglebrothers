@@ -1,36 +1,32 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Relatório Semanal</title>
-  <link rel="stylesheet" href="/css/estilo.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CultivoApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.0/frappe-gantt.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.0/frappe-gantt.min.css">
 </head>
-<body class="bg-gray-100 text-gray-900">
-  <nav class="flex items-center justify-between p-4 bg-white shadow">
-    <div class="flex items-center space-x-2">
-      <img src="/cultivoapp/assets/logo-junglebrothers.png" alt="Logo" class="h-10" />
-      <span class="text-xl font-bold">CultivoApp</span>
-    </div>
+<body class="bg-gray-100 font-sans">
+  <nav class="bg-green-600 text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">CultivoApp</h1>
     <div class="flex items-center space-x-4">
+      <img id="user-pic" class="w-10 h-10 rounded-full" src="" alt="User Profile">
       <span id="user-email" class="text-sm"></span>
-      <img id="user-pic" class="h-8 w-8 rounded-full" />
-      <button id="logout" class="text-red-500 font-semibold">Sair</button>
+      <button id="logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Sair</button>
     </div>
   </nav>
 
-  <main class="p-4">
-    <h1 class="text-2xl font-bold mb-1">Relatório Semanal</h1>
-    <h2 id="subtitulo" class="text-lg text-gray-600 mb-4">...</h2>
+  <div class="container mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-6 text-center">Relatório Semanal</h2>
 
-    <div id="stickers" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <!-- Stickers gerados via JS -->
-    </div>
+    <div id="subtitulo" class="text-lg text-gray-700 mb-4 text-center"></div>
 
-    <div id="gantt" class="bg-white p-4 rounded shadow overflow-x-auto">
-      <!-- Gantt será desenhado aqui -->
-    </div>
-  </main>
+    <div id="stickers" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"></div>
+
+    <div id="gantt" class="bg-white p-4 rounded shadow"></div>
+  </div>
 
   <script type="module" src="/cultivoapp/js/painel.js"></script>
 </body>
