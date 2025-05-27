@@ -3,45 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CultivoApp – Painel</title>
+  <title>Painel – CultivoApp</title>
   <script type="module" src="/cultivoapp/js/painel.js" defer></script>
-  <script type="module" src="/cultivoapp/js/firebase-init.js"></script>
-  <link href="https://cdn.tailwindcss.com" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen">
-  <header class="flex items-center justify-between p-4 bg-white shadow">
+<body class="bg-gray-100 min-h-screen font-sans text-gray-900">
+
+  <!-- Header -->
+  <header class="bg-white shadow p-4 flex justify-between items-center">
     <div class="flex items-center space-x-4">
       <img src="/cultivoapp/assets/logo-junglebrothers.png" alt="Logo" class="h-10" />
-      <nav class="space-x-4 font-semibold text-sm text-gray-700">
+      <nav class="flex space-x-4 text-sm font-semibold text-purple-600">
         <a href="blueprints.html" class="hover:underline">Blueprints</a>
         <a href="cultivos.html" class="hover:underline">Cultivos</a>
         <a href="eventos.html" class="hover:underline">Eventos</a>
-        <a href="painel.html" class="font-bold text-black">Painel</a>
+        <a href="painel.html" class="text-black">Painel</a>
       </nav>
     </div>
-    <div class="flex items-center space-x-3">
-      <span id="user-email" class="text-sm font-medium text-gray-700"></span>
-      <img id="user-pic" class="h-8 w-8 rounded-full border" alt="Foto de perfil" />
-      <button id="logout" class="text-white bg-red-600 hover:bg-red-700 text-xs px-3 py-1 rounded">Sair</button>
+    <div class="flex items-center space-x-2">
+      <span id="user-email" class="text-sm"></span>
+      <img id="user-pic" class="w-8 h-8 rounded-full border" />
+      <button id="logout" class="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700">Sair</button>
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-2 text-center">Relatório de Cultivo – <span id="data-hoje"></span></h1>
+  <!-- Main -->
+  <main class="max-w-6xl mx-auto p-6">
+    <h1 class="text-2xl font-bold text-center mb-2">Relatório de Cultivo – <span id="data-hoje"></span></h1>
     <p class="text-center text-gray-600 mb-8">Baseado nos cultivos selecionados</p>
 
+    <!-- Stickers -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div id="semana-passada" class="bg-blue-100 rounded-xl p-4 shadow">
-        <h2 class="text-blue-800 font-semibold text-lg mb-2">🟦 Semana Passada</h2>
-        <!-- Conteúdo dinâmico -->
+      <div id="semana-passada" class="bg-blue-100 p-4 rounded-xl shadow">
+        <h2 class="text-blue-900 font-semibold mb-2">🟦 Semana Passada</h2>
       </div>
-      <div id="semana-atual" class="bg-yellow-100 rounded-xl p-4 shadow">
-        <h2 class="text-yellow-800 font-semibold text-lg mb-2">🟨 Semana Atual</h2>
-        <!-- Conteúdo dinâmico -->
+      <div id="semana-atual" class="bg-yellow-100 p-4 rounded-xl shadow">
+        <h2 class="text-yellow-900 font-semibold mb-2">🟨 Semana Atual</h2>
       </div>
-      <div id="semana-seguinte" class="bg-green-100 rounded-xl p-4 shadow">
-        <h2 class="text-green-800 font-semibold text-lg mb-2">🟩 Semana Seguinte</h2>
-        <!-- Conteúdo dinâmico -->
+      <div id="semana-seguinte" class="bg-green-100 p-4 rounded-xl shadow">
+        <h2 class="text-green-900 font-semibold mb-2">🟩 Semana Seguinte</h2>
       </div>
     </div>
   </main>
