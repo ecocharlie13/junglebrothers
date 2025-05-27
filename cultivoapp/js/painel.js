@@ -15,73 +15,18 @@ async function iniciarPainel() {
   const containerAtual = document.getElementById("semana-atual");
   const containerSeguinte = document.getElementById("semana-seguinte");
 
-  if (!emailSpan || !picImg || !logoutBtn || !dataHoje || !containerPassada || !containerAtual || !containerSeguinte) {
-    console.error("❌ Elementos do DOM não encontrados.");
-    return;
-  }
-
-  const eventosPassada = [];
-  const eventosAtual = [];
-  const eventosSeguinte = [];
-  const eventosParaGantt = [];
-
-  verificarLogin(async (user) => {
-    emailSpan.textContent = user.email;
-    picImg.src = user.photoURL;
-    logoutBtn.addEventListener("click", sair);
-    const hoje = new Date();
-    dataHoje.textContent = hoje.toLocaleDateString("pt-BR");
-
-    const inicioSemana = getInicioDaSemana(hoje);
-    const fimSemana = new Date(inicioSemana); fimSemana.setDate(inicioSemana.getDate() + 6);
-    const inicioSemanaPassada = new Date(inicioSemana); inicioSemanaPassada.setDate(inicioSemana.getDate() - 7);
-    const fimSemanaPassada = new Date(inicioSemana); fimSemanaPassada.setDate(inicioSemana.getDate() - 1);
-    const inicioSemanaSeguinte = new Date(inicioSemana); inicioSemanaSeguinte.setDate(inicioSemana.getDate() + 7);
-    const fimSemanaSeguinte = new Date(inicioSemana); fimSemanaSeguinte.setDate(inicioSemana.getDate() + 13);
-
-    const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
-
-    for (const id of selecionados) {
-      const snap = await getDoc(doc(db, "cultivos", id));
-      if (snap.exists()) {
-        const cultivo = snap.data();
-        const nomeCultivo = cultivo.titulo || id;
-        const eventos = cultivo.eventos || [];
-
-        for (const evt of eventos) {
-          const inicio = new Date(evt.data_inicio);
-          const fim = new Date(evt.data_fim);
-          const obj = {
-            cultivo: nomeCultivo,
-            nome: evt.nome,
-            data_inicio: inicio,
-            data_fim: fim
-          };
-
-          eventosParaGantt.push(obj);
-
-          if (fim >= inicioSemanaPassada && fim <= fimSemanaPassada) eventosPassada.push(obj);
-          else if (fim >= inicioSemana && fim <= fimSemana) eventosAtual.push(obj);
-          else if (fim >= inicioSemanaSeguinte && fim <= fimSemanaSeguinte) eventosSeguinte.push(obj);
-        }
-      }
-    }
-
-    preencherSticker(containerPassada, eventosPassada);
-    preencherSticker(containerAtual, eventosAtual);
-    preencherSticker(containerSeguinte, eventosSeguinte);
-    desenharGantt(eventosParaGantt);
-  });
-
   function getInicioDaSemana(date) {
     const dia = new Date(date);
-    const diff = dia.getDay();
+    const diff = dia.getDay(); // domingo = 0
     dia.setDate(dia.getDate() - diff);
     return new Date(dia.getFullYear(), dia.getMonth(), dia.getDate());
   }
 
   function formatarDataBR(data) {
-    return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+    return new Date(data).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "short"
+    });
   }
 
   function criarGrupoSticker(cultivo, eventos) {
@@ -101,62 +46,102 @@ async function iniciarPainel() {
     return grupo;
   }
 
+  function agruparPorCultivo(eventos) {
+    const grupos = {};
+    for (const evt of eventos) {
+      if (!grupos[evt.cultivo]) grupos[evt.cultivo] = [];
+      grupos[evt.cultivo].push(evt);
+    }
+    return grupos;
+  }
+
   function preencherSticker(container, eventos) {
     container.innerHTML = "";
-    const agrupado = {};
-    for (const evt of eventos) {
-      if (!agrupado[evt.cultivo]) agrupado[evt.cultivo] = [];
-      agrupado[evt.cultivo].push(evt);
-    }
-    for (const cultivo in agrupado) {
-      const grupo = criarGrupoSticker(cultivo, agrupado[cultivo]);
+    const grupos = agruparPorCultivo(eventos);
+    for (const cultivo in grupos) {
+      const grupo = criarGrupoSticker(cultivo, grupos[cultivo]);
       container.appendChild(grupo);
     }
   }
 
-  function desenharGantt(eventos) {
-    const ctx = document.getElementById("gantt-canvas").getContext("2d");
+  function gerarTarefasParaGantt(eventosMap) {
+    const tarefas = [];
 
-    const cultivos = [...new Set(eventos.map(e => e.cultivo))];
-    const cores = gerarCores(cultivos.length);
+    Object.entries(eventosMap).forEach(([cultivoId, cultivoData]) => {
+      const nomeCultivo = cultivoData.titulo || cultivoId;
+      const eventos = cultivoData.eventos || [];
 
-    const datasets = cultivos.map((cultivo, i) => {
-      const eventosDoCultivo = eventos.filter(e => e.cultivo === cultivo);
-      return {
-        label: cultivo,
-        data: eventosDoCultivo.map(e => ({
-          x: [e.data_inicio, e.data_fim],
-          y: e.nome
-        })),
-        borderColor: cores[i],
-        backgroundColor: cores[i],
-        borderWidth: 8,
-        parsing: false
-      };
+      eventos.forEach((evt, index) => {
+        if (!evt.data_inicio || !evt.data_fim) return;
+
+        tarefas.push({
+          id: `${cultivoId}-${index}`,
+          name: evt.nome,
+          start: evt.data_inicio,
+          end: evt.data_fim
+        });
+      });
     });
 
-    new Chart(ctx, {
-      type: "bar",
-      data: { datasets },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        scales: {
-          x: { type: "time", time: { unit: "day" } },
-          y: { stacked: false }
-        },
-        plugins: {
-          legend: { position: "bottom" },
-          tooltip: { callbacks: {
-            label: ctx => `${ctx.dataset.label} – ${ctx.raw.y}`
-          }}
-        }
-      }
-    });
+    return tarefas;
   }
 
-  function gerarCores(n) {
-    const base = ["#f87171", "#60a5fa", "#34d399", "#fbbf24", "#a78bfa", "#fb923c", "#10b981"];
-    return Array.from({ length: n }, (_, i) => base[i % base.length]);
-  }
+  // ---------- INÍCIO DO FLUXO ----------
+  const eventosMap = {};
+  const eventosPassada = [];
+  const eventosAtual = [];
+  const eventosSeguinte = [];
+
+  verificarLogin(async (user) => {
+    emailSpan.textContent = user.email;
+    picImg.src = user.photoURL;
+    logoutBtn.addEventListener("click", sair);
+
+    const hoje = new Date();
+    dataHoje.textContent = hoje.toLocaleDateString("pt-BR");
+
+    const inicioSemana = getInicioDaSemana(hoje);
+    const fimSemana = new Date(inicioSemana); fimSemana.setDate(inicioSemana.getDate() + 6);
+    const inicioSemanaPassada = new Date(inicioSemana); inicioSemanaPassada.setDate(inicioSemana.getDate() - 7);
+    const fimSemanaPassada = new Date(inicioSemana); fimSemanaPassada.setDate(inicioSemana.getDate() - 1);
+    const inicioSemanaSeguinte = new Date(inicioSemana); inicioSemanaSeguinte.setDate(inicioSemana.getDate() + 7);
+    const fimSemanaSeguinte = new Date(inicioSemana); fimSemanaSeguinte.setDate(inicioSemana.getDate() + 13);
+
+    const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+
+    for (const id of selecionados) {
+      const snap = await getDoc(doc(db, "cultivos", id));
+      if (!snap.exists()) continue;
+
+      const cultivo = snap.data();
+      eventosMap[id] = cultivo;
+
+      const nomeCultivo = cultivo.titulo || id;
+      const eventos = cultivo.eventos || [];
+
+      eventos.forEach(evt => {
+        if (!evt.data_inicio || !evt.data_fim) return;
+
+        const fim = new Date(evt.data_fim);
+        const obj = {
+          cultivo: nomeCultivo,
+          nome: evt.nome,
+          data_fim: fim
+        };
+
+        if (fim >= inicioSemanaPassada && fim <= fimSemanaPassada) eventosPassada.push(obj);
+        else if (fim >= inicioSemana && fim <= fimSemana) eventosAtual.push(obj);
+        else if (fim >= inicioSemanaSeguinte && fim <= fimSemanaSeguinte) eventosSeguinte.push(obj);
+      });
+    }
+
+    preencherSticker(containerPassada, eventosPassada);
+    preencherSticker(containerAtual, eventosAtual);
+    preencherSticker(containerSeguinte, eventosSeguinte);
+
+    const tarefas = gerarTarefasParaGantt(eventosMap);
+    new Gantt("#gantt", tarefas);
+
+    console.log("✅ Stickers e Gantt renderizados com sucesso.");
+  });
 }
