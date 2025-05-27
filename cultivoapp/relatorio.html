@@ -1,4 +1,3 @@
-<!-- /cultivoapp/relatorio.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -28,7 +27,6 @@
 
   <!-- Conteúdo -->
   <main class="p-6 max-w-6xl mx-auto">
-    <!-- Stickers Semanais -->
     <section id="stickers" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
       <div id="sticker-passada" class="bg-blue-100 border-l-4 border-blue-500 p-4 rounded shadow">
         <h2 class="text-blue-800 font-bold text-lg">Semana Passada</h2>
@@ -48,70 +46,6 @@
     </section>
   </main>
 
-  <script type="module">
-    import { auth, db } from "/cultivoapp/js/firebase-init.js";
-    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
-    import {
-      collection, doc, getDoc, getDocs, query, where
-    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-    const emailSpan = document.getElementById("user-email");
-    const picImg = document.getElementById("user-pic");
-    const logoutBtn = document.getElementById("logout");
-
-    verificarLogin(async (user) => {
-      emailSpan.textContent = user.email;
-      picImg.src = user.photoURL;
-      logoutBtn.addEventListener("click", sair);
-
-      const hoje = new Date();
-      const diaDaSemana = hoje.getDay();
-      const diffInicio = hoje.getDate() - diaDaSemana;
-
-      const inicioSemana = new Date(hoje.setDate(diffInicio));
-      const fimSemana = new Date(hoje.setDate(inicioSemana.getDate() + 6));
-      const passadaInicio = new Date(inicioSemana);
-      passadaInicio.setDate(inicioSemana.getDate() - 7);
-      const passadaFim = new Date(inicioSemana);
-      passadaFim.setDate(inicioSemana.getDate() - 1);
-      const seguinteInicio = new Date(fimSemana);
-      seguinteInicio.setDate(fimSemana.getDate() + 1);
-      const seguinteFim = new Date(fimSemana);
-      seguinteFim.setDate(fimSemana.getDate() + 7);
-
-      const formatar = (d) => d.toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' });
-      document.getElementById("data-passada").textContent = `(${formatar(passadaInicio)} - ${formatar(passadaFim)})`;
-      document.getElementById("data-atual").textContent = `(${formatar(inicioSemana)} - ${formatar(fimSemana)})`;
-      document.getElementById("data-seguinte").textContent = `(${formatar(seguinteInicio)} - ${formatar(seguinteFim)})`;
-
-      const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
-      for (const id of selecionados) {
-        const snap = await getDoc(doc(db, "cultivos", id));
-        if (!snap.exists()) continue;
-        const cultivo = snap.data();
-        const inicio = new Date(cultivo.data);
-
-        cultivo.eventos.forEach((evento, idx) => {
-          const dataInicio = new Date(inicio);
-          dataInicio.setDate(dataInicio.getDate() + (evento.ajuste || 0));
-          const dataFim = new Date(dataInicio);
-          dataFim.setDate(dataFim.getDate() + evento.dias);
-
-          const item = document.createElement("li");
-          item.textContent = `- ${cultivo.titulo}\n-- ${evento.nome} / ${formatar(dataFim)}`;
-
-          if (dataFim < passadaInicio || dataInicio > seguinteFim) return;
-
-          if (dataFim <= passadaFim) {
-            document.getElementById("lista-passada").appendChild(item);
-          } else if (dataInicio >= inicioSemana && dataFim <= fimSemana) {
-            document.getElementById("lista-atual").appendChild(item);
-          } else if (dataInicio >= seguinteInicio && dataFim <= seguinteFim) {
-            document.getElementById("lista-seguinte").appendChild(item);
-          }
-        });
-      }
-    });
-  </script>
+  <script type="module" src="/cultivoapp/js/relatorio.js"></script>
 </body>
 </html>
