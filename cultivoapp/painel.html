@@ -3,33 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Relatório Semanal</title>
-  <link rel="stylesheet" href="/css/estilo.css" />
+  <title>Painel - CultivoApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-gray-900">
-  <nav class="flex items-center justify-between p-4 bg-white shadow">
-    <div class="flex items-center space-x-2">
-      <img src="/cultivoapp/assets/logo-junglebrothers.png" alt="Logo" class="h-10" />
-      <span class="text-xl font-bold">CultivoApp</span>
-    </div>
+<body class="bg-gray-100 min-h-screen">
+  <!-- Navbar -->
+  <header class="bg-white shadow px-6 py-4 flex justify-between items-center">
     <div class="flex items-center space-x-4">
-      <span id="user-email" class="text-sm"></span>
-      <img id="user-pic" class="h-8 w-8 rounded-full" />
-      <button id="logout" class="text-red-500 font-semibold">Sair</button>
+      <img src="/cultivoapp/assets/JungleBrothersLogo.png" alt="Logo" class="h-10" />
+      <nav class="space-x-4 text-purple-700 font-semibold">
+        <a href="/cultivoapp/blueprints.html">Blueprints</a>
+        <a href="/cultivoapp/cultivos.html">Cultivos</a>
+        <a href="/cultivoapp/eventos.html">Eventos</a>
+        <a href="/cultivoapp/painel.html" class="underline">Painel</a>
+      </nav>
     </div>
-  </nav>
-
-  <main class="p-4">
-    <h1 class="text-2xl font-bold mb-1">Relatório Semanal</h1>
-    <h2 id="subtitulo" class="text-lg text-gray-600 mb-4">...</h2>
-
-    <div id="stickers" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <!-- Stickers via JS -->
+    <div class="flex items-center gap-4">
+      <span id="user-email" class="text-sm text-gray-600">...</span>
+      <img id="user-pic" class="w-8 h-8 rounded-full" alt="Perfil" />
+      <button id="logout" class="bg-red-500 text-white px-4 py-1 rounded">Sair</button>
     </div>
+  </header>
 
-    <div id="gantt" class="bg-white p-4 rounded shadow overflow-x-auto">
-      <!-- Gantt será desenhado aqui -->
-    </div>
+  <main class="p-6 max-w-6xl mx-auto space-y-6">
+    <section>
+      <h1 class="text-2xl font-bold">Relatório Semanal</h1>
+      <h2 id="subtitulo" class="text-gray-600 mt-1 text-lg">...</h2>
+    </section>
+
+    <!-- Stickers -->
+    <section id="stickers" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Gerado via JS -->
+    </section>
+
+    <!-- Gantt -->
+    <section class="bg-white p-4 rounded shadow overflow-x-auto">
+      <div id="gantt"></div>
+    </section>
   </main>
 
   <script type="module" src="/cultivoapp/js/painel.js"></script>
