@@ -1,11 +1,6 @@
-import { auth } from "./firebase-init.js";
+import { auth } from "/cultivoapp/js/firebase-init.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-/**
- * Verifica se o usuário está autenticado.
- * Se sim, executa o callback. Senão, redireciona para o login.
- * @param {Function} callback - Função a ser executada após verificação
- */
 export function verificarLogin(callback) {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
@@ -16,9 +11,6 @@ export function verificarLogin(callback) {
   });
 }
 
-/**
- * Função para logout global
- */
 export async function sair() {
   await signOut(auth);
   window.location.href = "/login.html";
