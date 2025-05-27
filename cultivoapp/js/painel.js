@@ -2,24 +2,20 @@ import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-// Utilitários
+// Utilidades
 const formatarData = (iso) => {
-  const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
   const d = new Date(iso);
-  return `${d.getDate()} ${meses[d.getMonth()]}`;
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 };
-
 const hoje = new Date();
 const domingo = new Date(hoje);
 domingo.setDate(domingo.getDate() - domingo.getDay());
 const sabado = new Date(domingo);
 sabado.setDate(sabado.getDate() + 6);
-
 const anteriorIni = new Date(domingo);
 anteriorIni.setDate(anteriorIni.getDate() - 7);
 const anteriorFim = new Date(domingo);
 anteriorFim.setDate(anteriorFim.getDate() - 1);
-
 const seguinteIni = new Date(sabado);
 seguinteIni.setDate(seguinteIni.getDate() + 1);
 const seguinteFim = new Date(sabado);
@@ -30,40 +26,47 @@ verificarLogin(async (user) => {
   document.getElementById("user-email").textContent = user.email;
   document.getElementById("user-pic").src = user.photoURL;
   document.getElementById("logout").addEventListener("click", sair);
-
-  document.getElementById("subtitulo").textContent = `${formatarData(domingo.toISOString())} - ${formatarData(sabado.toISOString())}`;
+  document.getElementById("subtitulo").textContent = `${formatarData(domingo)} - ${formatarData(sabado)}`;
 
   const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
   const eventosSemana = { passada: [], atual: [], seguinte: [] };
   const tarefas = [];
 
-  for (const id of selecionados) {
-    const snap = await getDoc(doc(db, "cultivos", id));
+  for (const cultivoId of selecionados) {
+    const snap = await getDoc(doc(db, "cultivos", cultivoId));
     if (!snap.exists()) continue;
 
     const cultivo = snap.data();
+    const dataInicial = new Date(cultivo.data);
+    const eventos = cultivo.eventos || [];
+    let dataBase = new Date(dataInicial);
     const cor = `hsl(${Math.random() * 360}, 70%, 60%)`;
 
-    cultivo.eventos?.forEach((evento, index) => {
-      const ini = new Date(evento.data_inicio);
-      const fim = new Date(evento.data_fim);
-      const nome = evento.nome || `Evento ${index + 1}`;
+    eventos.forEach((ev, i) => {
+      const ajuste = parseInt(ev.ajuste ?? 0);
+      const dias = parseInt(ev.dias ?? 1);
+      const nome = ev.nome || `Evento ${i + 1}`;
 
-      // Agrupamento visual
-      if (fim >= anteriorIni && fim <= anteriorFim) eventosSemana.passada.push({ nome, fim });
-      else if (fim >= domingo && fim <= sabado) eventosSemana.atual.push({ nome, fim });
-      else if (fim >= seguinteIni && fim <= seguinteFim) eventosSemana.seguinte.push({ nome, fim });
+      const dataInicio = new Date(dataBase);
+      const dataFim = new Date(dataInicio);
+      dataFim.setDate(dataFim.getDate() + dias);
 
-      // Gantt
       tarefas.push({
-        id: `${id}-${index + 1}`,
+        id: `${cultivoId}-${i + 1}`,
         name: nome,
-        start: evento.data_inicio,
-        end: evento.data_fim,
+        start: dataInicio.toISOString().slice(0, 10),
+        end: dataFim.toISOString().slice(0, 10),
         progress: 100,
-        custom_class: "",
-        color: cor,
+        color: cor
       });
+
+      // Classificação semanal
+      if (dataFim >= anteriorIni && dataFim <= anteriorFim) eventosSemana.passada.push({ nome, fim: new Date(dataFim) });
+      else if (dataFim >= domingo && dataFim <= sabado) eventosSemana.atual.push({ nome, fim: new Date(dataFim) });
+      else if (dataFim >= seguinteIni && dataFim <= seguinteFim) eventosSemana.seguinte.push({ nome, fim: new Date(dataFim) });
+
+      dataBase = new Date(dataFim);
+      dataBase.setDate(dataBase.getDate() + ajuste);
     });
   }
 
@@ -102,12 +105,9 @@ verificarLogin(async (user) => {
 
   // Gantt
   if (window.Gantt) {
-    const gantt = new Gantt("#gantt", tarefas, {
-      view_mode: "Day",
-      date_format: "YYYY-MM-DD",
-    });
+    new Gantt("#gantt", tarefas);
     console.log("✅ Gantt renderizado");
   } else {
-    console.warn("⚠️ Gantt.js não carregado");
+    console.warn("⚠️ Gantt.js não disponível");
   }
 });
