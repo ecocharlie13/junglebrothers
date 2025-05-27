@@ -2,79 +2,77 @@ import { db } from "/cultivoapp/js/firebase-init.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 function formatarData(data) {
-  return data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
-function obterIntervaloSemana(offset = 0) {
+function obterSemana(offset = 0) {
   const hoje = new Date();
-  const domingo = new Date(hoje.setDate(hoje.getDate() - hoje.getDay() + (offset * 7)));
+  const domingo = new Date(hoje.setDate(hoje.getDate() - hoje.getDay() + offset * 7));
   const sabado = new Date(domingo);
   sabado.setDate(domingo.getDate() + 6);
   return { inicio: domingo, fim: sabado };
 }
 
-function renderizarSticker(stickerId, dataInicio, dataFim, eventos) {
-  document.getElementById(`data-${stickerId}`).textContent = `(${formatarData(dataInicio)} - ${formatarData(dataFim)})`;
-  const lista = document.getElementById(`lista-${stickerId}`);
+function renderizarSticker(id, inicio, fim, eventos) {
+  document.getElementById(`data-${id}`).textContent = `(${formatarData(inicio)} - ${formatarData(fim)})`;
+  const ul = document.getElementById(`lista-${id}`);
+  ul.innerHTML = "";
   eventos.forEach(({ titulo, nome, data }) => {
     const li = document.createElement("li");
-    li.textContent = `– ${titulo}: ${nome} / ${formatarData(new Date(data))}`;
-    lista.appendChild(li);
+    li.textContent = `– ${titulo}: ${nome} / ${formatarData(data)}`;
+    ul.appendChild(li);
   });
 }
 
 async function carregarRelatorio() {
-  const ids = JSON.parse(localStorage.getItem("cultivosSelecionados") || "[]");
-  if (!ids.length) return;
+  const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados") || "[]");
+  if (!selecionados.length) return;
 
-  const semanaPassada = obterIntervaloSemana(-1);
-  const semanaAtual = obterIntervaloSemana(0);
-  const semanaSeguinte = obterIntervaloSemana(1);
+  const semana = {
+    passada: obterSemana(-1),
+    atual: obterSemana(0),
+    seguinte: obterSemana(1),
+  };
 
-  const eventosPorSemana = {
+  const eventos = {
     passada: [],
     atual: [],
     seguinte: [],
   };
 
-  for (const id of ids) {
+  for (const id of selecionados) {
     const snap = await getDoc(doc(db, "cultivos", id));
     if (!snap.exists()) continue;
 
     const cultivo = snap.data();
-    const { titulo, data: dataInicial, eventos } = cultivo;
-    let dataBase = new Date(dataInicial);
+    const dataBase = new Date(cultivo.data);
+    let cursor = new Date(dataBase);
 
-    for (const ev of eventos) {
-      const inicio = new Date(dataBase);
-      inicio.setDate(inicio.getDate() + (ev.ajuste || 0));
+    for (const ev of cultivo.eventos || []) {
+      const ajuste = ev.ajuste || 0;
+      const dias = ev.dias || 0;
+      const nome = ev.nome || "Evento";
+
+      const inicio = new Date(cursor);
+      inicio.setDate(inicio.getDate() + ajuste);
+
       const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + (ev.dias || 0));
+      fim.setDate(fim.getDate() + dias);
 
-      const target = [semanaPassada, semanaAtual, semanaSeguinte].find(({ inicio, fim }) =>
-        fim >= inicio && inicio <= fim
-      );
-
-      const semana = 
-        fim >= semanaPassada.inicio && fim <= semanaPassada.fim ? "passada" :
-        fim >= semanaAtual.inicio && fim <= semanaAtual.fim ? "atual" :
-        fim >= semanaSeguinte.inicio && fim <= semanaSeguinte.fim ? "seguinte" : null;
-
-      if (semana) {
-                eventosPorSemana[semana].push({
-          titulo,
-          nome: ev.nome || "Evento sem nome",
-          data: fim
-        });
+      for (const chave in semana) {
+        const s = semana[chave];
+        if (fim >= s.inicio && fim <= s.fim) {
+          eventos[chave].push({ titulo: cultivo.titulo, nome, data: fim });
+        }
       }
 
-      dataBase = fim;
+      cursor = new Date(fim);
     }
   }
 
-  renderizarSticker("passada", semanaPassada.inicio, semanaPassada.fim, eventosPorSemana.passada);
-  renderizarSticker("atual", semanaAtual.inicio, semanaAtual.fim, eventosPorSemana.atual);
-  renderizarSticker("seguinte", semanaSeguinte.inicio, semanaSeguinte.fim, eventosPorSemana.seguinte);
+  for (const chave in semana) {
+    renderizarSticker(chave, semana[chave].inicio, semana[chave].fim, eventos[chave]);
+  }
 }
 
 carregarRelatorio();
