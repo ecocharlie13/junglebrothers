@@ -6,9 +6,13 @@ let eventosMap = {};
 let mostrarPassados = false;
 
 verificarLogin(async (user) => {
-  document.getElementById("user-email").textContent = user.email;
-  document.getElementById("user-pic").src = user.photoURL;
-  document.getElementById("logout").addEventListener("click", sair);
+  const emailSpan = document.getElementById("user-email");
+  const picImg = document.getElementById("user-pic");
+  const logoutBtn = document.getElementById("logout");
+
+  if (emailSpan) emailSpan.textContent = user.email;
+  if (picImg) picImg.src = user.photoURL;
+  if (logoutBtn) logoutBtn.addEventListener("click", sair);
 
   const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
   for (const id of selecionados) {
@@ -19,9 +23,12 @@ verificarLogin(async (user) => {
     }
   }
 
-  document.getElementById("data-hoje").textContent = new Date().toLocaleDateString("pt-BR", {
-    day: "2-digit", month: "short", year: "numeric"
-  });
+  const dataHoje = document.getElementById("data-hoje");
+  if (dataHoje) {
+    dataHoje.textContent = new Date().toLocaleDateString("pt-BR", {
+      day: "2-digit", month: "short", year: "numeric"
+    });
+  }
 
   renderizarDashboard();
 });
@@ -33,6 +40,8 @@ function renderizarDashboard() {
 
 function atualizarStickers() {
   const stickers = document.getElementById("stickers");
+  if (!stickers) return;
+
   stickers.innerHTML = "";
 
   const hoje = new Date();
@@ -58,6 +67,7 @@ function atualizarStickers() {
 
 function renderizarGantt() {
   const container = document.getElementById("gantt");
+  if (!container) return;
   container.innerHTML = "";
 
   const tarefas = [];
