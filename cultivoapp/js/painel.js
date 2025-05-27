@@ -50,6 +50,7 @@ async function iniciarPainel() {
 
         const inicio = new Date(evt.data_inicio);
         const fim = new Date(evt.data_fim);
+        if (isNaN(inicio) || isNaN(fim)) return;
 
         tarefas.push({
           id: `${id}-${i}`,
@@ -64,9 +65,13 @@ async function iniciarPainel() {
           data_fim: fim
         };
 
-        if (fim >= inicioSemanaPassada && fim <= fimSemanaPassada) eventosPassada.push(eventoSticker);
-        else if (fim >= inicioSemana && fim <= fimSemana) eventosAtual.push(eventoSticker);
-        else if (fim >= inicioSemanaSeguinte && fim <= fimSemanaSeguinte) eventosSeguinte.push(eventoSticker);
+        if (fim >= inicioSemanaPassada && fim <= fimSemanaPassada) {
+          eventosPassada.push(eventoSticker);
+        } else if (fim >= inicioSemana && fim <= fimSemana) {
+          eventosAtual.push(eventoSticker);
+        } else if (fim >= inicioSemanaSeguinte && fim <= fimSemanaSeguinte) {
+          eventosSeguinte.push(eventoSticker);
+        }
       });
     }
 
@@ -74,7 +79,23 @@ async function iniciarPainel() {
     preencherSticker(containerAtual, eventosAtual);
     preencherSticker(containerSeguinte, eventosSeguinte);
 
-    new Gantt("#gantt", tarefas);
+    // 🔍 Debug visual no console
+    console.table(tarefas);
+
+    // 🔒 Filtro final de tarefas válidas
+    const tarefasValidas = tarefas.filter(t =>
+      t.start instanceof Date && !isNaN(t.start) &&
+      t.end instanceof Date && !isNaN(t.end)
+    );
+
+    if (tarefasValidas.length === 0) {
+      document.querySelector("#gantt").innerHTML =
+        "<p class='text-sm text-gray-500 italic'>Nenhum evento com datas válidas para o gráfico.</p>";
+      return;
+    }
+
+    // ✅ Renderização segura
+    new Gantt("#gantt", tarefasValidas);
   });
 
   function getInicioDaSemana(date) {
