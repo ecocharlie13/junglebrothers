@@ -79,16 +79,28 @@ verificarLogin(async (user) => {
 
   const stickersDiv = document.getElementById("stickers");
   const blocos = [
-    { cor: "bg-blue-100 border-blue-400 text-blue-800", eventos: eventosPorSemana.anterior, titulo: "Semana Passada" },
-    { cor: "bg-yellow-100 border-yellow-400 text-yellow-800", eventos: eventosPorSemana.atual, titulo: "Semana Atual" },
-    { cor: "bg-green-100 border-green-400 text-green-800", eventos: eventosPorSemana.seguinte, titulo: "Semana Seguinte" },
+    {
+      cor: "bg-blue-100 border-l-4 border-blue-500 text-blue-800",
+      eventos: eventosPorSemana.anterior,
+      titulo: "Semana Passada"
+    },
+    {
+      cor: "bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800",
+      eventos: eventosPorSemana.atual,
+      titulo: "Semana Atual"
+    },
+    {
+      cor: "bg-green-100 border-l-4 border-green-500 text-green-800",
+      eventos: eventosPorSemana.seguinte,
+      titulo: "Semana Seguinte"
+    }
   ];
 
   blocos.forEach(({ cor, eventos, titulo }) => {
     const div = document.createElement("div");
-    div.className = `border-l-4 p-4 rounded shadow ${cor}`;
+    div.className = `p-4 rounded shadow ${cor}`;
     const h3 = document.createElement("h3");
-    h3.className = "font-semibold mb-1";
+    h3.className = "font-semibold mb-1 text-lg";
     h3.textContent = titulo;
     div.appendChild(h3);
     if (eventos.length === 0) {
