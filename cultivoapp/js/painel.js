@@ -23,6 +23,9 @@ verificarLogin(async (user) => {
     }
   }
 
+  window.__debugEventosMap = eventosMap;
+  console.log("DEBUG eventosMap", eventosMap);
+
   const dataHoje = document.getElementById("data-hoje");
   if (dataHoje) {
     dataHoje.textContent = new Date().toLocaleDateString("pt-BR", {
@@ -113,5 +116,3 @@ function renderizarGantt() {
     custom_popup_html: null
   });
 }
-
-window.__debugEventosMap = eventosMap;
