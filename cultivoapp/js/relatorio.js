@@ -2,13 +2,12 @@ import { db } from "/cultivoapp/js/firebase-init.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 function formatarData(data) {
-  return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+  return data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
 function obterIntervaloSemana(offset = 0) {
   const hoje = new Date();
-  const domingo = new Date(hoje);
-  domingo.setDate(hoje.getDate() - hoje.getDay() + offset * 7);
+  const domingo = new Date(hoje.setDate(hoje.getDate() - hoje.getDay() + (offset * 7)));
   const sabado = new Date(domingo);
   sabado.setDate(domingo.getDate() + 6);
   return { inicio: domingo, fim: sabado };
@@ -17,7 +16,6 @@ function obterIntervaloSemana(offset = 0) {
 function renderizarSticker(stickerId, dataInicio, dataFim, eventos) {
   document.getElementById(`data-${stickerId}`).textContent = `(${formatarData(dataInicio)} - ${formatarData(dataFim)})`;
   const lista = document.getElementById(`lista-${stickerId}`);
-  lista.innerHTML = "";
   eventos.forEach(({ titulo, nome, data }) => {
     const li = document.createElement("li");
     li.textContent = `– ${titulo}: ${nome} / ${formatarData(new Date(data))}`;
@@ -51,15 +49,12 @@ async function carregarRelatorio() {
       const inicio = new Date(dataBase);
       inicio.setDate(inicio.getDate() + (ev.ajuste || 0));
       const fim = new Date(inicio);
-      fim.setDate(inicio.getDate() + (ev.dias || 0));
+      fim.setDate(fim.getDate() + (ev.dias || 0));
 
-      const semana = fim >= semanaPassada.inicio && fim <= semanaPassada.fim
-        ? "passada"
-        : fim >= semanaAtual.inicio && fim <= semanaAtual.fim
-        ? "atual"
-        : fim >= semanaSeguinte.inicio && fim <= semanaSeguinte.fim
-        ? "seguinte"
-        : null;
+      const semana = 
+        fim >= semanaPassada.inicio && fim <= semanaPassada.fim ? "passada" :
+        fim >= semanaAtual.inicio && fim <= semanaAtual.fim ? "atual" :
+        fim >= semanaSeguinte.inicio && fim <= semanaSeguinte.fim ? "seguinte" : null;
 
       if (semana) {
         eventosPorSemana[semana].push({
