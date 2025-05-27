@@ -61,7 +61,11 @@ async function carregarRelatorio() {
         fim >= semanaSeguinte.inicio && fim <= semanaSeguinte.fim ? "seguinte" : null;
 
       if (semana) {
-        eventosPorSemana[semana].push({ titulo, nome: ev.nome, data: fim });
+                eventosPorSemana[semana].push({
+          titulo,
+          nome: ev.nome || "Evento sem nome",
+          data: fim
+        });
       }
 
       dataBase = fim;
