@@ -59,6 +59,18 @@ async function iniciarPainel() {
           end: fim
         });
 
+        // 🔍 Diagnóstico: log de cada tarefa criada
+        console.log("▶️ Criação de tarefa:", {
+          id: `${id}-${i}`,
+          nome: evt.nome,
+          data_inicio: evt.data_inicio,
+          data_fim: evt.data_fim,
+          inicio,
+          fim,
+          inicioValido: inicio instanceof Date && !isNaN(inicio),
+          fimValido: fim instanceof Date && !isNaN(fim)
+        });
+
         const eventoSticker = {
           cultivo: nomeCultivo,
           nome: evt.nome,
@@ -78,9 +90,6 @@ async function iniciarPainel() {
     preencherSticker(containerPassada, eventosPassada);
     preencherSticker(containerAtual, eventosAtual);
     preencherSticker(containerSeguinte, eventosSeguinte);
-
-    // 🔍 Debug visual no console
-    console.table(tarefas);
 
     // 🔒 Filtro final de tarefas válidas
     const tarefasValidas = tarefas.filter(t =>
