@@ -15,11 +15,79 @@ async function iniciarPainel() {
   const containerAtual = document.getElementById("semana-atual");
   const containerSeguinte = document.getElementById("semana-seguinte");
 
+  const hoje = new Date();
+  dataHoje.textContent = hoje.toLocaleDateString("pt-BR");
+
+  const inicioSemana = getInicioDaSemana(hoje);
+  const fimSemana = addDias(inicioSemana, 6);
+  const inicioSemanaPassada = addDias(inicioSemana, -7);
+  const fimSemanaPassada = addDias(inicioSemana, -1);
+  const inicioSemanaSeguinte = addDias(inicioSemana, 7);
+  const fimSemanaSeguinte = addDias(inicioSemana, 13);
+
+  const eventosPassada = [];
+  const eventosAtual = [];
+  const eventosSeguinte = [];
+  const tarefas = [];
+
+  verificarLogin(async (user) => {
+    emailSpan.textContent = user.email;
+    picImg.src = user.photoURL;
+    logoutBtn.addEventListener("click", sair);
+
+    const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+
+    for (const id of selecionados) {
+      const snap = await getDoc(doc(db, "cultivos", id));
+      if (!snap.exists()) continue;
+
+      const cultivo = snap.data();
+      const nomeCultivo = cultivo.titulo || id;
+      const eventos = cultivo.eventos || [];
+
+      eventos.forEach((evt, i) => {
+        if (!evt.data_inicio || !evt.data_fim) return;
+
+        const inicio = new Date(evt.data_inicio);
+        const fim = new Date(evt.data_fim);
+
+        tarefas.push({
+          id: `${id}-${i}`,
+          name: evt.nome,
+          start: inicio,
+          end: fim
+        });
+
+        const eventoSticker = {
+          cultivo: nomeCultivo,
+          nome: evt.nome,
+          data_fim: fim
+        };
+
+        if (fim >= inicioSemanaPassada && fim <= fimSemanaPassada) eventosPassada.push(eventoSticker);
+        else if (fim >= inicioSemana && fim <= fimSemana) eventosAtual.push(eventoSticker);
+        else if (fim >= inicioSemanaSeguinte && fim <= fimSemanaSeguinte) eventosSeguinte.push(eventoSticker);
+      });
+    }
+
+    preencherSticker(containerPassada, eventosPassada);
+    preencherSticker(containerAtual, eventosAtual);
+    preencherSticker(containerSeguinte, eventosSeguinte);
+
+    new Gantt("#gantt", tarefas);
+  });
+
   function getInicioDaSemana(date) {
-    const dia = new Date(date);
-    const diff = dia.getDay(); // domingo = 0
-    dia.setDate(dia.getDate() - diff);
-    return new Date(dia.getFullYear(), dia.getMonth(), dia.getDate());
+    const d = new Date(date);
+    const day = d.getDay(); // domingo = 0
+    d.setDate(d.getDate() - day);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function addDias(date, dias) {
+    const novo = new Date(date);
+    novo.setDate(novo.getDate() + dias);
+    return novo;
   }
 
   function formatarDataBR(data) {
@@ -46,102 +114,18 @@ async function iniciarPainel() {
     return grupo;
   }
 
-  function agruparPorCultivo(eventos) {
+  function preencherSticker(container, eventos) {
+    container.innerHTML = "";
     const grupos = {};
+
     for (const evt of eventos) {
       if (!grupos[evt.cultivo]) grupos[evt.cultivo] = [];
       grupos[evt.cultivo].push(evt);
     }
-    return grupos;
-  }
 
-  function preencherSticker(container, eventos) {
-    container.innerHTML = "";
-    const grupos = agruparPorCultivo(eventos);
     for (const cultivo in grupos) {
       const grupo = criarGrupoSticker(cultivo, grupos[cultivo]);
       container.appendChild(grupo);
     }
   }
-
-  function gerarTarefasParaGantt(eventosMap) {
-    const tarefas = [];
-
-    Object.entries(eventosMap).forEach(([cultivoId, cultivoData]) => {
-      const nomeCultivo = cultivoData.titulo || cultivoId;
-      const eventos = cultivoData.eventos || [];
-
-      eventos.forEach((evt, index) => {
-        if (!evt.data_inicio || !evt.data_fim) return;
-
-        tarefas.push({
-          id: `${cultivoId}-${index}`,
-          name: evt.nome,
-          start: evt.data_inicio,
-          end: evt.data_fim
-        });
-      });
-    });
-
-    return tarefas;
-  }
-
-  // ---------- INÍCIO DO FLUXO ----------
-  const eventosMap = {};
-  const eventosPassada = [];
-  const eventosAtual = [];
-  const eventosSeguinte = [];
-
-  verificarLogin(async (user) => {
-    emailSpan.textContent = user.email;
-    picImg.src = user.photoURL;
-    logoutBtn.addEventListener("click", sair);
-
-    const hoje = new Date();
-    dataHoje.textContent = hoje.toLocaleDateString("pt-BR");
-
-    const inicioSemana = getInicioDaSemana(hoje);
-    const fimSemana = new Date(inicioSemana); fimSemana.setDate(inicioSemana.getDate() + 6);
-    const inicioSemanaPassada = new Date(inicioSemana); inicioSemanaPassada.setDate(inicioSemana.getDate() - 7);
-    const fimSemanaPassada = new Date(inicioSemana); fimSemanaPassada.setDate(inicioSemana.getDate() - 1);
-    const inicioSemanaSeguinte = new Date(inicioSemana); inicioSemanaSeguinte.setDate(inicioSemana.getDate() + 7);
-    const fimSemanaSeguinte = new Date(inicioSemana); fimSemanaSeguinte.setDate(inicioSemana.getDate() + 13);
-
-    const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
-
-    for (const id of selecionados) {
-      const snap = await getDoc(doc(db, "cultivos", id));
-      if (!snap.exists()) continue;
-
-      const cultivo = snap.data();
-      eventosMap[id] = cultivo;
-
-      const nomeCultivo = cultivo.titulo || id;
-      const eventos = cultivo.eventos || [];
-
-      eventos.forEach(evt => {
-        if (!evt.data_inicio || !evt.data_fim) return;
-
-        const fim = new Date(evt.data_fim);
-        const obj = {
-          cultivo: nomeCultivo,
-          nome: evt.nome,
-          data_fim: fim
-        };
-
-        if (fim >= inicioSemanaPassada && fim <= fimSemanaPassada) eventosPassada.push(obj);
-        else if (fim >= inicioSemana && fim <= fimSemana) eventosAtual.push(obj);
-        else if (fim >= inicioSemanaSeguinte && fim <= fimSemanaSeguinte) eventosSeguinte.push(obj);
-      });
-    }
-
-    preencherSticker(containerPassada, eventosPassada);
-    preencherSticker(containerAtual, eventosAtual);
-    preencherSticker(containerSeguinte, eventosSeguinte);
-
-    const tarefas = gerarTarefasParaGantt(eventosMap);
-    new Gantt("#gantt", tarefas);
-
-    console.log("✅ Stickers e Gantt renderizados com sucesso.");
-  });
 }
