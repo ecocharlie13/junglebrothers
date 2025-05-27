@@ -2,136 +2,120 @@ import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+// Referências aos elementos
+const emailSpan = document.getElementById("user-email");
+const picImg = document.getElementById("user-pic");
+const logoutBtn = document.getElementById("logout");
+const dataHoje = document.getElementById("data-hoje");
+const containerPassada = document.getElementById("semana-passada");
+const containerAtual = document.getElementById("semana-atual");
+const containerSeguinte = document.getElementById("semana-seguinte");
+
+// Variáveis globais
 let eventosMap = {};
-let mostrarPassados = false;
+
+function getInicioDaSemana(date) {
+  const dia = new Date(date);
+  const diff = dia.getDay(); // domingo = 0
+  dia.setDate(dia.getDate() - diff);
+  return new Date(dia.getFullYear(), dia.getMonth(), dia.getDate());
+}
+
+function formatarData(date) {
+  return new Date(date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function criarGrupoSticker(cultivo, eventos) {
+  const grupo = document.createElement("div");
+  const titulo = document.createElement("strong");
+  titulo.textContent = cultivo;
+  grupo.appendChild(titulo);
+
+  eventos.forEach(evt => {
+    const linha = document.createElement("div");
+    linha.textContent = `• ${evt.nome} – ${formatarData(evt.data_fim)}`;
+    grupo.appendChild(linha);
+  });
+
+  return grupo;
+}
+
+function agruparPorCultivo(eventos) {
+  const grupos = {};
+  for (const evt of eventos) {
+    if (!grupos[evt.cultivo]) grupos[evt.cultivo] = [];
+    grupos[evt.cultivo].push(evt);
+  }
+  return grupos;
+}
+
+function preencherSticker(container, eventos) {
+  container.innerHTML = ""; // limpa
+  const grupos = agruparPorCultivo(eventos);
+  for (const cultivo in grupos) {
+    const grupo = criarGrupoSticker(cultivo, grupos[cultivo]);
+    container.appendChild(grupo);
+  }
+}
 
 verificarLogin(async (user) => {
-  const emailSpan = document.getElementById("user-email");
-  const picImg = document.getElementById("user-pic");
-  const logoutBtn = document.getElementById("logout");
-
   if (emailSpan) emailSpan.textContent = user.email;
   if (picImg) picImg.src = user.photoURL;
   if (logoutBtn) logoutBtn.addEventListener("click", sair);
 
+  const hoje = new Date();
+  dataHoje.textContent = formatarData(hoje);
+
+  const inicioSemana = getInicioDaSemana(hoje);
+  const fimSemana = new Date(inicioSemana);
+  fimSemana.setDate(inicioSemana.getDate() + 6);
+
+  const inicioSemanaPassada = new Date(inicioSemana);
+  inicioSemanaPassada.setDate(inicioSemana.getDate() - 7);
+
+  const fimSemanaPassada = new Date(inicioSemana);
+  fimSemanaPassada.setDate(inicioSemana.getDate() - 1);
+
+  const inicioSemanaSeguinte = new Date(inicioSemana);
+  inicioSemanaSeguinte.setDate(inicioSemana.getDate() + 7);
+
+  const fimSemanaSeguinte = new Date(inicioSemana);
+  fimSemanaSeguinte.setDate(inicioSemana.getDate() + 13);
+
   const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+
+  const eventosPassada = [];
+  const eventosAtual = [];
+  const eventosSeguinte = [];
+
   for (const id of selecionados) {
     const docRef = doc(db, "cultivos", id);
     const snap = await getDoc(docRef);
     if (snap.exists()) {
-      eventosMap[id] = snap.data();
+      const cultivo = snap.data();
+      const eventos = cultivo.eventos || [];
+      for (const evt of eventos) {
+        const dataFim = new Date(evt.data_fim);
+        const obj = {
+          cultivo: cultivo.nome || id,
+          nome: evt.nome,
+          data_fim: dataFim
+        };
+
+        if (dataFim >= inicioSemanaPassada && dataFim <= fimSemanaPassada) {
+          eventosPassada.push(obj);
+        } else if (dataFim >= inicioSemana && dataFim <= fimSemana) {
+          eventosAtual.push(obj);
+        } else if (dataFim >= inicioSemanaSeguinte && dataFim <= fimSemanaSeguinte) {
+          eventosSeguinte.push(obj);
+        }
+      }
     }
   }
 
-  window.__debugEventosMap = eventosMap;
-  console.log("DEBUG eventosMap", eventosMap);
+  preencherSticker(containerPassada, eventosPassada);
+  preencherSticker(containerAtual, eventosAtual);
+  preencherSticker(containerSeguinte, eventosSeguinte);
 
-  const dataHoje = document.getElementById("data-hoje");
-  if (dataHoje) {
-    dataHoje.textContent = new Date().toLocaleDateString("pt-BR", {
-      day: "2-digit", month: "short", year: "numeric"
-    });
-  }
-
-  renderizarDashboard();
+  console.log("✅ Stickers atualizados com agrupamento por cultivo.");
 });
-
-function renderizarDashboard() {
-  atualizarStickers();
-  renderizarGantt(); // Gantt original preservado
-}
-
-function atualizarStickers() {
-  const stickers = document.getElementById("stickers");
-  if (!stickers) return;
-  stickers.innerHTML = "";
-
-  const hoje = new Date();
-  const domingoAtual = new Date(hoje);
-  domingoAtual.setDate(hoje.getDate() - hoje.getDay());
-
-  const semanas = [
-    { label: "Semana Passada", cor: "bg-blue-600", inicio: -7 },
-    { label: "Semana Atual", cor: "bg-yellow-500", inicio: 0 },
-    { label: "Semana Seguinte", cor: "bg-green-600", inicio: 7 }
-  ];
-
-  const eventos = [];
-
-  Object.values(eventosMap).forEach((cultivo) => {
-    let dataRef = new Date(cultivo.data);
-    cultivo.eventos.forEach((ev) => {
-      const dias = Math.max(1, parseInt(ev.dias || 0));
-      const inicio = new Date(dataRef);
-      const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + dias);
-      eventos.push({ ...ev, cultivo: cultivo.titulo, inicio, fim });
-      dataRef = fim;
-    });
-  });
-
-  semanas.forEach(({ label, cor, inicio }) => {
-    const ini = new Date(domingoAtual);
-    ini.setDate(ini.getDate() + inicio);
-    const fim = new Date(ini);
-    fim.setDate(fim.getDate() + 6);
-
-    const eventosSemana = eventos.filter(ev => ev.inicio <= fim && ev.fim >= ini);
-
-    const texto = `${label} - ${ini.toLocaleDateString("pt-BR")} (${eventosSemana.length} eventos)`;
-    const sticker = document.createElement("div");
-    sticker.className = `px-4 py-2 rounded ${cor} shadow text-white font-semibold text-sm`;
-    sticker.textContent = texto;
-    stickers.appendChild(sticker);
-  });
-}
-
-function renderizarGantt() {
-  const container = document.getElementById("gantt");
-  if (!container) return;
-  container.innerHTML = "";
-
-  const tarefas = [];
-  const hoje = new Date();
-  let corIndex = 0;
-
-  const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
-
-  Object.values(eventosMap).forEach((cultivo) => {
-    let dataBase = new Date(cultivo.data);
-
-    cultivo.eventos.forEach((ev, i) => {
-      const dias = Math.max(1, parseInt(ev.dias || 0));
-      const inicio = new Date(dataBase);
-      const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + dias);
-      dataBase = new Date(fim);
-
-      if (!mostrarPassados && fim < hoje) return;
-
-      tarefas.push({
-        id: `${cultivo.titulo}-${i}`,
-        name: `${cultivo.titulo} - ${String(i + 1).padStart(2, "0")} ${ev.evento}`,
-        start: inicio.toISOString().split("T")[0],
-        end: fim.toISOString().split("T")[0],
-        progress: 100,
-        custom_class: `cor-${corIndex % cores.length}`,
-        dependencies: ""
-      });
-    });
-    corIndex++;
-  });
-
-  if (tarefas.length === 0) {
-    container.innerHTML = "<div class='text-gray-400 italic text-center'>Nenhum evento para exibir</div>";
-    return;
-  }
-
-  new window.Gantt("#gantt", tarefas, {
-    view_mode: "Day",
-    date_format: "YYYY-MM-DD",
-    custom_popup_html: null
-  });
-
-  console.log("✅ Gantt e stickers renderizados com sucesso.");
-}
