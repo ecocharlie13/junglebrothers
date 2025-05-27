@@ -5,74 +5,77 @@ function formatarData(data) {
   return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
-function obterSemana(offset = 0) {
+function obterIntervaloSemana(offset = 0) {
   const hoje = new Date();
-  const domingo = new Date(hoje.setDate(hoje.getDate() - hoje.getDay() + offset * 7));
+  const domingo = new Date(hoje);
+  domingo.setDate(hoje.getDate() - hoje.getDay() + offset * 7);
   const sabado = new Date(domingo);
   sabado.setDate(domingo.getDate() + 6);
   return { inicio: domingo, fim: sabado };
 }
 
-function renderizarSticker(id, inicio, fim, eventos) {
-  document.getElementById(`data-${id}`).textContent = `(${formatarData(inicio)} - ${formatarData(fim)})`;
-  const ul = document.getElementById(`lista-${id}`);
-  ul.innerHTML = "";
+function renderizarSticker(stickerId, dataInicio, dataFim, eventos) {
+  document.getElementById(`data-${stickerId}`).textContent = `(${formatarData(dataInicio)} - ${formatarData(dataFim)})`;
+  const lista = document.getElementById(`lista-${stickerId}`);
+  lista.innerHTML = "";
   eventos.forEach(({ titulo, nome, data }) => {
     const li = document.createElement("li");
-    li.textContent = `– ${titulo}: ${nome} / ${formatarData(data)}`;
-    ul.appendChild(li);
+    li.textContent = `– ${titulo}: ${nome} / ${formatarData(new Date(data))}`;
+    lista.appendChild(li);
   });
 }
 
 async function carregarRelatorio() {
-  const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados") || "[]");
-  if (!selecionados.length) return;
+  const ids = JSON.parse(localStorage.getItem("cultivosSelecionados") || "[]");
+  if (!ids.length) return;
 
-  const semana = {
-    passada: obterSemana(-1),
-    atual: obterSemana(0),
-    seguinte: obterSemana(1),
-  };
+  const semanaPassada = obterIntervaloSemana(-1);
+  const semanaAtual = obterIntervaloSemana(0);
+  const semanaSeguinte = obterIntervaloSemana(1);
 
-  const eventos = {
+  const eventosPorSemana = {
     passada: [],
     atual: [],
     seguinte: [],
   };
 
-  for (const id of selecionados) {
+  for (const id of ids) {
     const snap = await getDoc(doc(db, "cultivos", id));
     if (!snap.exists()) continue;
 
     const cultivo = snap.data();
-    const dataBase = new Date(cultivo.data);
-    let cursor = new Date(dataBase);
+    const { titulo, data: dataInicial, eventos } = cultivo;
+    let dataBase = new Date(dataInicial);
 
-    for (const ev of cultivo.eventos || []) {
-      const ajuste = ev.ajuste || 0;
-      const dias = ev.dias || 0;
-      const nome = ev.nome || "Evento";
-
-      const inicio = new Date(cursor);
-      inicio.setDate(inicio.getDate() + ajuste);
-
+    for (const ev of eventos) {
+      const inicio = new Date(dataBase);
+      inicio.setDate(inicio.getDate() + (ev.ajuste || 0));
       const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + dias);
+      fim.setDate(inicio.getDate() + (ev.dias || 0));
 
-      for (const chave in semana) {
-        const s = semana[chave];
-        if (fim >= s.inicio && fim <= s.fim) {
-          eventos[chave].push({ titulo: cultivo.titulo, nome, data: fim });
-        }
+      const semana = fim >= semanaPassada.inicio && fim <= semanaPassada.fim
+        ? "passada"
+        : fim >= semanaAtual.inicio && fim <= semanaAtual.fim
+        ? "atual"
+        : fim >= semanaSeguinte.inicio && fim <= semanaSeguinte.fim
+        ? "seguinte"
+        : null;
+
+      if (semana) {
+        eventosPorSemana[semana].push({
+          titulo,
+          nome: ev.nome || "Evento sem nome",
+          data: fim
+        });
       }
 
-      cursor = new Date(fim);
+      dataBase = fim;
     }
   }
 
-  for (const chave in semana) {
-    renderizarSticker(chave, semana[chave].inicio, semana[chave].fim, eventos[chave]);
-  }
+  renderizarSticker("passada", semanaPassada.inicio, semanaPassada.fim, eventosPorSemana.passada);
+  renderizarSticker("atual", semanaAtual.inicio, semanaAtual.fim, eventosPorSemana.atual);
+  renderizarSticker("seguinte", semanaSeguinte.inicio, semanaSeguinte.fim, eventosPorSemana.seguinte);
 }
 
 carregarRelatorio();
