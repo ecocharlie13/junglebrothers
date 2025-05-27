@@ -1,7 +1,9 @@
-import Gantt from "https://unpkg.com/frappe-gantt/dist/frappe-gantt.esm.js";
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+// Import Gantt como módulo ESM corretamente
+import Gantt from "https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.2/dist/frappe-gantt.esm.js";
 
 let eventosMap = {};
 let mostrarPassados = false;
