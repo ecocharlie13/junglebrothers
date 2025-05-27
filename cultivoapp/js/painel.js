@@ -1,127 +1,37 @@
-document.addEventListener("DOMContentLoaded", () => {
-  iniciarPainel();
-});
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relatório Semanal</title>
+  <link rel="stylesheet" href="/cultivoapp/css/style.css" />
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <nav class="flex items-center justify-between p-4 bg-white shadow">
+    <div class="flex items-center space-x-2">
+      <img src="/cultivoapp/assets/logo-junglebrothers.png" alt="Logo" class="h-10" />
+      <span class="text-xl font-bold">CultivoApp</span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span id="user-email" class="text-sm"></span>
+      <img id="user-pic" class="h-8 w-8 rounded-full" />
+      <button id="logout" class="text-red-500 font-semibold">Sair</button>
+    </div>
+  </nav>
 
-async function iniciarPainel() {
-  const { auth, db } = await import("/cultivoapp/js/firebase-init.js");
-  const { verificarLogin, sair } = await import("./auth.js");
-  const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js");
+  <main class="p-4">
+    <h1 class="text-2xl font-bold mb-1">Relatório Semanal</h1>
+    <h2 id="subtitulo" class="text-lg text-gray-600 mb-4">...</h2>
 
-  const emailSpan = document.getElementById("user-email");
-  const picImg = document.getElementById("user-pic");
-  const logoutBtn = document.getElementById("logout");
-  const dataHoje = document.getElementById("data-hoje");
-  const containerPassada = document.getElementById("semana-passada");
-  const containerAtual = document.getElementById("semana-atual");
-  const containerSeguinte = document.getElementById("semana-seguinte");
+    <div id="stickers" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <!-- Stickers gerados via JS -->
+    </div>
 
-  const hoje = new Date();
-  dataHoje.textContent = hoje.toLocaleDateString("pt-BR");
+    <div id="gantt" class="bg-white p-4 rounded shadow overflow-x-auto">
+      <!-- Gantt será desenhado aqui -->
+    </div>
+  </main>
 
-  const inicioSemana = getInicioDaSemana(hoje);
-  const fimSemana = addDias(inicioSemana, 6);
-  const inicioSemanaPassada = addDias(inicioSemana, -7);
-  const fimSemanaPassada = addDias(inicioSemana, -1);
-  const inicioSemanaSeguinte = addDias(inicioSemana, 7);
-  const fimSemanaSeguinte = addDias(inicioSemana, 13);
-
-  const eventosPassada = [];
-  const eventosAtual = [];
-  const eventosSeguinte = [];
-
-  verificarLogin(async (user) => {
-    emailSpan.textContent = user.email;
-    picImg.src = user.photoURL;
-    logoutBtn.addEventListener("click", sair);
-
-    const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
-
-    for (const id of selecionados) {
-      const snap = await getDoc(doc(db, "cultivos", id));
-      if (!snap.exists()) continue;
-
-      const cultivo = snap.data();
-      const nomeCultivo = cultivo.titulo || id;
-      const eventos = cultivo.eventos || [];
-
-      eventos.forEach((evt) => {
-        if (!evt.data_fim) return;
-
-        const fim = new Date(evt.data_fim);
-        if (isNaN(fim)) return;
-
-        const eventoSticker = {
-          cultivo: nomeCultivo,
-          nome: evt.nome,
-          data_fim: fim
-        };
-
-        if (fim >= inicioSemanaPassada && fim <= fimSemanaPassada) {
-          eventosPassada.push(eventoSticker);
-        } else if (fim >= inicioSemana && fim <= fimSemana) {
-          eventosAtual.push(eventoSticker);
-        } else if (fim >= inicioSemanaSeguinte && fim <= fimSemanaSeguinte) {
-          eventosSeguinte.push(eventoSticker);
-        }
-      });
-    }
-
-    preencherSticker(containerPassada, eventosPassada);
-    preencherSticker(containerAtual, eventosAtual);
-    preencherSticker(containerSeguinte, eventosSeguinte);
-
-    console.log("✅ Stickers renderizados com sucesso.");
-  });
-
-  function getInicioDaSemana(date) {
-    const d = new Date(date);
-    const day = d.getDay();
-    d.setDate(d.getDate() - day);
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  }
-
-  function addDias(date, dias) {
-    const novo = new Date(date);
-    novo.setDate(novo.getDate() + dias);
-    return novo;
-  }
-
-  function formatarDataBR(data) {
-    return new Date(data).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "short"
-    });
-  }
-
-  function criarGrupoSticker(cultivo, eventos) {
-    const grupo = document.createElement("div");
-    const titulo = document.createElement("strong");
-    titulo.classList.add("block", "text-sm", "mb-1", "text-gray-800");
-    titulo.textContent = cultivo;
-    grupo.appendChild(titulo);
-
-    eventos.forEach(evt => {
-      const linha = document.createElement("div");
-      linha.classList.add("text-sm", "text-gray-700", "ml-2");
-      linha.textContent = `• ${evt.nome} – ${formatarDataBR(evt.data_fim)}`;
-      grupo.appendChild(linha);
-    });
-
-    return grupo;
-  }
-
-  function preencherSticker(container, eventos) {
-    container.innerHTML = "";
-    const grupos = {};
-
-    for (const evt of eventos) {
-      if (!grupos[evt.cultivo]) grupos[evt.cultivo] = [];
-      grupos[evt.cultivo].push(evt);
-    }
-
-    for (const cultivo in grupos) {
-      const grupo = criarGrupoSticker(cultivo, grupos[cultivo]);
-      container.appendChild(grupo);
-    }
-  }
-}
+  <script type="module" src="/cultivoapp/js/painel.js"></script>
+</body>
+</html>
