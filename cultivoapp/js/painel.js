@@ -1,3 +1,4 @@
+import Gantt from "https://unpkg.com/frappe-gantt/dist/frappe-gantt.esm.js";
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "./auth.js";
 import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
