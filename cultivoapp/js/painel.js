@@ -23,11 +23,6 @@ verificarLogin(async (user) => {
     day: "2-digit", month: "short", year: "numeric"
   });
 
-  document.getElementById("exibir-passados").addEventListener("change", (e) => {
-    mostrarPassados = e.target.checked;
-    renderizarDashboard();
-  });
-
   renderizarDashboard();
 });
 
@@ -38,11 +33,31 @@ function renderizarDashboard() {
 
 function atualizarStickers() {
   const stickers = document.getElementById("stickers");
-  stickers.innerHTML = "<div class='text-gray-400 italic'>Stickers ainda não implementados com Frappe Gantt</div>";
+  stickers.innerHTML = "";
+
+  const hoje = new Date();
+  const domingoAtual = new Date(hoje);
+  domingoAtual.setDate(hoje.getDate() - hoje.getDay());
+
+  const semanas = [
+    { label: "Semana Passada", cor: "bg-blue-600", inicio: -7 },
+    { label: "Semana Atual", cor: "bg-yellow-500", inicio: 0 },
+    { label: "Semana Seguinte", cor: "bg-green-600", inicio: 7 }
+  ];
+
+  semanas.forEach(({ label, cor, inicio }) => {
+    const data = new Date(domingoAtual);
+    data.setDate(data.getDate() + inicio);
+    const texto = `${label} - ${data.toLocaleDateString("pt-BR")}`;
+    const sticker = document.createElement("div");
+    sticker.className = `px-4 py-2 rounded ${cor} shadow`;
+    sticker.textContent = texto;
+    stickers.appendChild(sticker);
+  });
 }
 
 function renderizarGantt() {
-  const container = document.getElementById("gantt");  // CORRETO AGORA
+  const container = document.getElementById("gantt");
   container.innerHTML = "";
 
   const tarefas = [];
