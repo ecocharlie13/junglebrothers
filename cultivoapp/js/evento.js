@@ -1,101 +1,97 @@
-// Novo eventos.js - suporte a edição de data_inicio
-
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
 import {
-  getDoc, doc, updateDoc
+  getDoc,
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-let cultivosSelecionados = [];
-let eventosMap = {}; // idCultivo => { titulo, eventos[] }
+function formatarDataParaInput(date) {
+  return new Date(date).toISOString().split("T")[0];
+}
+
+function formatarDataParaMostrar(date) {
+  const d = new Date(date);
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function calcularDatas(eventos, dataInicial) {
+  let base = new Date(dataInicial);
+  return eventos.map(ev => {
+    const inicio = new Date(base);
+    inicio.setDate(inicio.getDate() + (ev.ajuste || 0));
+    const fim = new Date(inicio);
+    fim.setDate(fim.getDate() + (ev.dias || 0));
+    base = fim;
+    return {
+      ...ev,
+      data_inicio: inicio.toISOString(),
+      data_fim: fim.toISOString()
+    };
+  });
+}
 
 verificarLogin(async (user) => {
   document.getElementById("user-email").textContent = user.email;
   document.getElementById("user-pic").src = user.photoURL;
   document.getElementById("logout").addEventListener("click", sair);
 
-  cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+  const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados") || "[]");
+  if (!selecionados.length) return;
 
-  for (const id of cultivosSelecionados) {
+  const tabela = document.querySelector("tbody");
+  const linhas = [];
+
+  for (const id of selecionados) {
     const snap = await getDoc(doc(db, "cultivos", id));
     if (!snap.exists()) continue;
-    eventosMap[id] = snap.data();
-  }
 
-  renderTabela();
-});
+    const cultivo = snap.data();
+    const eventosComDatas = calcularDatas(cultivo.eventos, cultivo.data);
 
-function renderTabela() {
-  const container = document.getElementById("tabela-eventos");
-  container.innerHTML = "";
-
-  for (const [id, cultivo] of Object.entries(eventosMap)) {
-    const h2 = document.createElement("h2");
-    h2.className = "text-xl font-bold mt-6 mb-2";
-    h2.textContent = cultivo.titulo;
-    container.appendChild(h2);
-
-    const tabela = document.createElement("table");
-    tabela.className = "w-full table-auto border-collapse mb-4";
-    const thead = document.createElement("thead");
-    thead.innerHTML = `
-      <tr class="bg-gray-200">
-        <th class="border px-2 py-1">Evento</th>
-        <th class="border px-2 py-1">Início</th>
-        <th class="border px-2 py-1">Dias</th>
-        <th class="border px-2 py-1">Ajuste</th>
-        <th class="border px-2 py-1">Fim</th>
-        <th class="border px-2 py-1">Notas</th>
-      </tr>`;
-    tabela.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-    cultivo.eventos.forEach((ev, i) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
+    eventosComDatas.forEach((ev, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="border px-2 py-1">${cultivo.titulo}</td>
         <td class="border px-2 py-1">${ev.evento}</td>
-        <td class="border px-2 py-1"><input type="date" class="inicio-input w-full" data-index="${i}" data-id="${id}" value="${ev.data_inicio?.slice(0,10) || ""}"></td>
-        <td class="border px-2 py-1">${ev.dias}</td>
-        <td class="border px-2 py-1">${ev.ajuste}</td>
-        <td class="border px-2 py-1">${ev.data_fim?.slice(0,10) || ""}</td>
-        <td class="border px-2 py-1">${ev.notas}</td>`;
-      tbody.appendChild(row);
+        <td class="border px-2 py-1"><input type="number" value="${ev.dias}" class="w-16 dias"/></td>
+        <td class="border px-2 py-1"><input type="date" value="${formatarDataParaInput(ev.data_inicio)}" class="data-inicio"/></td>
+        <td class="border px-2 py-1 data-fim">${formatarDataParaMostrar(ev.data_fim)}</td>
+        <td class="border px-2 py-1"><input type="text" value="${ev.notas || ""}" class="w-full notas"/></td>
+      `;
+      tabela.appendChild(tr);
+      linhas.push({ id, i, ev, tr });
     });
-    tabela.appendChild(tbody);
-    container.appendChild(tabela);
   }
 
-  document.querySelectorAll(".inicio-input").forEach(input => {
-    input.addEventListener("change", (e) => {
-      const id = e.target.dataset.id;
-      const index = parseInt(e.target.dataset.index);
-      const novaData = new Date(e.target.value);
-      atualizarEventos(id, index, novaData);
-      renderTabela();
-    });
+  document.getElementById("atualizar").addEventListener("click", async () => {
+    const cultivosAtualizados = {};
+
+    for (const { id, i, tr } of linhas) {
+      const dias = parseInt(tr.querySelector(".dias").value);
+      const dataInicio = new Date(tr.querySelector(".data-inicio").value);
+      const notas = tr.querySelector(".notas").value;
+
+      if (!cultivosAtualizados[id]) {
+        const snap = await getDoc(doc(db, "cultivos", id));
+        cultivosAtualizados[id] = snap.data();
+      }
+
+      const cultivo = cultivosAtualizados[id];
+      cultivo.eventos[i].dias = dias;
+      cultivo.eventos[i].ajuste = 0;
+      cultivo.eventos[i].notas = notas;
+      cultivo.data = dataInicio.toISOString();
+      cultivo.eventos = calcularDatas(cultivo.eventos, cultivo.data);
+    }
+
+    for (const id in cultivosAtualizados) {
+      await updateDoc(doc(db, "cultivos", id), {
+        data: cultivosAtualizados[id].data,
+        eventos: cultivosAtualizados[id].eventos
+      });
+    }
+
+    location.reload();
   });
-
-  const btn = document.getElementById("salvar");
-  btn.onclick = salvarFirestore;
-}
-
-function atualizarEventos(id, indiceAlterado, novaData) {
-  const cultivo = eventosMap[id];
-  let cursor = new Date(novaData);
-
-  for (let i = indiceAlterado; i < cultivo.eventos.length; i++) {
-    const ev = cultivo.eventos[i];
-    ev.data_inicio = cursor.toISOString();
-    cursor.setDate(cursor.getDate() + ev.dias + ev.ajuste);
-    ev.data_fim = cursor.toISOString();
-  }
-}
-
-async function salvarFirestore() {
-  for (const [id, cultivo] of Object.entries(eventosMap)) {
-    await updateDoc(doc(db, "cultivos", id), {
-      eventos: cultivo.eventos
-    });
-  }
-  alert("Eventos atualizados com sucesso!");
-} 
+});
