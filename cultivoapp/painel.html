@@ -3,61 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel – CultivoApp</title>
-
-  <!-- Gantt personalizado -->
-  <script src="/cultivoapp/js/frappe-gantt.min.js"></script>
-
-  <!-- Script principal -->
-  <script type="module" src="/cultivoapp/js/painel.js" defer></script>
-
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Relatório Semanal</title>
+  <link rel="stylesheet" href="/cultivoapp/css/style.css" />
 </head>
-<body class="bg-gray-100 min-h-screen font-sans text-gray-900">
-
-  <!-- Header -->
-  <header class="bg-white shadow p-4 flex justify-between items-center">
-    <div class="flex items-center space-x-4">
-      <img src="/cultivoapp/assets/logo-junglebrothers.png" alt="Logo" class="h-10" />
-      <nav class="flex space-x-4 text-sm font-semibold text-purple-600">
-        <a href="blueprints.html" class="hover:underline">Blueprints</a>
-        <a href="cultivos.html" class="hover:underline">Cultivos</a>
-        <a href="eventos.html" class="hover:underline">Eventos</a>
-        <a href="painel.html" class="text-black">Painel</a>
-      </nav>
-    </div>
+<body class="bg-gray-100 text-gray-900">
+  <nav class="flex items-center justify-between p-4 bg-white shadow">
     <div class="flex items-center space-x-2">
+      <img src="/cultivoapp/assets/logo-junglebrothers.png" alt="Logo" class="h-10" />
+      <span class="text-xl font-bold">CultivoApp</span>
+    </div>
+    <div class="flex items-center space-x-4">
       <span id="user-email" class="text-sm"></span>
-      <img id="user-pic" class="w-8 h-8 rounded-full border" />
-      <button id="logout" class="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700">Sair</button>
+      <img id="user-pic" class="h-8 w-8 rounded-full" />
+      <button id="logout" class="text-red-500 font-semibold">Sair</button>
     </div>
-  </header>
+  </nav>
 
-  <!-- Conteúdo -->
-  <main class="max-w-6xl mx-auto p-6">
-    <h1 class="text-2xl font-bold text-center mb-2">Relatório de Cultivo – <span id="data-hoje"></span></h1>
-    <p class="text-center text-gray-600 mb-8">Baseado nos cultivos selecionados</p>
+  <main class="p-4">
+    <h1 class="text-2xl font-bold mb-1">Relatório Semanal</h1>
+    <h2 id="subtitulo" class="text-lg text-gray-600 mb-4">...</h2>
 
-    <!-- Stickers -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div id="semana-passada" class="bg-blue-100 p-4 rounded-xl shadow">
-        <h2 class="text-blue-900 font-semibold mb-2">🟦 Semana Passada</h2>
-      </div>
-      <div id="semana-atual" class="bg-yellow-100 p-4 rounded-xl shadow">
-        <h2 class="text-yellow-900 font-semibold mb-2">🟨 Semana Atual</h2>
-      </div>
-      <div id="semana-seguinte" class="bg-green-100 p-4 rounded-xl shadow">
-        <h2 class="text-green-900 font-semibold mb-2">🟩 Semana Seguinte</h2>
-      </div>
+    <div id="stickers" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <!-- Stickers gerados via JS -->
     </div>
 
-    <!-- Gantt -->
-    <section id="gantt-container" class="mt-16">
-      <h2 class="text-xl font-bold mb-4 text-center">Cronograma Geral por Cultivo</h2>
-      <div id="gantt" class="overflow-x-auto bg-white border rounded shadow p-4"></div>
-    </section>
+    <div id="gantt" class="bg-white p-4 rounded shadow overflow-x-auto">
+      <!-- Gantt será desenhado aqui -->
+    </div>
   </main>
 
+  <script type="module" src="/cultivoapp/js/painel.js"></script>
 </body>
 </html>
