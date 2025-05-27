@@ -20,19 +20,68 @@ async function iniciarPainel() {
     return;
   }
 
+  const eventosPassada = [];
+  const eventosAtual = [];
+  const eventosSeguinte = [];
+  const eventosParaGantt = [];
+
+  verificarLogin(async (user) => {
+    emailSpan.textContent = user.email;
+    picImg.src = user.photoURL;
+    logoutBtn.addEventListener("click", sair);
+    const hoje = new Date();
+    dataHoje.textContent = hoje.toLocaleDateString("pt-BR");
+
+    const inicioSemana = getInicioDaSemana(hoje);
+    const fimSemana = new Date(inicioSemana); fimSemana.setDate(inicioSemana.getDate() + 6);
+    const inicioSemanaPassada = new Date(inicioSemana); inicioSemanaPassada.setDate(inicioSemana.getDate() - 7);
+    const fimSemanaPassada = new Date(inicioSemana); fimSemanaPassada.setDate(inicioSemana.getDate() - 1);
+    const inicioSemanaSeguinte = new Date(inicioSemana); inicioSemanaSeguinte.setDate(inicioSemana.getDate() + 7);
+    const fimSemanaSeguinte = new Date(inicioSemana); fimSemanaSeguinte.setDate(inicioSemana.getDate() + 13);
+
+    const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+
+    for (const id of selecionados) {
+      const snap = await getDoc(doc(db, "cultivos", id));
+      if (snap.exists()) {
+        const cultivo = snap.data();
+        const nomeCultivo = cultivo.titulo || id;
+        const eventos = cultivo.eventos || [];
+
+        for (const evt of eventos) {
+          const inicio = new Date(evt.data_inicio);
+          const fim = new Date(evt.data_fim);
+          const obj = {
+            cultivo: nomeCultivo,
+            nome: evt.nome,
+            data_inicio: inicio,
+            data_fim: fim
+          };
+
+          eventosParaGantt.push(obj);
+
+          if (fim >= inicioSemanaPassada && fim <= fimSemanaPassada) eventosPassada.push(obj);
+          else if (fim >= inicioSemana && fim <= fimSemana) eventosAtual.push(obj);
+          else if (fim >= inicioSemanaSeguinte && fim <= fimSemanaSeguinte) eventosSeguinte.push(obj);
+        }
+      }
+    }
+
+    preencherSticker(containerPassada, eventosPassada);
+    preencherSticker(containerAtual, eventosAtual);
+    preencherSticker(containerSeguinte, eventosSeguinte);
+    desenharGantt(eventosParaGantt);
+  });
+
   function getInicioDaSemana(date) {
     const dia = new Date(date);
-    const diff = dia.getDay(); // domingo = 0
+    const diff = dia.getDay();
     dia.setDate(dia.getDate() - diff);
     return new Date(dia.getFullYear(), dia.getMonth(), dia.getDate());
   }
 
-  function formatarData(date) {
-    return new Date(date).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric"
-    });
+  function formatarDataBR(data) {
+    return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
   }
 
   function criarGrupoSticker(cultivo, eventos) {
@@ -45,90 +94,69 @@ async function iniciarPainel() {
     eventos.forEach(evt => {
       const linha = document.createElement("div");
       linha.classList.add("text-sm", "text-gray-700", "ml-2");
-      linha.textContent = `• ${evt.nome} – ${formatarData(evt.data_fim)}`;
+      linha.textContent = `• ${evt.nome} – ${formatarDataBR(evt.data_fim)}`;
       grupo.appendChild(linha);
     });
 
     return grupo;
   }
 
-  function agruparPorCultivo(eventos) {
-    const grupos = {};
-    for (const evt of eventos) {
-      if (!grupos[evt.cultivo]) grupos[evt.cultivo] = [];
-      grupos[evt.cultivo].push(evt);
-    }
-    return grupos;
-  }
-
   function preencherSticker(container, eventos) {
     container.innerHTML = "";
-    const grupos = agruparPorCultivo(eventos);
-    for (const cultivo in grupos) {
-      const grupo = criarGrupoSticker(cultivo, grupos[cultivo]);
+    const agrupado = {};
+    for (const evt of eventos) {
+      if (!agrupado[evt.cultivo]) agrupado[evt.cultivo] = [];
+      agrupado[evt.cultivo].push(evt);
+    }
+    for (const cultivo in agrupado) {
+      const grupo = criarGrupoSticker(cultivo, agrupado[cultivo]);
       container.appendChild(grupo);
     }
   }
 
-  verificarLogin(async (user) => {
-    emailSpan.textContent = user.email;
-    picImg.src = user.photoURL;
-    logoutBtn.addEventListener("click", sair);
+  function desenharGantt(eventos) {
+    const ctx = document.getElementById("gantt-canvas").getContext("2d");
 
-    const hoje = new Date();
-    dataHoje.textContent = formatarData(hoje);
+    const cultivos = [...new Set(eventos.map(e => e.cultivo))];
+    const cores = gerarCores(cultivos.length);
 
-    const inicioSemana = getInicioDaSemana(hoje);
-    const fimSemana = new Date(inicioSemana);
-    fimSemana.setDate(inicioSemana.getDate() + 6);
+    const datasets = cultivos.map((cultivo, i) => {
+      const eventosDoCultivo = eventos.filter(e => e.cultivo === cultivo);
+      return {
+        label: cultivo,
+        data: eventosDoCultivo.map(e => ({
+          x: [e.data_inicio, e.data_fim],
+          y: e.nome
+        })),
+        borderColor: cores[i],
+        backgroundColor: cores[i],
+        borderWidth: 8,
+        parsing: false
+      };
+    });
 
-    const inicioSemanaPassada = new Date(inicioSemana);
-    inicioSemanaPassada.setDate(inicioSemana.getDate() - 7);
-    const fimSemanaPassada = new Date(inicioSemana);
-    fimSemanaPassada.setDate(inicioSemana.getDate() - 1);
-
-    const inicioSemanaSeguinte = new Date(inicioSemana);
-    inicioSemanaSeguinte.setDate(inicioSemana.getDate() + 7);
-    const fimSemanaSeguinte = new Date(inicioSemana);
-    fimSemanaSeguinte.setDate(inicioSemana.getDate() + 13);
-
-    const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
-
-    const eventosPassada = [];
-    const eventosAtual = [];
-    const eventosSeguinte = [];
-
-    for (const id of selecionados) {
-      const docRef = doc(db, "cultivos", id);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const cultivo = snap.data();
-        const eventos = cultivo.eventos || [];
-
-        for (const evt of eventos) {
-          if (!evt.data_fim) continue; // Ignora se não tiver data_fim
-          const dataFim = new Date(evt.data_fim);
-          const obj = {
-            cultivo: cultivo.nome || id,
-            nome: evt.nome,
-            data_fim: dataFim
-          };
-
-          if (dataFim >= inicioSemanaPassada && dataFim <= fimSemanaPassada) {
-            eventosPassada.push(obj);
-          } else if (dataFim >= inicioSemana && dataFim <= fimSemana) {
-            eventosAtual.push(obj);
-          } else if (dataFim >= inicioSemanaSeguinte && dataFim <= fimSemanaSeguinte) {
-            eventosSeguinte.push(obj);
-          }
+    new Chart(ctx, {
+      type: "bar",
+      data: { datasets },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        scales: {
+          x: { type: "time", time: { unit: "day" } },
+          y: { stacked: false }
+        },
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: { callbacks: {
+            label: ctx => `${ctx.dataset.label} – ${ctx.raw.y}`
+          }}
         }
       }
-    }
+    });
+  }
 
-    preencherSticker(containerPassada, eventosPassada);
-    preencherSticker(containerAtual, eventosAtual);
-    preencherSticker(containerSeguinte, eventosSeguinte);
-
-    console.log("✅ Stickers atualizados com agrupamento por cultivo.");
-  });
+  function gerarCores(n) {
+    const base = ["#f87171", "#60a5fa", "#34d399", "#fbbf24", "#a78bfa", "#fb923c", "#10b981"];
+    return Array.from({ length: n }, (_, i) => base[i % base.length]);
+  }
 }
