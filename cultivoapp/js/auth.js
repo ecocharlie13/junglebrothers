@@ -1,5 +1,4 @@
-// js/auth.js
-import { auth } from "/cultivoapp/js/firebase-init.js";
+import { auth } from "./firebase-init.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
 /**
