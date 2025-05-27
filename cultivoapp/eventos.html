@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-  <!-- Navbar -->
   <header class="bg-white shadow p-4 flex justify-between items-center">
     <nav class="space-x-4 text-purple-700 font-semibold">
       <a href="/cultivoapp/blueprints.html">Blueprints</a>
@@ -22,7 +21,6 @@
     </div>
   </header>
 
-  <!-- Conteúdo -->
   <main class="p-6">
     <h1 class="text-2xl font-bold text-center mb-2">Todos os Eventos</h1>
     <p class="text-center text-sm mb-6 text-gray-600">Eventos de todos os cultivos selecionados</p>
@@ -49,7 +47,6 @@
     </div>
   </main>
 
-  <!-- Scripts -->
   <script type="module">
     import { auth, db } from "/cultivoapp/js/firebase-init.js";
     import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
@@ -73,8 +70,8 @@
     });
 
     function formatarData(data) {
-      const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
-      return `${data.getDate().toString().padStart(2, '0')} ${meses[data.getMonth()]} ${data.getFullYear()}`;
+      const d = new Date(data);
+      return d.toISOString().split("T")[0];
     }
 
     function atualizarTabela() {
@@ -95,7 +92,9 @@
             <td class="border px-2 py-1">
               <input class="dias w-16 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
             </td>
-            <td class="border px-2 py-1">${formatarData(inicio)}</td>
+            <td class="border px-2 py-1">
+              <input class="inicio px-1 border rounded" type="date" value="${formatarData(inicio)}" data-cultivo="${cultivoId}" data-index="${i}" />
+            </td>
             <td class="border px-2 py-1">${formatarData(fim)}</td>
             <td class="border px-2 py-1">
               <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
@@ -103,7 +102,7 @@
           `;
           tbody.appendChild(tr);
 
-          inicio = new Date(fim); // encadeia o próximo evento
+          inicio = new Date(fim);
         });
       }
     }
@@ -114,13 +113,21 @@
         eventosMap[cultivo].eventos[index].dias = parseInt(input.value);
       });
 
+      document.querySelectorAll(".inicio").forEach(input => {
+        const { cultivo, index } = input.dataset;
+        if (index == 0) eventosMap[cultivo].data = input.value;
+      });
+
       document.querySelectorAll(".notas").forEach(input => {
         const { cultivo, index } = input.dataset;
         eventosMap[cultivo].eventos[index].notas = input.value;
       });
 
       for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
-        await updateDoc(doc(db, "cultivos", cultivoId), { eventos: cultivo.eventos });
+        await updateDoc(doc(db, "cultivos", cultivoId), {
+          data: cultivo.data,
+          eventos: cultivo.eventos
+        });
       }
 
       atualizarTabela();
