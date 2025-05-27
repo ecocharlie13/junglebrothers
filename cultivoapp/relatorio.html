@@ -47,19 +47,6 @@
     </section>
   </main>
 
-  <!-- Autenticação -->
-  <script type="module">
-    import { auth } from "/cultivoapp/js/firebase-init.js";
-    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
-
-    verificarLogin((user) => {
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
-      document.getElementById("logout").addEventListener("click", sair);
-    });
-  </script>
-
-  <!-- Stickers JS -->
   <script type="module" src="/cultivoapp/js/relatorio.js"></script>
 </body>
 </html>
