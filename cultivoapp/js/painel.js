@@ -28,7 +28,6 @@ async function iniciarPainel() {
   const eventosPassada = [];
   const eventosAtual = [];
   const eventosSeguinte = [];
-  const tarefas = [];
 
   verificarLogin(async (user) => {
     emailSpan.textContent = user.email;
@@ -45,31 +44,11 @@ async function iniciarPainel() {
       const nomeCultivo = cultivo.titulo || id;
       const eventos = cultivo.eventos || [];
 
-      eventos.forEach((evt, i) => {
-        if (!evt.data_inicio || !evt.data_fim) return;
+      eventos.forEach((evt) => {
+        if (!evt.data_fim) return;
 
-        const inicio = new Date(evt.data_inicio);
         const fim = new Date(evt.data_fim);
-        if (isNaN(inicio) || isNaN(fim)) return;
-
-        tarefas.push({
-          id: `${id}-${i}`,
-          name: evt.nome,
-          start: inicio,
-          end: fim
-        });
-
-        // 🔍 Diagnóstico: log de cada tarefa criada
-        console.log("▶️ Criação de tarefa:", {
-          id: `${id}-${i}`,
-          nome: evt.nome,
-          data_inicio: evt.data_inicio,
-          data_fim: evt.data_fim,
-          inicio,
-          fim,
-          inicioValido: inicio instanceof Date && !isNaN(inicio),
-          fimValido: fim instanceof Date && !isNaN(fim)
-        });
+        if (isNaN(fim)) return;
 
         const eventoSticker = {
           cultivo: nomeCultivo,
@@ -91,25 +70,12 @@ async function iniciarPainel() {
     preencherSticker(containerAtual, eventosAtual);
     preencherSticker(containerSeguinte, eventosSeguinte);
 
-    // 🔒 Filtro final de tarefas válidas
-    const tarefasValidas = tarefas.filter(t =>
-      t.start instanceof Date && !isNaN(t.start) &&
-      t.end instanceof Date && !isNaN(t.end)
-    );
-
-    if (tarefasValidas.length === 0) {
-      document.querySelector("#gantt").innerHTML =
-        "<p class='text-sm text-gray-500 italic'>Nenhum evento com datas válidas para o gráfico.</p>";
-      return;
-    }
-
-    // ✅ Renderização segura
-    new Gantt("#gantt", tarefasValidas);
+    console.log("✅ Stickers renderizados com sucesso.");
   });
 
   function getInicioDaSemana(date) {
     const d = new Date(date);
-    const day = d.getDay(); // domingo = 0
+    const day = d.getDay();
     d.setDate(d.getDate() - day);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
