@@ -16,6 +16,7 @@ function obterIntervaloSemana(offset = 0) {
 function renderizarSticker(stickerId, dataInicio, dataFim, eventos) {
   document.getElementById(`data-${stickerId}`).textContent = `(${formatarData(dataInicio)} - ${formatarData(dataFim)})`;
   const lista = document.getElementById(`lista-${stickerId}`);
+  lista.innerHTML = "";
   eventos.forEach(({ titulo, nome, data }) => {
     const li = document.createElement("li");
     li.textContent = `– ${titulo}: ${nome} / ${formatarData(new Date(data))}`;
@@ -59,7 +60,7 @@ async function carregarRelatorio() {
       if (semana) {
         eventosPorSemana[semana].push({
           titulo,
-          nome: ev.nome || "Evento sem nome",
+          nome: ev.evento || "Evento sem nome", // << CORREÇÃO AQUI
           data: fim
         });
       }
