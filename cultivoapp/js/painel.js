@@ -38,13 +38,12 @@ verificarLogin(async (user) => {
 
 function renderizarDashboard() {
   atualizarStickers();
-  renderizarGantt();
+  renderizarGantt(); // Gantt original preservado
 }
 
 function atualizarStickers() {
   const stickers = document.getElementById("stickers");
   if (!stickers) return;
-
   stickers.innerHTML = "";
 
   const hoje = new Date();
@@ -59,20 +58,15 @@ function atualizarStickers() {
 
   const eventos = [];
 
-  Object.values(eventosMap).forEach(cultivo => {
-    let dataBase = new Date(cultivo.data);
+  Object.values(eventosMap).forEach((cultivo) => {
+    let dataRef = new Date(cultivo.data);
     cultivo.eventos.forEach((ev) => {
       const dias = Math.max(1, parseInt(ev.dias || 0));
-      const inicio = new Date(dataBase);
+      const inicio = new Date(dataRef);
       const fim = new Date(inicio);
       fim.setDate(fim.getDate() + dias);
-      eventos.push({
-        evento: ev.evento,
-        cultivo: cultivo.titulo,
-        inicio,
-        fim
-      });
-      dataBase = new Date(fim);
+      eventos.push({ ...ev, cultivo: cultivo.titulo, inicio, fim });
+      dataRef = fim;
     });
   });
 
@@ -82,9 +76,7 @@ function atualizarStickers() {
     const fim = new Date(ini);
     fim.setDate(fim.getDate() + 6);
 
-    const eventosSemana = eventos.filter(ev => (
-      ev.inicio <= fim && ev.fim >= ini
-    ));
+    const eventosSemana = eventos.filter(ev => ev.inicio <= fim && ev.fim >= ini);
 
     const texto = `${label} - ${ini.toLocaleDateString("pt-BR")} (${eventosSemana.length} eventos)`;
     const sticker = document.createElement("div");
@@ -105,18 +97,20 @@ function renderizarGantt() {
 
   const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
 
-  Object.values(eventosMap).forEach((cultivo, idx) => {
+  Object.values(eventosMap).forEach((cultivo) => {
     let dataBase = new Date(cultivo.data);
+
     cultivo.eventos.forEach((ev, i) => {
       const dias = Math.max(1, parseInt(ev.dias || 0));
       const inicio = new Date(dataBase);
       const fim = new Date(inicio);
       fim.setDate(fim.getDate() + dias);
+      dataBase = new Date(fim);
 
       if (!mostrarPassados && fim < hoje) return;
 
       tarefas.push({
-        id: `${cultivo.titulo}-${String(i + 1).padStart(2, "0")}`,
+        id: `${cultivo.titulo}-${i}`,
         name: `${cultivo.titulo} - ${String(i + 1).padStart(2, "0")} ${ev.evento}`,
         start: inicio.toISOString().split("T")[0],
         end: fim.toISOString().split("T")[0],
@@ -124,8 +118,6 @@ function renderizarGantt() {
         custom_class: `cor-${corIndex % cores.length}`,
         dependencies: ""
       });
-
-      dataBase = new Date(fim);
     });
     corIndex++;
   });
@@ -140,4 +132,6 @@ function renderizarGantt() {
     date_format: "YYYY-MM-DD",
     custom_popup_html: null
   });
+
+  console.log("✅ Gantt e stickers renderizados com sucesso.");
 }
