@@ -1,80 +1,129 @@
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
-import { verificarLogin, sair } from "./auth.js";
-import {
-  getDoc,
-  doc,
-  updateDoc
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
+import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-let eventosMap = {};
-let cultivosSelecionados = [];
+const semanaInicio = (date) => {
+  const d = new Date(date);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+};
+
+const semanaFim = (date) => {
+  const d = semanaInicio(date);
+  d.setDate(d.getDate() + 6);
+  return d;
+};
+
+const formatarData = (iso) => {
+  const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  const d = new Date(iso);
+  return `${d.getDate()} ${meses[d.getMonth()]}`;
+};
+
+const corAleatoria = () => `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`;
 
 verificarLogin(async (user) => {
   document.getElementById("user-email").textContent = user.email;
   document.getElementById("user-pic").src = user.photoURL;
   document.getElementById("logout").addEventListener("click", sair);
-  document.getElementById("atualizar").addEventListener("click", atualizarEventos);
 
-  cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+  const hoje = new Date();
+  const inicioSemanaAtual = semanaInicio(hoje);
+  const fimSemanaAtual = semanaFim(hoje);
 
-  for (const cultivoId of cultivosSelecionados) {
-    const ref = doc(db, "cultivos", cultivoId);
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      eventosMap[cultivoId] = snap.data();
+  const inicioSemanaAnterior = new Date(inicioSemanaAtual);
+  inicioSemanaAnterior.setDate(inicioSemanaAnterior.getDate() - 7);
+  const fimSemanaAnterior = new Date(inicioSemanaAtual);
+  fimSemanaAnterior.setDate(fimSemanaAnterior.getDate() - 1);
+
+  const inicioSemanaSeguinte = new Date(fimSemanaAtual);
+  inicioSemanaSeguinte.setDate(inicioSemanaSeguinte.getDate() + 1);
+  const fimSemanaSeguinte = new Date(fimSemanaAtual);
+  fimSemanaSeguinte.setDate(fimSemanaSeguinte.getDate() + 7);
+
+  document.getElementById("subtitulo").textContent = `${formatarData(inicioSemanaAtual.toISOString())} - ${formatarData(fimSemanaAtual.toISOString())}`;
+
+  const selecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
+  const eventosPorSemana = { anterior: [], atual: [], seguinte: [] };
+  const tarefasGantt = [];
+
+  for (const id of selecionados) {
+    const snap = await getDoc(doc(db, "cultivos", id));
+    if (!snap.exists()) continue;
+    const cultivo = snap.data();
+    const cor = corAleatoria();
+
+    for (const evento of cultivo.eventos) {
+      const ini = new Date(evento.data_inicio);
+      const fim = new Date(evento.data_fim);
+
+      tarefasGantt.push({
+        id: `${id}-${evento.nome}`,
+        name: evento.nome,
+        start: evento.data_inicio,
+        end: evento.data_fim,
+        progress: 100,
+        custom_class: "",
+        color: cor,
+      });
+
+      if (fim >= inicioSemanaAnterior && fim <= fimSemanaAnterior) {
+        eventosPorSemana.anterior.push(evento);
+      } else if (fim >= inicioSemanaAtual && fim <= fimSemanaAtual) {
+        eventosPorSemana.atual.push(evento);
+      } else if (fim >= inicioSemanaSeguinte && fim <= fimSemanaSeguinte) {
+        eventosPorSemana.seguinte.push(evento);
+      }
     }
   }
 
-  atualizarTabela();
-});
+  const stickersDiv = document.getElementById("stickers");
+  const blocos = [
+    { cor: "bg-blue-100 border-blue-400 text-blue-800", eventos: eventosPorSemana.anterior, titulo: "Semana Passada" },
+    { cor: "bg-yellow-100 border-yellow-400 text-yellow-800", eventos: eventosPorSemana.atual, titulo: "Semana Atual" },
+    { cor: "bg-green-100 border-green-400 text-green-800", eventos: eventosPorSemana.seguinte, titulo: "Semana Seguinte" },
+  ];
 
-function atualizarTabela() {
-  const tbody = document.getElementById("tabela-eventos");
-  tbody.innerHTML = "";
+  blocos.forEach(({ cor, eventos, titulo }) => {
+    const div = document.createElement("div");
+    div.className = `border-l-4 p-4 rounded shadow ${cor}`;
+    const h3 = document.createElement("h3");
+    h3.className = "font-semibold mb-1";
+    h3.textContent = titulo;
+    div.appendChild(h3);
+    if (eventos.length === 0) {
+      const p = document.createElement("p");
+      p.textContent = "Nenhum evento.";
+      div.appendChild(p);
+    } else {
+      const ul = document.createElement("ul");
+      eventos.forEach(ev => {
+        const li = document.createElement("li");
+        li.textContent = `${ev.nome} (${formatarData(ev.data_fim)})`;
+        ul.appendChild(li);
+      });
+      div.appendChild(ul);
+    }
+    stickersDiv.appendChild(div);
+  });
 
-  for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
-    let inicio = new Date(cultivo.data);
-
-    cultivo.eventos.forEach((ev, i) => {
-      inicio.setDate(inicio.getDate() + (parseInt(ev.ajuste) || 0));
-      const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="border px-2 py-1">${cultivo.titulo}</td>
-        <td class="border px-2 py-1">${ev.evento}</td>
-        <td class="border px-2 py-1">
-          <input class="dias w-16 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
-        </td>
-        <td class="border px-2 py-1">${ev.ajuste}</td>
-        <td class="border px-2 py-1">${inicio.toISOString().split("T")[0]}</td>
-        <td class="border px-2 py-1">${fim.toISOString().split("T")[0]}</td>
-        <td class="border px-2 py-1">
-          <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
-        </td>
-      `;
-      tbody.appendChild(tr);
-      inicio = new Date(fim); // Encadeia o próximo
+  if (window.Gantt) {
+    const gantt = new Gantt("#gantt", tarefasGantt, {
+      view_mode: "Day",
+      date_format: "YYYY-MM-DD",
+      custom_popup_html: null,
     });
+
+    const svg = document.querySelector("#gantt svg");
+    const hojeX = gantt.getXCoordinateForDate(new Date().toISOString().split("T")[0]);
+    const height = svg.getBoundingClientRect().height;
+    const linha = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    linha.setAttribute("x1", hojeX);
+    linha.setAttribute("x2", hojeX);
+    linha.setAttribute("y1", "0");
+    linha.setAttribute("y2", height.toString());
+    linha.setAttribute("stroke", "red");
+    linha.setAttribute("stroke-width", "1");
+    svg.appendChild(linha);
   }
-}
-
-async function atualizarEventos() {
-  document.querySelectorAll(".dias").forEach((input) => {
-    const { cultivo, index } = input.dataset;
-    eventosMap[cultivo].eventos[index].dias = parseInt(input.value);
-  });
-
-  document.querySelectorAll(".notas").forEach((input) => {
-    const { cultivo, index } = input.dataset;
-    eventosMap[cultivo].eventos[index].notas = input.value;
-  });
-
-  for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
-    await updateDoc(doc(db, "cultivos", cultivoId), { eventos: cultivo.eventos });
-  }
-
-  atualizarTabela();
-  alert("✅ Eventos atualizados com sucesso!");
-}
+});
