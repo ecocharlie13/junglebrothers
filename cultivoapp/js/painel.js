@@ -49,7 +49,7 @@ function atualizarStickers() {
 
   const hoje = new Date();
   const domingoAtual = new Date(hoje);
-  domingoAtual.setDate(hoje.getDate() - hoje.getDay()); // volta pro domingo
+  domingoAtual.setDate(hoje.getDate() - hoje.getDay());
 
   const semanas = [
     { label: "Semana Passada", cor: "bg-blue-600", inicio: -7 },
@@ -57,15 +57,24 @@ function atualizarStickers() {
     { label: "Semana Seguinte", cor: "bg-green-600", inicio: 7 }
   ];
 
-  const eventos = Object.values(eventosMap)
-    .flatMap(c => c.eventos.map(e => {
-      const base = new Date(c.data);
-      const inicio = new Date(base);
-      inicio.setDate(inicio.getDate() + parseInt(e.ajuste || 0));
+  const eventos = [];
+
+  Object.values(eventosMap).forEach(cultivo => {
+    let dataBase = new Date(cultivo.data);
+    cultivo.eventos.forEach((ev) => {
+      const dias = Math.max(1, parseInt(ev.dias || 0));
+      const inicio = new Date(dataBase);
       const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + parseInt(e.dias || 0));
-      return { ...e, cultivo: c.titulo, inicio, fim };
-    }));
+      fim.setDate(fim.getDate() + dias);
+      eventos.push({
+        evento: ev.evento,
+        cultivo: cultivo.titulo,
+        inicio,
+        fim
+      });
+      dataBase = new Date(fim);
+    });
+  });
 
   semanas.forEach(({ label, cor, inicio }) => {
     const ini = new Date(domingoAtual);
@@ -73,12 +82,9 @@ function atualizarStickers() {
     const fim = new Date(ini);
     fim.setDate(fim.getDate() + 6);
 
-    const eventosSemana = eventos.filter(ev => {
-      return (
-        ev.inicio <= fim &&
-        ev.fim >= ini
-      );
-    });
+    const eventosSemana = eventos.filter(ev => (
+      ev.inicio <= fim && ev.fim >= ini
+    ));
 
     const texto = `${label} - ${ini.toLocaleDateString("pt-BR")} (${eventosSemana.length} eventos)`;
     const sticker = document.createElement("div");
@@ -100,27 +106,26 @@ function renderizarGantt() {
   const cores = ["#7e22ce", "#2563eb", "#16a34a", "#eab308", "#dc2626"];
 
   Object.values(eventosMap).forEach((cultivo, idx) => {
-    const base = new Date(cultivo.data);
-
+    let dataBase = new Date(cultivo.data);
     cultivo.eventos.forEach((ev, i) => {
-      const ajuste = parseInt(ev.ajuste || 0);
       const dias = Math.max(1, parseInt(ev.dias || 0));
-      const inicio = new Date(base);
-      inicio.setDate(inicio.getDate() + ajuste);
+      const inicio = new Date(dataBase);
       const fim = new Date(inicio);
       fim.setDate(fim.getDate() + dias);
 
       if (!mostrarPassados && fim < hoje) return;
 
       tarefas.push({
-        id: `${cultivo.titulo}-${i}`,
-        name: `${ev.evento}`,
+        id: `${cultivo.titulo}-${String(i + 1).padStart(2, "0")}`,
+        name: `${cultivo.titulo} - ${String(i + 1).padStart(2, "0")} ${ev.evento}`,
         start: inicio.toISOString().split("T")[0],
         end: fim.toISOString().split("T")[0],
         progress: 100,
         custom_class: `cor-${corIndex % cores.length}`,
         dependencies: ""
       });
+
+      dataBase = new Date(fim);
     });
     corIndex++;
   });
