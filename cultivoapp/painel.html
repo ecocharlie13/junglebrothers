@@ -6,6 +6,7 @@
   <title>Painel – CultivoApp</title>
   <script type="module" src="/cultivoapp/js/painel.js" defer></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-900">
 
@@ -48,9 +49,8 @@
     <!-- Gantt -->
     <section id="gantt-container" class="mt-16">
       <h2 class="text-xl font-bold mb-4 text-center">Cronograma Geral por Cultivo</h2>
-      <div id="gantt" class="overflow-x-auto"></div>
+      <canvas id="gantt-canvas" height="400"></canvas>
     </section>
   </main>
-
 </body>
 </html>
