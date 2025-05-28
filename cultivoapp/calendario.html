@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calendário - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    svg text { font-size: 10px; }
-  </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
   <!-- Header dinâmico -->
@@ -16,23 +13,13 @@
   <!-- Conteúdo -->
   <main class="p-6 max-w-6xl mx-auto">
     <h1 class="text-2xl font-bold mb-4 text-gray-700">Calendário de Cultivo</h1>
-    <div id="gantt-container" class="overflow-x-auto bg-white p-4 rounded shadow"></div>
+    <div id="gantt" class="bg-white border rounded shadow overflow-x-auto p-4"></div>
   </main>
 
   <!-- Scripts -->
-  <script type="module" src="/cultivoapp/js/frappe-gantt.min.js"></script>
+  <script type="module" src="/cultivoapp/js/calendario.js"></script>
 
   <script type="module">
-    import { auth, db } from "/cultivoapp/js/firebase-init.js";
-    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
-    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-    verificarLogin((user) => {
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
-      document.getElementById("logout").addEventListener("click", sair);
-    });
-
     fetch("/cultivoapp/includes/header.html")
       .then(res => res.text())
       .then(html => {
@@ -47,35 +34,6 @@
           });
         });
       });
-
-    const ids = JSON.parse(localStorage.getItem("cultivosSelecionados") || "[]");
-    const tarefas = [];
-
-    Promise.all(
-      ids.map(id =>
-        getDoc(doc(db, "cultivos", id)).then(snap => {
-          if (!snap.exists()) return;
-          const cultivo = snap.data();
-          cultivo.eventos.forEach((evento, i) => {
-            tarefas.push({
-              id: `${id}_${i}`,
-              name: evento.evento,
-              start: evento.data_inicio,
-              end: evento.data_fim,
-              progress: 100,
-              custom_class: "bg-purple-500"
-            });
-          });
-        })
-      )
-    ).then(() => {
-      const container = document.createElement("div");
-      document.getElementById("gantt-container").appendChild(container);
-      new Gantt(container, tarefas, {
-        view_mode: "Day",
-        language: "pt-br"
-      });
-    });
   </script>
 </body>
 </html>
