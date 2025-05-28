@@ -49,15 +49,37 @@
   </main>
 
   <!-- Scripts -->
-  <script type="module" src="/cultivoapp/js/relatorio.js"></script>
-  <script type="module">
-    import { auth } from "/cultivoapp/js/firebase-init.js";
-    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
-    verificarLogin((user) => {
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
-      document.getElementById("logout").addEventListener("click", sair);
+<script type="module" src="/cultivoapp/js/relatorio.js"></script>
+
+<script type="module">
+  import { auth } from "/cultivoapp/js/firebase-init.js";
+  import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
+  verificarLogin((user) => {
+    document.getElementById("user-email").textContent = user.email;
+    document.getElementById("user-pic").src = user.photoURL;
+    document.getElementById("logout").addEventListener("click", sair);
+  });
+</script>
+
+<script type="module">
+  const ids = JSON.parse(localStorage.getItem("cultivosSelecionados") || "[]");
+  const nomes = [];
+
+  import("/cultivoapp/js/firebase-init.js").then(({ db }) => {
+    import("https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js").then(({ getDoc, doc }) => {
+      Promise.all(ids.map(id =>
+        getDoc(doc(db, "cultivos", id)).then(snap => {
+          if (snap.exists()) nomes.push(snap.data().titulo);
+        })
+      )).then(() => {
+        const span = document.createElement("span");
+        span.id = "cultivos-ativos";
+        span.className = "text-sm text-gray-500 ml-2";
+        span.textContent = "– " + nomes.join(" / ");
+        document.querySelector("h1").appendChild(span);
+      });
     });
-  </script>
+  });
+</script>
 </body>
 </html>
