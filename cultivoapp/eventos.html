@@ -46,7 +46,8 @@
     let cultivosSelecionados = [];
 
     verificarLogin(async (user) => {
-      document.getElementById("user-email").textContent = user.email;
+      const emailSpan = document.getElementById("user-email");
+      if (emailSpan) emailSpan.textContent = user.email;
       document.getElementById("user-pic").src = user.photoURL;
       document.getElementById("logout").addEventListener("click", sair);
 
