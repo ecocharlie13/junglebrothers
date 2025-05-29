@@ -46,19 +46,24 @@
   <script type="module" src="/cultivoapp/js/blueprints.js"></script>
   <script type="module">
     fetch("/cultivoapp/includes/header.html")
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById("header-placeholder").innerHTML = html;
-        import("/cultivoapp/js/auth.js").then(({ verificarLogin, sair }) => {
-          import("/cultivoapp/js/firebase-init.js").then(({ auth }) => {
-            verificarLogin((user) => {
-              document.getElementById("user-email").textContent = user.email;
-              document.getElementById("user-pic").src = user.photoURL;
-              document.getElementById("logout").addEventListener("click", sair);
-            });
-          });
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById("header-placeholder").innerHTML = html;
+    import("/cultivoapp/js/auth.js").then(({ verificarLogin, sair }) => {
+      import("/cultivoapp/js/firebase-init.js").then(({ auth }) => {
+        verificarLogin((user) => {
+          const emailSpan = document.getElementById("user-email");
+          if (emailSpan) emailSpan.textContent = user.email;
+
+          const pic = document.getElementById("user-pic");
+          if (pic) pic.src = user.photoURL;
+
+          const logoutBtn = document.getElementById("logout");
+          if (logoutBtn) logoutBtn.addEventListener("click", sair);
         });
       });
+    });
+  });
   </script>
 
 </body>
