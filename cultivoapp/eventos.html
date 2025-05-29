@@ -14,11 +14,13 @@
     <h1 class="text-2xl font-bold text-center mb-2">Todos os Eventos</h1>
     <p class="text-center text-sm mb-6 text-gray-600">Eventos de todos os cultivos selecionados</p>
 
+    <!-- Legenda de Cultivos -->
+    <div id="legenda-cultivos" class="flex flex-wrap gap-4 justify-center mb-4"></div>
+
     <div class="overflow-x-auto">
       <table class="w-full max-w-6xl mx-auto bg-white border border-gray-300">
         <thead class="bg-orange-400 text-white">
           <tr>
-            <th class="px-2 py-1">Cultivo</th>
             <th class="px-2 py-1">Evento</th>
             <th class="px-2 py-1">Dias</th>
             <th class="px-2 py-1">Início</th>
@@ -44,6 +46,8 @@
 
     let eventosMap = {};
     let cultivosSelecionados = [];
+    const cores = ["bg-red-100", "bg-green-100", "bg-blue-100", "bg-yellow-100", "bg-purple-100", "bg-pink-100", "bg-teal-100", "bg-indigo-100", "bg-orange-100", "bg-lime-100"];
+    const coresMap = {};
 
     verificarLogin(async (user) => {
       const emailSpan = document.getElementById("user-email");
@@ -57,6 +61,7 @@
         if (snap.exists()) eventosMap[cultivoId] = snap.data();
       }
 
+      gerarLegenda();
       atualizarTabela();
     });
 
@@ -65,41 +70,56 @@
       return d.toISOString().split("T")[0];
     }
 
+    function gerarLegenda() {
+      const legenda = document.getElementById("legenda-cultivos");
+      legenda.innerHTML = "";
+
+      cultivosSelecionados.forEach((id, idx) => {
+        const cor = cores[idx % cores.length];
+        coresMap[id] = cor;
+
+        const div = document.createElement("div");
+        div.className = `flex items-center gap-2 px-2 py-1 rounded ${cor}`;
+        div.innerHTML = `<span class="w-3 h-3 rounded-full bg-gray-700"></span> ${eventosMap[id].titulo}`;
+        legenda.appendChild(div);
+      });
+    }
+
     function atualizarTabela() {
-  const tbody = document.getElementById("tabela-eventos");
-  tbody.innerHTML = "";
+      const tbody = document.getElementById("tabela-eventos");
+      tbody.innerHTML = "";
 
-  for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
-    let inicio = new Date(cultivo.data);
+      for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
+        let inicio = new Date(cultivo.data);
 
-    cultivo.eventos.forEach((ev, i) => {
-      const fim = new Date(inicio);
-      fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
-      const feito = ev.feito === true;
+        cultivo.eventos.forEach((ev, i) => {
+          const fim = new Date(inicio);
+          fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
+          const feito = ev.feito === true;
 
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="border px-2 py-1">${cultivo.titulo}</td>
-        <td class="border px-2 py-1 ${feito ? "line-through text-gray-500" : ""}">${ev.evento}</td>
-        <td class="border px-2 py-1">
-          <input class="dias w-16 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
-        </td>
-        <td class="border px-2 py-1">
-          <input class="inicio px-1 border rounded" type="date" value="${formatarData(inicio)}" data-cultivo="${cultivoId}" data-index="${i}" />
-        </td>
-        <td class="border px-2 py-1">${formatarData(fim)}</td>
-        <td class="border px-2 py-1">
-          <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
-        </td>
-        <td class="border px-2 py-1 text-center">
-          <input type="checkbox" class="feito" data-cultivo="${cultivoId}" data-index="${i}" ${feito ? "checked" : ""} />
-        </td>
-      `;
-      tbody.appendChild(tr);
-      inicio = new Date(fim);
-    });
-  }
-}
+          const tr = document.createElement("tr");
+          tr.className = coresMap[cultivoId];
+          tr.innerHTML = `
+            <td class="border px-2 py-1 ${feito ? "line-through text-gray-500" : ""}">${ev.evento}</td>
+            <td class="border px-2 py-1">
+              <input class="dias w-16 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
+            </td>
+            <td class="border px-2 py-1">
+              <input class="inicio px-1 border rounded" type="date" value="${formatarData(inicio)}" data-cultivo="${cultivoId}" data-index="${i}" />
+            </td>
+            <td class="border px-2 py-1">${formatarData(fim)}</td>
+            <td class="border px-2 py-1">
+              <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
+            </td>
+            <td class="border px-2 py-1 text-center">
+              <input type="checkbox" class="feito" data-cultivo="${cultivoId}" data-index="${i}" ${feito ? "checked" : ""} />
+            </td>
+          `;
+          tbody.appendChild(tr);
+          inicio = new Date(fim);
+        });
+      }
+    }
 
     document.getElementById("atualizar").addEventListener("click", async () => {
       document.querySelectorAll(".dias").forEach(input => {
@@ -121,6 +141,7 @@
         const { cultivo, index } = input.dataset;
         eventosMap[cultivo].eventos[index].feito = input.checked;
       });
+
       for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
         await updateDoc(doc(db, "cultivos", cultivoId), {
           data: cultivo.data,
@@ -134,22 +155,22 @@
   </script>
 
   <script type="module">
-  fetch("/cultivoapp/includes/header.html")
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById("header-placeholder").innerHTML = html;
-      import("/cultivoapp/js/auth.js").then(({ verificarLogin, sair }) => {
-        import("/cultivoapp/js/firebase-init.js").then(({ auth }) => {
-          verificarLogin((user) => {
-            const pic = document.getElementById("user-pic");
-            if (pic) pic.src = user.photoURL;
+    fetch("/cultivoapp/includes/header.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("header-placeholder").innerHTML = html;
+        import("/cultivoapp/js/auth.js").then(({ verificarLogin, sair }) => {
+          import("/cultivoapp/js/firebase-init.js").then(({ auth }) => {
+            verificarLogin((user) => {
+              const pic = document.getElementById("user-pic");
+              if (pic) pic.src = user.photoURL;
 
-            const logoutBtn = document.getElementById("logout");
-            if (logoutBtn) logoutBtn.addEventListener("click", sair);
+              const logoutBtn = document.getElementById("logout");
+              if (logoutBtn) logoutBtn.addEventListener("click", sair);
+            });
           });
         });
       });
-    });
-</script>
+  </script>
 </body>
 </html>
