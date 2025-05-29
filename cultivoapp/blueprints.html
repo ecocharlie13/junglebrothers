@@ -43,28 +43,28 @@
   </div>
 
   <!-- Scripts -->
-  <script type="module" src="/cultivoapp/js/blueprints.js"></script>
   <script type="module">
-  fetch("/cultivoapp/includes/header.html")
-    .then(res => res.text())
-    .then(async html => {
-      document.getElementById("header-placeholder").innerHTML = html;
+    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
+    import * as blueprint from "/cultivoapp/js/blueprints.js";
 
-      const { verificarLogin, sair } = await import("/cultivoapp/js/auth.js");
-      const { auth } = await import("/cultivoapp/js/firebase-init.js");
+    fetch("/cultivoapp/includes/header.html")
+      .then(res => res.text())
+      .then(async html => {
+        document.getElementById("header-placeholder").innerHTML = html;
 
-      verificarLogin((user) => {
-        const emailSpan = document.getElementById("user-email");
-        if (emailSpan) emailSpan.textContent = user.email;
+        verificarLogin(async (user) => {
+          const emailSpan = document.getElementById("user-email");
+          if (emailSpan) emailSpan.textContent = user.email;
 
-        const pic = document.getElementById("user-pic");
-        if (pic) pic.src = user.photoURL;
+          const pic = document.getElementById("user-pic");
+          if (pic) pic.src = user.photoURL;
 
-        const logoutBtn = document.getElementById("logout");
-        if (logoutBtn) logoutBtn.addEventListener("click", sair);
+          const logoutBtn = document.getElementById("logout");
+          if (logoutBtn) logoutBtn.addEventListener("click", sair);
+
+          await blueprint.init(user); // 🔥 Chamada correta do init()
+        });
       });
-    });
-</script>
-
+  </script>
 </body>
 </html>
