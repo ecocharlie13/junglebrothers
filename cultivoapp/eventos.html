@@ -7,21 +7,20 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-  <!-- Header dinâmico -->
   <div id="header-placeholder"></div>
 
   <main class="p-6">
     <h1 class="text-2xl font-bold text-center mb-2">Todos os Eventos</h1>
     <p class="text-center text-sm mb-6 text-gray-600">Eventos de todos os cultivos selecionados</p>
 
-    <!-- Legenda de Cultivos -->
+    <!-- Legenda -->
     <div id="legenda-cultivos" class="flex flex-wrap gap-4 justify-center mb-4"></div>
 
     <div class="overflow-x-auto">
       <table class="w-full max-w-6xl mx-auto bg-white border border-gray-300">
         <thead class="bg-orange-400 text-white">
           <tr>
-            <th class="px-2 py-1"></th>
+            <th class="px-2 py-1 w-4"></th> <!-- Bolinha -->
             <th class="px-2 py-1">Evento</th>
             <th class="px-1 py-1 w-16">Dias</th>
             <th class="px-2 py-1">Início</th>
@@ -36,7 +35,6 @@
 
     <div class="flex justify-center gap-4 mt-6">
       <button id="atualizar" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded">Atualizar</button>
-      <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-4 py-2 rounded">Salvar PDF</button>
     </div>
   </main>
 
@@ -45,19 +43,16 @@
     import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
     import { getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    function formatarData(data) {
-      const d = new Date(data);
-      return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-    }
-
     let eventosMap = {};
     let cultivosSelecionados = [];
 
     verificarLogin(async (user) => {
       const emailSpan = document.getElementById("user-email");
       if (emailSpan) emailSpan.textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
-      document.getElementById("logout").addEventListener("click", sair);
+      const pic = document.getElementById("user-pic");
+      if (pic) pic.src = user.photoURL;
+      const logoutBtn = document.getElementById("logout");
+      if (logoutBtn) logoutBtn.addEventListener("click", sair);
 
       cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionados")) || [];
       for (const cultivoId of cultivosSelecionados) {
@@ -66,27 +61,30 @@
       }
 
       atualizarTabela();
-      gerarLegenda();
     });
 
-    function gerarLegenda() {
-      const legenda = document.getElementById("legenda-cultivos");
-      legenda.innerHTML = "";
-      for (const [id, cultivo] of Object.entries(eventosMap)) {
-        const item = document.createElement("div");
-        item.className = "flex items-center gap-2";
-        item.innerHTML = `<span class="w-4 h-4 rounded-full" style="background-color: ${cultivo.cor || '#ccc'}"></span><span>${cultivo.titulo}</span>`;
-        legenda.appendChild(item);
-      }
+    function formatarDataBR(data) {
+      return new Date(data).toLocaleDateString("pt-BR");
+    }
+
+    function formatarDataInput(data) {
+      return new Date(data).toISOString().split("T")[0];
     }
 
     function atualizarTabela() {
       const tbody = document.getElementById("tabela-eventos");
+      const legenda = document.getElementById("legenda-cultivos");
       tbody.innerHTML = "";
+      legenda.innerHTML = "";
 
       for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
+        // Legenda
+        const tag = document.createElement("span");
+        tag.className = "flex items-center gap-2 text-sm";
+        tag.innerHTML = `<span class="w-4 h-4 rounded-full inline-block" style="background-color:${cultivo.cor || "#999"}"></span> ${cultivo.titulo}`;
+        legenda.appendChild(tag);
+
         let inicio = new Date(cultivo.data);
-        const cor = cultivo.cor || "#ccc";
 
         cultivo.eventos.forEach((ev, i) => {
           const fim = new Date(inicio);
@@ -96,16 +94,16 @@
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td class="border px-2 py-1 text-center">
-              <span class="inline-block w-3 h-3 rounded-full" style="background-color: ${cor}"></span>
+              <span class="w-3 h-3 rounded-full inline-block" style="background-color:${cultivo.cor || "#999"}"></span>
             </td>
             <td class="border px-2 py-1 ${feito ? "line-through text-gray-500" : ""}">${ev.evento}</td>
-            <td class="border px-1 py-1">
-              <input class="dias w-full px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
+            <td class="border px-1 py-1 text-center">
+              <input class="dias w-12 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
             </td>
             <td class="border px-2 py-1">
-              <input class="inicio px-1 border rounded" type="date" value="${new Date(inicio).toISOString().split("T")[0]}" data-cultivo="${cultivoId}" data-index="${i}" />
+              <input class="inicio px-1 border rounded" type="date" value="${formatarDataInput(inicio)}" data-cultivo="${cultivoId}" data-index="${i}" />
             </td>
-            <td class="border px-2 py-1">${formatarData(fim)}</td>
+            <td class="border px-2 py-1">${formatarDataBR(fim)}</td>
             <td class="border px-2 py-1">
               <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
             </td>
@@ -148,9 +146,26 @@
       }
 
       atualizarTabela();
-      gerarLegenda();
       alert("Eventos atualizados com sucesso!");
     });
+  </script>
+
+  <script type="module">
+    fetch("/cultivoapp/includes/header.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("header-placeholder").innerHTML = html;
+        import("/cultivoapp/js/auth.js").then(({ verificarLogin, sair }) => {
+          import("/cultivoapp/js/firebase-init.js").then(({ auth }) => {
+            verificarLogin((user) => {
+              const pic = document.getElementById("user-pic");
+              if (pic) pic.src = user.photoURL;
+              const logoutBtn = document.getElementById("logout");
+              if (logoutBtn) logoutBtn.addEventListener("click", sair);
+            });
+          });
+        });
+      });
   </script>
 </body>
 </html>
