@@ -65,39 +65,40 @@
     }
 
     function atualizarTabela() {
-      const tbody = document.getElementById("tabela-eventos");
-      tbody.innerHTML = "";
+  const tbody = document.getElementById("tabela-eventos");
+  tbody.innerHTML = "";
 
-      for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
-        let inicio = new Date(cultivo.data);
+  for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
+    let inicio = new Date(cultivo.data);
 
-        cultivo.eventos.forEach((ev, i) => {
-          const fim = new Date(inicio);
-          fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
+    cultivo.eventos.forEach((ev, i) => {
+      const fim = new Date(inicio);
+      fim.setDate(fim.getDate() + (parseInt(ev.dias) || 0));
+      const feito = ev.feito === true;
 
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td class="border px-2 py-1">${cultivo.titulo}</td>
-            <td class="border px-2 py-1">${ev.evento}</td>
-            <td class="border px-2 py-1">
-              <input class="dias w-16 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
-            </td>
-            <td class="border px-2 py-1">
-              <input class="inicio px-1 border rounded" type="date" value="${formatarData(inicio)}" data-cultivo="${cultivoId}" data-index="${i}" />
-            </td>
-            <td class="border px-2 py-1">${formatarData(fim)}</td>
-            <td class="border px-2 py-1">
-              <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
-            </td>
-            <td class="border px-2 py-1 text-center">
-              <input type="checkbox" class="feito" data-cultivo="${cultivoId}" data-index="${i}" ${ev.feito ? "checked" : ""} />
-            </td>
-          `;
-          tbody.appendChild(tr);
-          inicio = new Date(fim);
-        });
-      }
-    }
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="border px-2 py-1">${cultivo.titulo}</td>
+        <td class="border px-2 py-1 ${feito ? "line-through text-gray-500" : ""}">${ev.evento}</td>
+        <td class="border px-2 py-1">
+          <input class="dias w-16 px-1 border rounded" type="number" value="${ev.dias}" data-cultivo="${cultivoId}" data-index="${i}" />
+        </td>
+        <td class="border px-2 py-1">
+          <input class="inicio px-1 border rounded" type="date" value="${formatarData(inicio)}" data-cultivo="${cultivoId}" data-index="${i}" />
+        </td>
+        <td class="border px-2 py-1">${formatarData(fim)}</td>
+        <td class="border px-2 py-1">
+          <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
+        </td>
+        <td class="border px-2 py-1 text-center">
+          <input type="checkbox" class="feito" data-cultivo="${cultivoId}" data-index="${i}" ${feito ? "checked" : ""} />
+        </td>
+      `;
+      tbody.appendChild(tr);
+      inicio = new Date(fim);
+    });
+  }
+}
 
     document.getElementById("atualizar").addEventListener("click", async () => {
       document.querySelectorAll(".dias").forEach(input => {
@@ -115,6 +116,10 @@
         eventosMap[cultivo].eventos[index].notas = input.value;
       });
 
+      document.querySelectorAll(".feito").forEach(input => {
+        const { cultivo, index } = input.dataset;
+        eventosMap[cultivo].eventos[index].feito = input.checked;
+      });
       for (const [cultivoId, cultivo] of Object.entries(eventosMap)) {
         await updateDoc(doc(db, "cultivos", cultivoId), {
           data: cultivo.data,
