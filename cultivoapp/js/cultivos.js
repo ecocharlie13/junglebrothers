@@ -56,7 +56,15 @@ async function carregarCultivos() {
     const label = document.createElement("label");
     label.className = "flex items-center gap-2";
     label.appendChild(checkbox);
-    label.appendChild(document.createTextNode(cultivo.titulo));
+    const corDiv = document.createElement("div");
+    corDiv.className = "w-4 h-4 rounded-full";
+    corDiv.style.backgroundColor = cultivo.cor || "#999";
+
+    const spanTitulo = document.createElement("span");
+    spanTitulo.textContent = cultivo.titulo;
+
+    label.appendChild(corDiv);
+    label.appendChild(spanTitulo);
 
     lista.appendChild(label);
   });
@@ -74,13 +82,15 @@ async function criarCultivo() {
 
   const blueprint = blueprintSnap.data();
   const dataISO = new Date(dataInput).toISOString();
+  const cor = document.getElementById("cor").value;
 
   const novoCultivo = {
     blueprint: blueprintId,
     titulo,
     data: dataISO,
     eventos: blueprint.eventos,
-    usuario: usuario.email
+    usuario: usuario.email,
+    cor
   };
 
   await setDoc(doc(db, "cultivos", `${titulo}_${usuario.uid}`), novoCultivo);
