@@ -11,7 +11,7 @@ const cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionad
     if (!snap.exists()) continue;
     const cultivo = snap.data();
 
-    const nomeCultivo = cultivo.titulo || "Cultivo";  // ✅ Nome legível do cultivo
+    const nomeCultivo = cultivo.titulo || "Cultivo";
     let inicio = new Date(cultivo.data);
 
     cultivo.eventos.forEach((evento, i) => {
@@ -20,15 +20,19 @@ const cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionad
       fim.setDate(inicio.getDate() + dias);
 
       tarefas.push({
-  id: `${cultivoId}-${i}`,
-  name: evento.evento,
-  start: inicio.toISOString().split("T")[0],
-  end: fim.toISOString().split("T")[0],
-  progress: 100,
-  custom_class: "gantt-bar",
-  cultivo: cultivo.titulo // ✅ adicione isso!
-});
+        id: `${cultivoId}-${i}`,
+        name: evento.evento,
+        start: inicio.toISOString().split("T")[0],
+        end: fim.toISOString().split("T")[0],
+        progress: 100,
+        custom_class: "gantt-bar",
+        cultivo: nomeCultivo
+      });
+
+      inicio = new Date(fim);
+    });
   }
 
+  // ✅ Corrigido: mover para fora do for
   new Gantt("#gantt", tarefas);
 })();
