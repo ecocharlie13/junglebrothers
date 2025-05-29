@@ -33,6 +33,15 @@ const cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionad
     });
   }
 
-  // ✅ Corrigido: mover para fora do for
-  new Gantt("#gantt", tarefas);
+  // ✅ Após carregar os dados e montar a lista tarefas:
+const periodoInicial = document.getElementById("periodo").value;
+const periodoFormatado = periodoInicial.charAt(0).toUpperCase() + periodoInicial.slice(1).toLowerCase();
+
+new Gantt("#gantt", tarefas, periodoFormatado);
+
+// ✅ Atualiza o gráfico ao mudar o período
+document.getElementById("periodo").addEventListener("change", (e) => {
+  const novoPeriodo = e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1).toLowerCase();
+  new Gantt("#gantt", tarefas, novoPeriodo);
+});
 })();
