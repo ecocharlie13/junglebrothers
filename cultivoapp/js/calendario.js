@@ -10,6 +10,8 @@ const cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionad
     const snap = await getDoc(doc(db, "cultivos", cultivoId));
     if (!snap.exists()) continue;
     const cultivo = snap.data();
+
+    const nomeCultivo = cultivo.titulo || "Cultivo";  // ✅ Nome legível do cultivo
     let inicio = new Date(cultivo.data);
 
     cultivo.eventos.forEach((evento, i) => {
@@ -18,7 +20,7 @@ const cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionad
       fim.setDate(inicio.getDate() + dias);
 
       tarefas.push({
-        id: `${cultivoId}-${i}`,
+        id: `${nomeCultivo}-${i}`,              // ✅ ID com nome legível
         name: evento.evento,
         start: inicio.toISOString().split("T")[0],
         end: fim.toISOString().split("T")[0],
