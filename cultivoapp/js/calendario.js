@@ -20,16 +20,14 @@ const cultivosSelecionados = JSON.parse(localStorage.getItem("cultivosSelecionad
       fim.setDate(inicio.getDate() + dias);
 
       tarefas.push({
-        id: `${nomeCultivo}-${i}`,              // ✅ ID com nome legível
-        name: evento.evento,
-        start: inicio.toISOString().split("T")[0],
-        end: fim.toISOString().split("T")[0],
-        progress: 100,
-        custom_class: "gantt-bar"
-      });
-
-      inicio = new Date(fim);
-    });
+  id: `${cultivoId}-${i}`,
+  name: evento.evento,
+  start: inicio.toISOString().split("T")[0],
+  end: fim.toISOString().split("T")[0],
+  progress: 100,
+  custom_class: "gantt-bar",
+  cultivo: cultivo.titulo // ✅ adicione isso!
+});
   }
 
   new Gantt("#gantt", tarefas);
