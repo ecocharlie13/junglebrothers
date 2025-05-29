@@ -27,6 +27,8 @@
       <input id="titulo" type="text" required class="w-full border rounded px-3 py-2 mb-4" placeholder="Ex: Cultivo Verão" />
 
       <label for="data-inicial" class="block mb-2 font-medium">Data inicial</label>
+      <label for="cor" class="block mb-2 font-medium">Cor do Cultivo</label>
+      <input id="cor" type="color" class="w-full border rounded px-3 py-2 mb-4" value="#7c3aed" />
       <input id="data-inicial" type="date" required class="w-full border rounded px-3 py-2 mb-4" />
 
       <button id="criar-cultivo" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full">
@@ -82,13 +84,15 @@
 
       const blueprint = blueprintSnap.data();
       const dataISO = new Date(dataInput).toISOString();
+      const cor = document.getElementById("cor").value;
 
       const novoCultivo = {
         blueprint: blueprintId,
         titulo,
         data: dataISO,
         eventos: blueprint.eventos,
-        usuario: usuario.email
+        usuario: usuario.email,
+        cor
       };
 
       await setDoc(doc(db, "cultivos", `${titulo}_${usuario.uid}`), novoCultivo);
