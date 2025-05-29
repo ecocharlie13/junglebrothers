@@ -23,9 +23,9 @@
     <a id="btn-eventos" href="/cultivoapp/eventos.html" class="block w-full bg-purple-400 text-white font-bold py-2 px-4 rounded text-center pointer-events-none opacity-50">
       Acessar Eventos
     </a>
-    <a href="/cultivoapp/painel.html" class="block w-full bg-gray-800 hover:bg-black text-white font-bold py-2 px-4 rounded text-center">
-      Painel (Gráfico Gantt)
-    </a>
+    <a id="btn-calendario" href="/cultivoapp/calendario.html" class="block w-full bg-gray-400 text-white font-bold py-2 px-4 rounded text-center pointer-events-none opacity-50">
+  Relatório
+   </a>
   </div>
 
   <script type="module">
@@ -40,6 +40,7 @@
 
     const btnCultivos = document.getElementById("btn-cultivos");
     const btnEventos = document.getElementById("btn-eventos");
+    const btnCalendario = document.getElementById("btn-calendario"); // ADICIONADO
     const logoutBtn = document.getElementById("logout");
 
     onAuthStateChanged(auth, async (user) => {
@@ -60,11 +61,15 @@
         btnCultivos.classList.replace("bg-purple-400", "bg-purple-600");
         btnCultivos.classList.add("hover:bg-purple-700");
       }
-
+  
       if (!blueprintSnap.empty && !cultivoSnap.empty) {
         btnEventos.classList.remove("pointer-events-none", "opacity-50");
         btnEventos.classList.replace("bg-purple-400", "bg-purple-600");
         btnEventos.classList.add("hover:bg-purple-700");
+
+        btnCalendario.classList.remove("pointer-events-none", "opacity-50");
+        btnCalendario.classList.replace("bg-gray-400", "bg-gray-800");
+        btnCalendario.classList.add("hover:bg-black");
       }
     });
   </script>
