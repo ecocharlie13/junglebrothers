@@ -24,6 +24,7 @@
             <th class="px-2 py-1">Início</th>
             <th class="px-2 py-1">Fim</th>
             <th class="px-2 py-1">Notas</th>
+            <th class="px-2 py-1">Tarefa</th>
           </tr>
         </thead>
         <tbody id="tabela-eventos"></tbody>
@@ -87,6 +88,9 @@
             <td class="border px-2 py-1">${formatarData(fim)}</td>
             <td class="border px-2 py-1">
               <input class="notas w-full px-1 border rounded" value="${ev.notas || ""}" data-cultivo="${cultivoId}" data-index="${i}" />
+            </td>
+            <td class="border px-2 py-1 text-center">
+              <input type="checkbox" class="feito" data-cultivo="${cultivoId}" data-index="${i}" ${ev.feito ? "checked" : ""} />
             </td>
           `;
           tbody.appendChild(tr);
