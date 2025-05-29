@@ -36,7 +36,7 @@ export async function carregarDropdown() {
   snap.forEach((docSnap) => {
     const opt = document.createElement("option");
     opt.value = docSnap.id;
-    opt.textContent = docSnap.data().nome;
+    opt.textContent = docSnap.data().nome || "Sem nome";
     select.appendChild(opt);
   });
 }
@@ -48,10 +48,12 @@ export async function loadBlueprint() {
   if (!docSnap.exists()) return;
 
   const data = docSnap.data();
-  document.getElementById("nome-blueprint").value = data.nome;
+  document.getElementById("nome-blueprint").value = data.nome || "";
   const tbody = document.getElementById("tabela");
   tbody.innerHTML = "";
-  data.eventos.forEach(ev => {
+
+  const eventos = Array.isArray(data.eventos) ? data.eventos : [];
+  eventos.forEach(ev => {
     const tr = criarLinha(ev.evento, ev.dias, ev.ajuste, ev.notas);
     tbody.appendChild(tr);
   });
@@ -72,7 +74,8 @@ export async function salvarBlueprint() {
     });
   });
 
-  const docRef = doc(db, "blueprints", nome + "_" + usuario.uid);
+  const docId = nome.toLowerCase().replace(/\s+/g, "-") + "_" + usuario.uid;
+  const docRef = doc(db, "blueprints", docId);
   await setDoc(docRef, {
     usuario: usuario.email,
     nome,
