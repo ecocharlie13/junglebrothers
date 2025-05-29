@@ -8,12 +8,11 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
   <!-- Header dinâmico -->
-<div id="header-placeholder"></div>
+  <div id="header-placeholder"></div>
 
-  <!-- Alerta de status -->
+  <!-- Alerta -->
   <div id="alert" class="hidden mx-auto max-w-3xl mt-4 px-4 py-2 rounded text-center font-semibold"></div>
 
-  <!-- Conteúdo -->
   <main class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
     <!-- Novo Cultivo -->
     <section class="bg-white rounded-lg shadow p-6">
@@ -67,13 +66,8 @@
 
     let usuario = null;
 
-    verificarLogin(async (user) => {
+    verificarLogin((user) => {
       usuario = user;
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("user-pic").src = user.photoURL;
-      document.getElementById("logout").addEventListener("click", sair);
-      await carregarBlueprints();
-      await carregarCultivos();
     });
 
     document.getElementById("criar-cultivo").addEventListener("click", async () => {
@@ -163,22 +157,31 @@
       alert.classList.remove("hidden");
       setTimeout(() => alert.classList.add("hidden"), 4000);
     }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      await new Promise(resolve => verificarLogin(u => { usuario = u; resolve(); }));
+      await carregarBlueprints();
+      await carregarCultivos();
+    });
   </script>
+
   <script type="module">
-  fetch("/cultivoapp/includes/header.html")
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById("header-placeholder").innerHTML = html;
-      import("/cultivoapp/js/auth.js").then(({ verificarLogin, sair }) => {
-        import("/cultivoapp/js/firebase-init.js").then(({ auth }) => {
-          verificarLogin((user) => {
-            document.getElementById("user-email").textContent = user.email;
-            document.getElementById("user-pic").src = user.photoURL;
-            document.getElementById("logout").addEventListener("click", sair);
+    fetch("/cultivoapp/includes/header.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("header-placeholder").innerHTML = html;
+        import("/cultivoapp/js/auth.js").then(({ verificarLogin, sair }) => {
+          import("/cultivoapp/js/firebase-init.js").then(({ auth }) => {
+            verificarLogin((user) => {
+              const pic = document.getElementById("user-pic");
+              if (pic) pic.src = user.photoURL;
+
+              const logoutBtn = document.getElementById("logout");
+              if (logoutBtn) logoutBtn.addEventListener("click", sair);
+            });
           });
         });
       });
-    });
-</script>
+  </script>
 </body>
 </html>
