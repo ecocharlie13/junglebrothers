@@ -27,8 +27,18 @@
       <input id="titulo" type="text" required class="w-full border rounded px-3 py-2 mb-4" placeholder="Ex: Cultivo Verão" />
 
       <label for="data-inicial" class="block mb-2 font-medium">Data inicial</label>
-      <label for="cor" class="block mb-2 font-medium">Cor do Cultivo</label>
-      <input id="cor" type="color" class="w-full border rounded px-3 py-2 mb-4" value="#7c3aed" />
+      <label class="block mb-2 font-medium">Cor do Cultivo</label>
+      <div id="cor-paleta" class="flex flex-wrap gap-2 mb-4">
+        <button data-cor="#7c3aed" class="w-8 h-8 rounded-full border-2 border-transparent" style="background-color: #7c3aed"></button>
+        <button data-cor="#6366f1" class="w-8 h-8 rounded-full border-2 border-transparent" style="background-color: #6366f1"></button>
+        <button data-cor="#10b981" class="w-8 h-8 rounded-full border-2 border-transparent" style="background-color: #10b981"></button>
+        <button data-cor="#f59e0b" class="w-8 h-8 rounded-full border-2 border-transparent" style="background-color: #f59e0b"></button>
+        <button data-cor="#ef4444" class="w-8 h-8 rounded-full border-2 border-transparent" style="background-color: #ef4444"></button>
+        <button data-cor="#14b8a6" class="w-8 h-8 rounded-full border-2 border-transparent" style="background-color: #14b8a6"></button>
+        <button data-cor="#e879f9" class="w-8 h-8 rounded-full border-2 border-transparent" style="background-color: #e879f9"></button>
+        <button data-cor="#a3e635" class="w-8 h-8 rounded-full border-2 border-transparent" style="background-color: #a3e635"></button>
+      </div>
+      <input type="hidden" id="cor" value="#7c3aed" />
       <input id="data-inicial" type="date" required class="w-full border rounded px-3 py-2 mb-4" />
 
       <button id="criar-cultivo" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded w-full">
@@ -161,7 +171,19 @@
       alert.classList.remove("hidden");
       setTimeout(() => alert.classList.add("hidden"), 4000);
     }
+    // Ativar seleção de cor da paleta
+document.querySelectorAll("#cor-paleta button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const corSelecionada = btn.dataset.cor;
+    document.getElementById("cor").value = corSelecionada;
 
+    // Resetar destaques
+    document.querySelectorAll("#cor-paleta button").forEach(b => b.classList.remove("ring-2", "ring-black"));
+
+    // Destacar botão ativo
+    btn.classList.add("ring-2", "ring-black");
+  });
+});
     window.addEventListener("DOMContentLoaded", async () => {
       await new Promise(resolve => verificarLogin(u => { usuario = u; resolve(); }));
       await carregarBlueprints();
