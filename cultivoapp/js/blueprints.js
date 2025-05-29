@@ -1,19 +1,45 @@
+// blueprints.js
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import {
-  doc, setDoc, getDocs, getDoc, deleteDoc,
-  collection, query, where
+  doc,
+  setDoc,
+  getDocs,
+  getDoc,
+  deleteDoc,
+  collection,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
 
 let usuario = null;
+let blueprintPadraoId = "";
 
 export async function init(user) {
   usuario = user;
+  blueprintPadraoId = `padrao_${usuario.uid}`;
+  await garantirBlueprintPadrao();
   await carregarDropdown();
 
   document.getElementById("salvar").addEventListener("click", salvarBlueprint);
   document.getElementById("carregar").addEventListener("click", loadBlueprint);
   document.getElementById("adicionar").addEventListener("click", adicionarLinha);
   document.getElementById("deletar").addEventListener("click", deletarBlueprint);
+  document.getElementById("logout").addEventListener("click", sair);
+}
+
+async function garantirBlueprintPadrao() {
+  const ref = doc(db, "blueprints", blueprintPadraoId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      usuario: usuario.email,
+      nome: "Blueprint Padrão",
+      eventos: [],
+      padrao: true,
+      criado: new Date().toISOString()
+    });
+  }
 }
 
 export async function carregarDropdown() {
@@ -38,6 +64,8 @@ export async function loadBlueprint() {
 
   const data = docSnap.data();
   document.getElementById("nome-blueprint").value = data.nome || "";
+  document.getElementById("deletar").disabled = id === blueprintPadraoId;
+
   const tbody = document.getElementById("tabela");
   tbody.innerHTML = "";
 
@@ -69,6 +97,7 @@ export async function salvarBlueprint() {
     usuario: usuario.email,
     nome,
     eventos,
+    padrao: false,
     criado: new Date().toISOString()
   });
 
@@ -79,7 +108,7 @@ export async function salvarBlueprint() {
 
 export async function deletarBlueprint() {
   const id = document.getElementById("blueprint-select").value;
-  if (!id) return alert("Selecione uma blueprint.");
+  if (!id || id === blueprintPadraoId) return alert("Esta blueprint não pode ser deletada.");
   if (!confirm("Tem certeza que deseja deletar esta blueprint?")) return;
 
   await deleteDoc(doc(db, "blueprints", id));
