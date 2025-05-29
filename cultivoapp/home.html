@@ -24,8 +24,8 @@
       Acessar Eventos
     </a>
     <a id="btn-calendario" href="/cultivoapp/calendario.html" class="block w-full bg-gray-400 text-white font-bold py-2 px-4 rounded text-center pointer-events-none opacity-50">
-  Relatório
-   </a>
+      Calendário
+    </a>
   </div>
 
   <script type="module">
@@ -35,12 +35,13 @@
       collection,
       getDocs,
       query,
-      where
+      where,
+      addDoc
     } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
     const btnCultivos = document.getElementById("btn-cultivos");
     const btnEventos = document.getElementById("btn-eventos");
-    const btnCalendario = document.getElementById("btn-calendario"); // ADICIONADO
+    const btnCalendario = document.getElementById("btn-calendario");
     const logoutBtn = document.getElementById("logout");
 
     onAuthStateChanged(auth, async (user) => {
@@ -53,15 +54,29 @@
         window.location.href = "/login.html";
       };
 
-      const blueprintSnap = await getDocs(query(collection(db, "blueprints"), where("usuario", "==", user.email)));
+      const blueprintRef = collection(db, "blueprints");
+      const blueprintSnap = await getDocs(query(blueprintRef, where("usuario", "==", user.email)));
+
+      // Cria blueprint padrão se não houver nenhuma
+      if (blueprintSnap.empty) {
+        await addDoc(blueprintRef, {
+          usuario: user.email,
+          titulo: "Blueprint Inicial",
+          eventos: [],
+          criado_em: new Date().toISOString()
+        });
+        console.log("Blueprint padrão criada.");
+      }
+
       const cultivoSnap = await getDocs(query(collection(db, "cultivos"), where("usuario", "==", user.email)));
 
-      if (!blueprintSnap.empty) {
+      // Ativa botões conforme dados existentes
+      if (!blueprintSnap.empty || cultivoSnap.size > 0) {
         btnCultivos.classList.remove("pointer-events-none", "opacity-50");
         btnCultivos.classList.replace("bg-purple-400", "bg-purple-600");
         btnCultivos.classList.add("hover:bg-purple-700");
       }
-  
+
       if (!blueprintSnap.empty && !cultivoSnap.empty) {
         btnEventos.classList.remove("pointer-events-none", "opacity-50");
         btnEventos.classList.replace("bg-purple-400", "bg-purple-600");
