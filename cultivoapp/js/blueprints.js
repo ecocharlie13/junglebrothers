@@ -1,31 +1,20 @@
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import {
-  doc,
-  setDoc,
-  getDocs,
-  getDoc,
-  deleteDoc,
-  collection,
-  query,
-  where
+  doc, setDoc, getDocs, getDoc, deleteDoc,
+  collection, query, where
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
 
 let usuario = null;
 
-verificarLogin(async (user) => {
+export async function init(user) {
   usuario = user;
-  document.getElementById("user-email").textContent = user.email;
-  document.getElementById("user-pic").src = user.photoURL;
-
-  carregarDropdown();
+  await carregarDropdown();
 
   document.getElementById("salvar").addEventListener("click", salvarBlueprint);
   document.getElementById("carregar").addEventListener("click", loadBlueprint);
   document.getElementById("adicionar").addEventListener("click", adicionarLinha);
   document.getElementById("deletar").addEventListener("click", deletarBlueprint);
-  document.getElementById("logout").addEventListener("click", sair);
-});
+}
 
 export async function carregarDropdown() {
   const ref = collection(db, "blueprints");
