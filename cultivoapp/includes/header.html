@@ -37,5 +37,15 @@
     </div>
   </div>
 
-  <script src="/cultivoapp/js/header-menu.js" defer></script>
+  <!-- Script que ativa o menu (funciona em qualquer página automaticamente) -->
+  <script type="module">
+    document.addEventListener("click", (e) => {
+      const toggle = document.getElementById("menu-toggle");
+      const menu = document.getElementById("mobile-menu");
+
+      if (toggle && menu && toggle.contains(e.target)) {
+        menu.classList.toggle("hidden");
+      }
+    });
+  </script>
 </header>
