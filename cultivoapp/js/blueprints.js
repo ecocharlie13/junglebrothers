@@ -1,4 +1,3 @@
-// blueprints.js
 import { auth, db } from "/cultivoapp/js/firebase-init.js";
 import {
   doc,
@@ -26,6 +25,9 @@ export async function init(user) {
   document.getElementById("adicionar").addEventListener("click", adicionarLinha);
   document.getElementById("deletar").addEventListener("click", deletarBlueprint);
   document.getElementById("logout").addEventListener("click", sair);
+
+  // Nenhuma blueprint carregada inicialmente
+  return false;
 }
 
 async function garantirBlueprintPadrao() {
@@ -74,6 +76,10 @@ export async function loadBlueprint() {
     const tr = criarLinha(ev.evento, ev.dias, ev.ajuste, ev.notas);
     tbody.appendChild(tr);
   });
+
+  // Mostrar conteúdo ao carregar uma blueprint
+  document.getElementById("conteudo-blueprint").classList.remove("hidden");
+  document.getElementById("mensagem-vazia").classList.add("hidden");
 }
 
 export async function salvarBlueprint() {
