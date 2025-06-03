@@ -63,15 +63,20 @@ table td {
 
 /* === CONTAINER CENTRALIZADO === */
 .container-app {
-  max-width: 64rem; /* ~1024px = Tailwind max-w-4xl */
+  max-width: 100%;       /* ocupa toda a largura */
   margin-left: auto;
   margin-right: auto;
-  padding: 1rem;
+  padding-left: 0.5rem;  /* reduzido em telas pequenas */
+  padding-right: 0.5rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
 @media (min-width: 640px) {
   .container-app {
-    padding: 1.5rem;
+    max-width: 64rem;     /* ~1024px */
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 }
 
