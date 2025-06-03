@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Etapas do Cultivo - CultivoApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <!-- Header -->
+  <div id="header-placeholder"></div>
+
+  <!-- Conteúdo -->
+  <div class="p-6">
+    <h1 class="text-2xl font-bold text-center mb-4">Cadastro de Etapas do Cultivo</h1>
+
+    <!-- Tabela de Etapas -->
+    <div class="overflow-auto">
+      <table class="min-w-full border text-sm bg-white">
+        <thead class="bg-purple-100">
+          <tr>
+            <th class="border px-2 py-1">Evento</th>
+            <th class="border px-2 py-1">Semana</th>
+            <th class="border px-2 py-1">Data Inicial</th>
+            <th class="border px-2 py-1">Data Final</th>
+            <th class="border px-2 py-1">Fase</th>
+            <th class="border px-2 py-1">Estratégia</th>
+            <th class="border px-2 py-1">Nutrientes</th>
+            <th class="border px-2 py-1">Receita</th>
+            <th class="border px-2 py-1">EC Entrada</th>
+            <th class="border px-2 py-1">EC Saída</th>
+            <th class="border px-2 py-1">Runoff (%)</th>
+            <th class="border px-2 py-1">Dryback (%)</th>
+            <th class="border px-2 py-1">Temp. (°C)</th>
+            <th class="border px-2 py-1">UR (%)</th>
+            <th class="border px-2 py-1">VPD (kPa)</th>
+            <th class="border px-2 py-1">PPFD</th>
+            <th class="border px-2 py-1">Observações</th>
+          </tr>
+        </thead>
+        <tbody id="etapas-tbody">
+          <!-- Linhas serão geradas dinamicamente -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 flex justify-center gap-4">
+      <button id="add-row" class="bg-green-600 text-white px-4 py-2 rounded">Adicionar Etapa</button>
+      <button id="save-etapas" class="bg-blue-600 text-white px-4 py-2 rounded">Salvar</button>
+    </div>
+  </div>
+
+  <script type="module" src="/cultivoapp/js/etapas.js"></script>
+  <script type="module">
+    import { carregarHeader } from "/cultivoapp/js/menu.js";
+    carregarHeader();
+  </script>
+</body>
+</html>
