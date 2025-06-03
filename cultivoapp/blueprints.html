@@ -5,23 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blueprints - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/junglebrothers/css/estilo.css" />
 </head>
 <body class="bg-gray-100 min-h-screen">
 
   <!-- Header dinâmico -->
   <div id="header-placeholder"></div>
 
-  <div class="p-6">
+  <div class="container-app">
     <h1 class="text-2xl font-bold text-center mb-2">Blueprint do Cultivo</h1>
     <p class="text-center mb-4">Preencha abaixo sua blueprint e salve para começar.</p>
 
-    <div class="mb-6 text-center">
-      <label class="block font-semibold mb-1">Nome da Blueprint:</label>
-      <input id="nome-blueprint" type="text" placeholder="Ex: BP Teste" class="px-3 py-1 border rounded" />
-      <div class="flex flex-col sm:flex-row items-center justify-center mt-2 gap-2">
-        <select id="blueprint-select" class="px-2 py-1 border rounded w-full max-w-xs"></select>
-        <button id="carregar" class="bg-blue-600 text-white px-4 py-1 rounded w-full max-w-xs">Carregar</button>
-        <button id="deletar" class="bg-red-600 text-white px-4 py-1 rounded w-full max-w-xs">Deletar</button>
+    <div class="mb-6">
+      <label class="block text-center font-semibold mb-1">Nome da Blueprint:</label>
+      <div class="flex justify-center">
+        <input id="nome-blueprint" type="text" placeholder="Ex: BP Teste" class="input-xs px-3 py-1 border rounded" />
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center mt-4 gap-2">
+        <select id="blueprint-select" class="input-xs px-2 py-1 border rounded"></select>
+        <button id="carregar" class="btn-xs bg-blue-600 text-white px-4 py-1 rounded">Carregar</button>
+        <button id="deletar" class="btn-xs bg-red-600 text-white px-4 py-1 rounded">Deletar</button>
       </div>
     </div>
 
@@ -30,12 +34,14 @@
 
     <!-- Conteúdo condicional -->
     <div id="conteudo-blueprint" class="hidden">
-      <table class="w-full max-w-4xl mx-auto bg-white border border-gray-300">
-        <thead class="bg-orange-400 text-white">
-          <tr><th>Evento</th><th>Dias</th><th>Ajuste</th><th>Notas</th><th></th></tr>
-        </thead>
-        <tbody id="tabela"></tbody>
-      </table>
+      <div class="table-wrap">
+        <table class="w-full bg-white border border-gray-300 text-sm">
+          <thead class="bg-orange-400 text-white">
+            <tr><th>Evento</th><th>Dias</th><th>Ajuste</th><th>Notas</th><th></th></tr>
+          </thead>
+          <tbody id="tabela"></tbody>
+        </table>
+      </div>
 
       <div class="text-center mt-4">
         <button id="adicionar" class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700">+ Adicionar etapa</button>
