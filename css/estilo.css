@@ -66,8 +66,8 @@ table td {
   max-width: 100%;       /* ocupa toda a largura */
   margin-left: auto;
   margin-right: auto;
-  padding-left: 0.2rem;  /* reduzido em telas pequenas */
-  padding-right: 0.2rem;
+  padding-left: 0.05rem;  /* reduzido em telas pequenas */
+  padding-right: 0.05rem;
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
