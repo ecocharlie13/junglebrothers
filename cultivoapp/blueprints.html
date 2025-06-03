@@ -30,10 +30,8 @@
       </div>
     </div>
 
-    <!-- Mensagem quando nenhuma blueprint estiver carregada -->
     <p id="mensagem-vazia" class="text-center text-gray-500 mb-4">Nenhuma blueprint carregada.</p>
 
-    <!-- Conteúdo condicional -->
     <div id="conteudo-blueprint" class="hidden">
       <div class="table-wrap">
         <table class="w-full bg-white border border-gray-300 text-sm">
@@ -60,11 +58,25 @@
     import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
     import * as blueprint from "/cultivoapp/js/blueprints.js";
 
+    // Carrega o header e executa scripts embutidos
     fetch("/cultivoapp/includes/header.html")
       .then(res => res.text())
       .then(async html => {
-        document.getElementById("header-placeholder").innerHTML = html;
+        const container = document.getElementById("header-placeholder");
+        container.innerHTML = html;
 
+        // Força reexecução de <script> do header (para menu hamburguer funcionar)
+        container.querySelectorAll("script").forEach((oldScript) => {
+          const newScript = document.createElement("script");
+          if (oldScript.src) {
+            newScript.src = oldScript.src;
+          } else {
+            newScript.textContent = oldScript.textContent;
+          }
+          oldScript.replaceWith(newScript);
+        });
+
+        // Login e carregamento da blueprint
         verificarLogin(async (user) => {
           const emailSpan = document.getElementById("user-email");
           if (emailSpan) emailSpan.textContent = user.email;
