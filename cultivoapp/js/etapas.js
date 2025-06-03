@@ -1,4 +1,4 @@
-// etapas.js
+// /cultivoapp/js/etapas.js
 import { db } from "/cultivoapp/js/firebase-init.js";
 import {
   collection, getDocs, addDoc, updateDoc, deleteDoc, doc
@@ -6,12 +6,12 @@ import {
 
 document.addEventListener("DOMContentLoaded", () => {
   const tabela = document.getElementById("tabela-etapas");
-  const btnNovaEtapa = document.getElementById("nova-etapa");
+  const btnAdd = document.getElementById("add-row");
 
   const campos = [
-    "Semana", "Data Inicial", "Data Final", "Fase", "Estratégia",
-    "Nutrientes", "Receita Nutriente", "EC Entrada", "EC Saída",
-    "Runoff", "Dryback", "Temperatura", "Umidade", "VPD", "PPFD"
+    "Evento", "Semana", "Data Inicial", "Data Final", "Fase", "Estratégia",
+    "Nutrientes", "Receita", "EC Entrada", "EC Saída",
+    "Runoff", "Dryback", "Temperatura", "UR", "VPD", "PPFD", "Observações"
   ];
 
   async function carregarEtapas() {
@@ -23,10 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function adicionarLinha(id = null, dados = {}) {
     const tr = document.createElement("tr");
+
     campos.forEach(campo => {
       const td = document.createElement("td");
       const input = document.createElement("input");
-      input.type = "text";
+
+      input.type = (campo.includes("Data")) ? "date" : "text";
       input.className = "border px-2 py-1 w-full";
       input.value = dados[campo] || "";
       input.dataset.campo = campo;
@@ -68,7 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
     tabela.appendChild(tr);
   }
 
-  btnNovaEtapa.addEventListener("click", () => adicionarLinha());
-
+  btnAdd.addEventListener("click", () => adicionarLinha());
   carregarEtapas();
 });
