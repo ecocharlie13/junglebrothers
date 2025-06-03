@@ -1,9 +1,12 @@
+/* === BASE === */
 body {
   font-family: sans-serif;
   text-align: center;
   padding: 50px;
+  background-color: #f3f4f6; /* equivalente a bg-gray-100 do Tailwind */
 }
 
+/* === BOTÕES E LINKS PADRÕES === */
 #logout,
 #link-voltar {
   display: none;
@@ -25,10 +28,12 @@ body {
   text-decoration: underline;
 }
 
+/* === ELEMENTOS OCULTOS CONDICIONALMENTE === */
 #painel {
   display: none;
 }
 
+/* === FORMULÁRIOS === */
 form {
   margin-bottom: 20px;
 }
@@ -40,13 +45,55 @@ form button {
   margin-right: 5px;
 }
 
+/* === TABELA PADRÃO === */
 table {
   margin: auto;
   border-collapse: collapse;
+  background-color: white;
+  width: 100%;
+  max-width: 100%;
 }
 
 table th,
 table td {
   border: 1px solid #ccc;
   padding: 8px;
+  text-align: left;
+}
+
+/* === CONTAINER CENTRALIZADO === */
+.container-app {
+  max-width: 64rem; /* ~1024px = Tailwind max-w-4xl */
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-app {
+    padding: 1.5rem;
+  }
+}
+
+/* === INPUTS E BOTÕES PADRÃO PARA MOBILE === */
+.input-xs {
+  width: 100%;
+  max-width: 16rem; /* Tailwind max-w-xs */
+  text-align: center;
+}
+
+.btn-xs {
+  width: 100%;
+  max-width: 16rem;
+}
+
+/* === TABLE WRAPPER PARA SCROLL HORIZONTAL === */
+.table-wrap {
+  overflow-x: auto;
+}
+
+/* === BOTÃO PADRÃO HOVER (caso não use Tailwind sempre) === */
+button:hover {
+  opacity: 0.9;
+  cursor: pointer;
 }
