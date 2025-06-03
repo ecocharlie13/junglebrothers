@@ -95,20 +95,25 @@
           }
         });
       });
-
-// teste de adicionar o script direto na pagina //
   </script>
+  <!-- teste de adicionar o script direto na pagina -->
   <script>
   document.addEventListener("DOMContentLoaded", () => {
     const toggle = document.getElementById("menu-toggle");
     const menu = document.getElementById("mobile-menu");
+    const logoutMobile = document.getElementById("logout-mobile");
+    const logout = document.getElementById("logout");
 
     if (toggle && menu) {
       toggle.addEventListener("click", () => {
         menu.classList.toggle("hidden");
       });
-    } else {
-      console.warn("Menu toggle ou mobile-menu não encontrado.");
+    }
+
+    if (logoutMobile && logout) {
+      logoutMobile.addEventListener("click", () => {
+        logout.click();
+      });
     }
   });
 </script>
