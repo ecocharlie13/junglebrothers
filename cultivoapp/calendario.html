@@ -5,15 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Relatório - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/junglebrothers/css/estilo.css" />
 </head>
 <body class="bg-gray-100 min-h-screen">
   <!-- Header dinâmico -->
   <div id="header-placeholder"></div>
 
   <!-- Conteúdo -->
-  <main class="p-6 max-w-6xl mx-auto">
+  <main class="container-app">
     <h1 class="text-2xl font-bold mb-4 text-gray-700">Relatório Semanal</h1>
 
+    <!-- Stickers -->
     <section id="stickers" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
       <div id="sticker-passada" class="bg-blue-100 border-l-4 border-blue-500 p-4 rounded shadow">
         <h2 class="text-blue-800 font-bold text-lg">Semana Passada</h2>
@@ -37,14 +39,14 @@
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Calendário Completo</h2>
       <div class="flex items-center gap-4 mb-4">
         <label for="periodo" class="text-sm font-medium text-gray-700">Período</label>
-    <select id="periodo" class="border rounded px-2 py-1 text-sm">
-      <option value="semana">Semana</option>
-      <option value="quinzena">Quinzena</option>
-      <option value="mes" selected>Mês</option>
-      <option value="tudo">Tudo</option>
-    </select>
+        <select id="periodo" class="input-xs border rounded px-2 py-1 text-sm">
+          <option value="semana">Semana</option>
+          <option value="quinzena">Quinzena</option>
+          <option value="mes" selected>Mês</option>
+          <option value="tudo">Tudo</option>
+        </select>
       </div>
-      <div id="gantt" class="bg-white p-4 rounded shadow overflow-x-auto"></div>
+      <div id="gantt" class="table-wrap bg-white p-4 rounded shadow"></div>
     </div>
   </main>
 
