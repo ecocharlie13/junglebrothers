@@ -25,15 +25,21 @@
       </div>
     </div>
 
-    <table class="w-full max-w-4xl mx-auto bg-white border border-gray-300">
-      <thead class="bg-orange-400 text-white">
-        <tr><th>Evento</th><th>Dias</th><th>Ajuste</th><th>Notas</th><th></th></tr>
-      </thead>
-      <tbody id="tabela"></tbody>
-    </table>
+    <!-- Mensagem quando nenhuma blueprint estiver carregada -->
+    <p id="mensagem-vazia" class="text-center text-gray-500 mb-4">Nenhuma blueprint carregada.</p>
 
-    <div class="text-center mt-4">
-      <button id="adicionar" class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700">+ Adicionar etapa</button>
+    <!-- Conteúdo condicional -->
+    <div id="conteudo-blueprint" class="hidden">
+      <table class="w-full max-w-4xl mx-auto bg-white border border-gray-300">
+        <thead class="bg-orange-400 text-white">
+          <tr><th>Evento</th><th>Dias</th><th>Ajuste</th><th>Notas</th><th></th></tr>
+        </thead>
+        <tbody id="tabela"></tbody>
+      </table>
+
+      <div class="text-center mt-4">
+        <button id="adicionar" class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700">+ Adicionar etapa</button>
+      </div>
     </div>
 
     <div class="text-center mt-6">
@@ -62,7 +68,12 @@
           const logoutBtn = document.getElementById("logout");
           if (logoutBtn) logoutBtn.addEventListener("click", sair);
 
-          await blueprint.init(user); // 🔥 Chamada correta do init()
+          const carregou = await blueprint.init(user);
+
+          if (!carregou) {
+            document.getElementById("conteudo-blueprint").classList.add("hidden");
+            document.getElementById("mensagem-vazia").classList.remove("hidden");
+          }
         });
       });
   </script>
