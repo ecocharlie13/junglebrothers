@@ -1,34 +1,61 @@
 <!-- header.html -->
-<header class="bg-white shadow-md">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between h-16 items-center">
-      <div class="flex-shrink-0">
-        <a href="/cultivoapp/home.html" class="text-xl font-bold text-green-700">CultivoApp</a>
-      </div>
-      <div class="hidden md:flex space-x-4">
-        <a href="/cultivoapp/blueprints.html" class="text-gray-700 hover:text-green-700">Blueprints</a>
-        <a href="/cultivoapp/eventos.html" class="text-gray-700 hover:text-green-700">Eventos</a>
-        <a href="/cultivoapp/relatorio.html" class="text-gray-700 hover:text-green-700">Relatório</a>
-        <button id="logout" class="text-red-600 hover:text-red-800">Sair</button>
-      </div>
-      <div class="md:hidden flex items-center">
-        <button id="menu-toggle" class="focus:outline-none">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
+<header class="bg-white shadow w-full">
+  <!-- Linha 1: Logo + Título + Menu Hamburguer + Foto -->
+  <div class="flex items-center justify-between px-4 py-2">
+    <div class="flex items-center gap-2 min-w-[180px]">
+      <img src="/cultivoapp/assets/logo-junglebrothers.png" alt="Logo" class="h-10 w-auto" />
+      <span class="text-xl font-bold text-gray-800">CultivoApp</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="menu-toggle" class="md:hidden text-gray-700" aria-label="Abrir menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <img id="user-pic" class="w-8 h-8 rounded-full" alt="Foto de perfil" />
     </div>
   </div>
-  <div id="mobile-menu" class="hidden md:hidden px-4 pb-4">
-    <a href="/cultivoapp/blueprints.html" class="block py-2 text-gray-700 hover:text-green-700">Blueprints</a>
-    <a href="/cultivoapp/eventos.html" class="block py-2 text-gray-700 hover:text-green-700">Eventos</a>
-    <a href="/cultivoapp/relatorio.html" class="block py-2 text-gray-700 hover:text-green-700">Relatório</a>
-    <button id="logout-mobile" class="block mt-2 text-red-600 hover:text-red-800">Sair</button>
-  </div>
-</header>
 
-<script type="module">
-  import { ativarMenu } from "/cultivoapp/js/menu.js";
-  ativarMenu();
-</script>
+  <!-- Linha 2 (desktop): Navegação + Sair -->
+  <div class="hidden md:flex justify-between items-center px-4 py-2 border-t border-gray-200">
+    <nav class="flex gap-6 text-purple-700 font-semibold">
+      <a href="/cultivoapp/blueprints.html" class="hover:underline">Blueprints</a>
+      <a href="/cultivoapp/eventos.html" class="hover:underline">Eventos</a>
+      <a href="/cultivoapp/relatorio.html" class="hover:underline">Relatório</a>
+    </nav>
+    <button id="logout" class="text-red-600 font-semibold">Sair</button>
+  </div>
+
+  <!-- Menu Mobile -->
+  <div id="mobile-menu" class="hidden md:hidden px-4 pt-2 pb-4 border-t border-gray-200 flex-col gap-3 text-center text-purple-700 font-semibold">
+    <a href="/cultivoapp/blueprints.html" class="block">Blueprints</a>
+    <a href="/cultivoapp/eventos.html" class="block">Eventos</a>
+    <a href="/cultivoapp/relatorio.html" class="block">Relatório</a>
+    <button id="logout-mobile" class="block mt-6 text-red-600 font-semibold">Sair</button>
+  </div>
+
+  <!-- Script do menu -->
+  <script type="module">
+    import { sair } from "/cultivoapp/js/auth.js";
+
+    document.addEventListener("click", (e) => {
+      const toggle = document.getElementById("menu-toggle");
+      const menu = document.getElementById("mobile-menu");
+
+      if (toggle && menu && toggle.contains(e.target)) {
+        menu.classList.toggle("hidden");
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const logoutMobile = document.getElementById("logout-mobile");
+      const logout = document.getElementById("logout");
+
+      if (logoutMobile && logout) {
+        logoutMobile.addEventListener("click", () => logout.click());
+      } else if (logoutMobile && !logout) {
+        logoutMobile.addEventListener("click", () => sair());
+      }
+    });
+  </script>
+</header>
