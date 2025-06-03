@@ -102,3 +102,21 @@ button:hover {
   opacity: 0.9;
   cursor: pointer;
 }
+
+/* === Atualizacao para tentar diminuir a margem lateral e superior em dispositivos de tela pequena. === */
+@media (max-width: 640px) {
+  .container-app {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  body {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  html {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
