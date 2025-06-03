@@ -7,4 +7,16 @@ export function ativarMenuHamburguer() {
       menu.classList.toggle("hidden");
     }
   });
+
+  // Garante que o botão "logout-mobile" funcione igual ao logout padrão
+  document.addEventListener("DOMContentLoaded", () => {
+    const logoutMobile = document.getElementById("logout-mobile");
+    const logout = document.getElementById("logout");
+
+    if (logoutMobile && logout) {
+      logoutMobile.addEventListener("click", () => {
+        logout.click();
+      });
+    }
+  });
 }
