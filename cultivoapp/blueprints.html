@@ -95,6 +95,22 @@
           }
         });
       });
+
+// teste de adicionar o script direto na pagina //
   </script>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.getElementById("menu-toggle");
+    const menu = document.getElementById("mobile-menu");
+
+    if (toggle && menu) {
+      toggle.addEventListener("click", () => {
+        menu.classList.toggle("hidden");
+      });
+    } else {
+      console.warn("Menu toggle ou mobile-menu não encontrado.");
+    }
+  });
+</script>
 </body>
 </html>
