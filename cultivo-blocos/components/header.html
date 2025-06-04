@@ -1,17 +1,15 @@
 <!-- /cultivo-blocos/components/header.html -->
 <div class="bg-white shadow mb-6">
   <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-    <!-- Logo Jungle Brothers -->
+    <!-- Logo -->
     <a href="/cultivo-blocos/cultivos-salvos.html" class="flex items-center gap-2">
-      <img src="/cultivo-blocos/assets/logo-jungle.png" alt="Logo Jungle Brothers" class="h-8">
+      <img src="/cultivo-blocos/assets/logo-jungle.png" alt="Logo Jungle" class="h-8">
       <span class="font-bold text-lg text-gray-800">CultivoApp</span>
     </a>
 
-    <!-- Botão Menu -->
+    <!-- Menu hambúrguer -->
     <div class="relative">
-      <button id="menu-button" class="text-gray-800 text-2xl focus:outline-none">
-        ☰
-      </button>
+      <button id="menu-button" class="text-gray-800 text-2xl focus:outline-none">☰</button>
       <div id="menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg hidden z-50">
         <a href="/cultivo-blocos/novo-cultivo.html" class="block px-4 py-2 hover:bg-gray-100">Novo</a>
         <a href="/cultivo-blocos/cultivos-salvos.html" class="block px-4 py-2 hover:bg-gray-100">Cultivo</a>
@@ -25,36 +23,3 @@
     </div>
   </div>
 </div>
-
-<script type="module">
-  import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
-
-  // Aguarda DOM carregar após injeção via fetch
-  window.addEventListener("DOMContentLoaded", () => {
-    const menuBtn = document.getElementById("menu-button");
-    const menuDropdown = document.getElementById("menu-dropdown");
-
-    if (menuBtn && menuDropdown) {
-      menuBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        menuDropdown.classList.toggle("hidden");
-      });
-
-      document.addEventListener("click", (e) => {
-        if (!menuDropdown.contains(e.target) && e.target !== menuBtn) {
-          menuDropdown.classList.add("hidden");
-        }
-      });
-    }
-
-    verificarLogin(user => {
-      const userPic = document.getElementById("user-pic");
-      const userName = document.getElementById("user-name");
-      const logoutBtn = document.getElementById("logout");
-
-      if (userPic) userPic.src = user.photoURL;
-      if (userName) userName.textContent = user.displayName || user.email;
-      if (logoutBtn) logoutBtn.addEventListener("click", sair);
-    });
-  });
-</script>
