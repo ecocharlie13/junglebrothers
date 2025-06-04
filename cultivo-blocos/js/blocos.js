@@ -18,7 +18,6 @@ const cores = {
 const blocosContainer = document.getElementById("blocos-container");
 const inputDataInicio = document.getElementById("data-inicio");
 
-// Adiciona um novo bloco
 window.adicionarBloco = function(tipo) {
   if (!inputDataInicio.value) {
     alert("Selecione a data de início primeiro.");
@@ -54,39 +53,78 @@ window.adicionarBloco = function(tipo) {
     },
     notas: "",
     tarefas: [],
-    cor: cores[tipo]
+    cor: cores[tipo],
+    expandido: false
   };
 
   blocos.push(novoBloco);
   renderizarBlocos();
 };
 
-// Calcula a data de início de um bloco com base na posição
 function calcularInicio(ordem) {
   const dataInicial = new Date(inputDataInicio.value);
   dataInicial.setDate(dataInicial.getDate() + ordem * 7);
   return dataInicial;
 }
 
-// Renderiza os stickers na tela
 function renderizarBlocos() {
   blocosContainer.innerHTML = "";
 
   blocos.forEach((bloco, i) => {
-    const div = document.createElement("div");
-    div.className = `w-60 p-4 text-white rounded shadow ${bloco.cor}`;
-    div.innerHTML = `
-      <div class="font-bold text-lg mb-1">Semana ${i + 1}</div>
-      <div class="text-sm">${bloco.inicio} → ${bloco.fim}</div>
-      <div class="mt-2 text-sm">Etapa: ${bloco.etapa || bloco.nome}</div>
-      <div class="text-sm">EC In: ${bloco.receita.ec_entrada || "-"}</div>
-      <div class="text-sm">PPFD: ${bloco.receita.ppfd || "-"}</div>
-    `;
-    blocosContainer.appendChild(div);
+    const wrapper = document.createElement("div");
+    wrapper.className = `w-60 bg-white shadow border rounded overflow-hidden`;
+
+    const expandido = bloco.expandido ?? false;
+
+    const header = document.createElement("div");
+    header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer`;
+    header.innerHTML = `<strong>Semana ${i + 1}</strong><br><span class="text-sm">${bloco.inicio} → ${bloco.fim}</span>`;
+    header.addEventListener("click", () => {
+      bloco.expandido = !expandido;
+      renderizarBlocos();
+    });
+
+    const corpo = document.createElement("div");
+    corpo.className = "p-4 text-sm";
+    
+    if (!expandido) {
+      corpo.innerHTML = `
+        <div><strong>${bloco.nome}</strong></div>
+        <div>Etapa: ${bloco.etapa || "-"}</div>
+        <div>EC In: ${bloco.receita.ec_entrada || "-"}</div>
+        <div>PPFD: ${bloco.receita.ppfd || "-"}</div>
+      `;
+    } else {
+      corpo.innerHTML = `
+        <label class="block mb-1">Etapa: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.etapa || ""}" id="etapa-${i}"></label>
+        <label class="block mb-1">Fase: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.fase || ""}" id="fase-${i}"></label>
+        <label class="block mb-1">Estratégia: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.estrategia || ""}" id="estrategia-${i}"></label>
+        <label class="block mb-1">EC Entrada: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_entrada || ""}" id="ec-${i}"></label>
+        <label class="block mb-1">PPFD: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ppfd || ""}" id="ppfd-${i}"></label>
+        <label class="block mb-2">Notas: <textarea class="w-full border px-2 py-1 rounded" id="notas-${i}">${bloco.notas || ""}</textarea></label>
+        <button class="bg-green-600 text-white px-3 py-1 rounded w-full" onclick="salvarBloco(${i})">💾 Salvar</button>
+      `;
+    }
+
+    wrapper.appendChild(header);
+    wrapper.appendChild(corpo);
+    blocosContainer.appendChild(wrapper);
   });
 }
 
-// Salva todos os blocos no Firestore
+window.salvarBloco = function (index) {
+  const bloco = blocos[index];
+  bloco.etapa = document.getElementById(`etapa-${index}`).value;
+  bloco.fase = document.getElementById(`fase-${index}`).value;
+  bloco.estrategia = document.getElementById(`estrategia-${index}`).value;
+  bloco.receita.ec_entrada = document.getElementById(`ec-${index}`).value;
+  bloco.receita.ppfd = document.getElementById(`ppfd-${index}`).value;
+  bloco.notas = document.getElementById(`notas-${index}`).value;
+
+  blocos[index] = bloco;
+  renderizarBlocos();
+};
+
 window.salvarCultivo = async function () {
   if (!inputDataInicio.value || blocos.length === 0) {
     alert("Preencha a data de início e adicione ao menos um bloco.");
