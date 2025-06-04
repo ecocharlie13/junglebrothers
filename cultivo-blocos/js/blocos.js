@@ -1,11 +1,11 @@
 import { db } from "./firebase-init.js";
 import {
   collection,
-  doc,
-  getDoc,
-  setDoc,
   addDoc,
-  Timestamp
+  getDoc,
+  doc,
+  Timestamp,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let blocos = [];
@@ -19,105 +19,108 @@ const cores = {
   "PROCESSAR": "bg-red-500"
 };
 
-const container = document.getElementById("blocos-container");
-const inputData = document.getElementById("data-inicio");
+const blocosContainer = document.getElementById("blocos-container");
+const inputDataInicio = document.getElementById("data-inicio");
 const inputNome = document.getElementById("nome-cultivo");
+const btnSalvar = document.getElementById("btn-salvar");
 
-window.addEventListener("DOMContentLoaded", async () => {
-  const params = new URLSearchParams(window.location.search);
+// Se tiver ID na URL, carregar cultivo existente
+const params = new URLSearchParams(window.location.search);
+if (params.has("id")) {
   cultivoId = params.get("id");
-  if (cultivoId) {
-    try {
-      const docRef = doc(db, "cultivos_blocos", cultivoId);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const cultivo = snap.data();
-        inputNome.value = cultivo.nome || "";
-        inputData.value = cultivo.data_inicio || "";
-        blocos = cultivo.blocos || [];
-        renderizar();
-      } else {
-        alert("Cultivo não encontrado.");
-      }
-    } catch (e) {
-      console.error("Erro ao carregar cultivo:", e);
-      alert("Erro ao carregar cultivo salvo.");
-    }
-  }
-});
+  carregarCultivoExistente(cultivoId);
+}
 
 window.adicionarBloco = function(tipo) {
-  if (!inputData.value) return alert("Preencha a data de início.");
+  if (!inputDataInicio.value) {
+    alert("Selecione a data de início primeiro.");
+    return;
+  }
 
-  blocos.push({
+  const ordem = blocos.length;
+  const inicio = calcularInicio(ordem);
+  const fim = new Date(inicio);
+  fim.setDate(fim.getDate() + 6);
+
+  const novoBloco = {
     nome: tipo,
     etapa: "",
     fase: "",
     estrategia: "",
-    ordem: blocos.length,
-    inicio: "",
-    fim: "",
-    receita: { ec_entrada: "", ppfd: "" },
+    ordem,
+    inicio: inicio.toISOString().split("T")[0],
+    fim: fim.toISOString().split("T")[0],
+    receita: {
+      ec_entrada: "",
+      ec_saida: "",
+      nutrientes: "",
+      A: "",
+      B: "",
+      C: "",
+      runoff: "",
+      dryback: "",
+      temperatura: "",
+      ur: "",
+      vpd: "",
+      ppfd: ""
+    },
     notas: "",
     tarefas: [],
     cor: cores[tipo],
-    expandido: true
-  });
+    expandido: false
+  };
 
-  atualizarDatas();
-  renderizar();
+  blocos.push(novoBloco);
+  renderizarBlocos();
 };
 
-function atualizarDatas() {
-  const dataBase = new Date(inputData.value);
-  let contadores = {};
+function calcularInicio(ordem) {
+  const dataInicial = new Date(inputDataInicio.value);
+  dataInicial.setDate(dataInicial.getDate() + ordem * 7);
+  return dataInicial;
+}
+
+function formatarData(dataStr) {
+  const meses = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const [ano, mes, dia] = dataStr.split("-");
+  return `${dia}-${meses[parseInt(mes) - 1]}-${ano}`;
+}
+
+function renderizarBlocos() {
+  blocosContainer.innerHTML = "";
+  const hoje = new Date();
+
+  // Agrupar blocos por tipo e numerar semanas por grupo
+  const contagemPorTipo = {};
 
   blocos.forEach((bloco, i) => {
     const tipo = bloco.nome;
-    contadores[tipo] = (contadores[tipo] || 0) + 1;
+    contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
+    const semanaNumero = contagemPorTipo[tipo];
 
-    const inicio = new Date(dataBase);
-    inicio.setDate(inicio.getDate() + i * 7);
-    const fim = new Date(inicio);
-    fim.setDate(fim.getDate() + 6);
-
-    bloco.inicio = inicio.toISOString().split("T")[0];
-    bloco.fim = fim.toISOString().split("T")[0];
-    bloco.ordem = contadores[tipo];
-  });
-}
-
-function renderizar() {
-  container.innerHTML = "";
-  blocos.forEach((bloco, i) => {
     const wrapper = document.createElement("div");
-    wrapper.className = "w-60 bg-white shadow border rounded overflow-hidden";
+    wrapper.className = `w-60 bg-white shadow border rounded overflow-hidden`;
 
-    const header = document.createElement("div");
-    header.className = `${bloco.cor} text-white px-4 py-2 flex justify-between items-center`;
-    header.innerHTML = `<div><strong>Semana ${bloco.ordem} - ${bloco.nome}</strong><br><span class="text-sm">${bloco.inicio} → ${bloco.fim}</span></div>`;
+    const inicio = new Date(bloco.inicio);
+    const fim = new Date(bloco.fim);
 
-    if (bloco.expandido) {
-      const btn = document.createElement("button");
-      btn.innerText = "✕";
-      btn.className = "ml-2 text-white hover:text-red-200";
-      btn.onclick = () => {
-        if (confirm("Deseja remover este bloco?")) {
-          blocos.splice(i, 1);
-          atualizarDatas();
-          renderizar();
-        }
-      };
-      header.appendChild(btn);
+    let estiloExtra = "";
+    if (fim < hoje) {
+      estiloExtra = "opacity-40"; // Cinza claro para semanas passadas
+    } else if (inicio <= hoje && fim >= hoje) {
+      estiloExtra = "ring-4 ring-yellow-400"; // Destaque para semana atual
     }
 
+    const header = document.createElement("div");
+    header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
+    header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
     header.addEventListener("click", () => {
       bloco.expandido = !bloco.expandido;
-      renderizar();
+      renderizarBlocos();
     });
 
     const corpo = document.createElement("div");
-    corpo.className = "p-3 text-sm";
+    corpo.className = "p-4 text-sm";
 
     if (!bloco.expandido) {
       corpo.innerHTML = `
@@ -128,52 +131,72 @@ function renderizar() {
       `;
     } else {
       corpo.innerHTML = `
-        <label class="block mb-1">Etapa: <input value="${bloco.etapa}" class="w-full border rounded px-2 py-1" oninput="blocos[${i}].etapa=this.value"></label>
-        <label class="block mb-1">Fase: <input value="${bloco.fase}" class="w-full border rounded px-2 py-1" oninput="blocos[${i}].fase=this.value"></label>
-        <label class="block mb-1">Estratégia: <input value="${bloco.estrategia}" class="w-full border rounded px-2 py-1" oninput="blocos[${i}].estrategia=this.value"></label>
-        <label class="block mb-1">EC Entrada: <input value="${bloco.receita.ec_entrada}" class="w-full border rounded px-2 py-1" oninput="blocos[${i}].receita.ec_entrada=this.value"></label>
-        <label class="block mb-1">PPFD: <input value="${bloco.receita.ppfd}" class="w-full border rounded px-2 py-1" oninput="blocos[${i}].receita.ppfd=this.value"></label>
-        <label class="block mb-2">Notas: <textarea class="w-full border rounded px-2 py-1" oninput="blocos[${i}].notas=this.value">${bloco.notas}</textarea></label>
+        <label class="block mb-1">Etapa: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.etapa || ""}" id="etapa-${i}"></label>
+        <label class="block mb-1">Fase: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.fase || ""}" id="fase-${i}"></label>
+        <label class="block mb-1">Estratégia: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.estrategia || ""}" id="estrategia-${i}"></label>
+        <label class="block mb-1">EC Entrada: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_entrada || ""}" id="ec-${i}"></label>
+        <label class="block mb-1">PPFD: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ppfd || ""}" id="ppfd-${i}"></label>
+        <label class="block mb-2">Notas: <textarea class="w-full border px-2 py-1 rounded" id="notas-${i}">${bloco.notas || ""}</textarea></label>
       `;
     }
 
     wrapper.appendChild(header);
     wrapper.appendChild(corpo);
-    container.appendChild(wrapper);
+    blocosContainer.appendChild(wrapper);
   });
 }
 
-inputData.addEventListener("change", () => {
-  atualizarDatas();
-  renderizar();
-});
+function atualizarDados() {
+  blocos.forEach((bloco, i) => {
+    bloco.etapa = document.getElementById(`etapa-${i}`)?.value || bloco.etapa;
+    bloco.fase = document.getElementById(`fase-${i}`)?.value || bloco.fase;
+    bloco.estrategia = document.getElementById(`estrategia-${i}`)?.value || bloco.estrategia;
+    bloco.receita.ec_entrada = document.getElementById(`ec-${i}`)?.value || bloco.receita.ec_entrada;
+    bloco.receita.ppfd = document.getElementById(`ppfd-${i}`)?.value || bloco.receita.ppfd;
+    bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
+  });
+}
 
-window.salvarCultivo = async function () {
-  if (!inputNome.value || !inputData.value || blocos.length === 0) {
-    alert("Preencha o nome, a data de início e adicione ao menos um bloco.");
+btnSalvar?.addEventListener("click", async () => {
+  atualizarDados();
+
+  if (!inputDataInicio.value || !inputNome.value) {
+    alert("Preencha o nome do cultivo e a data de início.");
     return;
   }
 
+  const cultivo = {
+    nome: inputNome.value,
+    data_inicio: inputDataInicio.value,
+    criado_em: Timestamp.now(),
+    blocos
+  };
+
   try {
-    const cultivo = {
-      nome: inputNome.value,
-      data_inicio: inputData.value,
-      criado_em: Timestamp.now(),
-      blocos
-    };
-
     if (cultivoId) {
-      await setDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
+      await updateDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
+      alert("Cultivo atualizado com sucesso!");
     } else {
-      const ref = await addDoc(collection(db, "cultivos_blocos"), cultivo);
-      cultivoId = ref.id;
-      history.replaceState(null, "", `?id=${cultivoId}`);
+      await addDoc(collection(db, "cultivos_blocos"), cultivo);
+      alert("Cultivo salvo com sucesso!");
     }
-
-    alert("Cultivo salvo!");
-    renderizar();
   } catch (e) {
-    console.error(e);
+    console.error("Erro ao salvar:", e);
     alert("Erro ao salvar cultivo.");
   }
-};
+});
+
+async function carregarCultivoExistente(id) {
+  try {
+    const docSnap = await getDoc(doc(db, "cultivos_blocos", id));
+    if (docSnap.exists()) {
+      const dados = docSnap.data();
+      inputDataInicio.value = dados.data_inicio;
+      inputNome.value = dados.nome;
+      blocos = dados.blocos || [];
+      renderizarBlocos();
+    }
+  } catch (e) {
+    console.error("Erro ao carregar cultivo:", e);
+  }
+}
