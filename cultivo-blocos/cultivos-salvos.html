@@ -12,18 +12,28 @@
   <div id="lista-cultivos" class="space-y-4 max-w-3xl mx-auto"></div>
 
   <div class="flex justify-center gap-4 mt-8">
-    <button id="btn-duplicar" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">🔁 Duplicar</button>
-    <button id="btn-apagar" class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">🗑️ Apagar</button>
+    <button id="btn-duplicar" class="w-32 bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700">🔁 Duplicar</button>
+    <button id="btn-apagar" class="w-32 bg-red-600 text-white py-2 rounded font-semibold hover:bg-red-700">🗑️ Apagar</button>
   </div>
 
   <script type="module">
     import { db } from "./js/firebase-init.js";
-    import { getDocs, collection, deleteDoc, doc, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { getDocs, collection, deleteDoc, doc, addDoc, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
     const lista = document.getElementById("lista-cultivos");
     const btnDuplicar = document.getElementById("btn-duplicar");
     const btnApagar = document.getElementById("btn-apagar");
     const selecionados = new Set();
+
+    function getCor(tipo) {
+      return {
+        CLONAR: "bg-purple-600",
+        VEGETAR: "bg-green-600",
+        FLORAR: "bg-orange-500",
+        FLUSH: "bg-blue-500",
+        PROCESSAR: "bg-red-500"
+      }[tipo] || "bg-gray-400";
+    }
 
     async function carregarCultivos() {
       const snap = await getDocs(collection(db, "cultivos_blocos"));
@@ -38,6 +48,16 @@
         const cultivo = docSnap.data();
         const blocos = cultivo.blocos || [];
         const id = docSnap.id;
+        const hoje = new Date();
+
+        const barraProgresso = blocos.map(b => {
+          const inicio = new Date(b.inicio);
+          const fim = new Date(b.fim);
+          let cor = "bg-gray-300";
+          if (fim < hoje) cor = "opacity-40 " + getCor(b.nome);
+          else if (inicio <= hoje && fim >= hoje) cor = getCor(b.nome);
+          return `<div class='w-3 h-3 rounded ${cor}'></div>`;
+        }).join("");
 
         const card = document.createElement("div");
         card.className = "bg-white p-4 rounded shadow flex justify-between items-center";
@@ -48,6 +68,7 @@
             <div>
               <h2 class="text-xl font-semibold">${cultivo.nome || "(Sem nome)"}</h2>
               <p class="text-sm text-gray-600">Início: ${cultivo.data_inicio || "?"} • ${blocos.length} semana(s)</p>
+              <div class="flex mt-2 gap-[2px]">${barraProgresso}</div>
             </div>
           </div>
           <a href="novo-cultivo.html?id=${id}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">🔍 Abrir</a>
@@ -56,11 +77,8 @@
         lista.appendChild(card);
 
         card.querySelector(".selecionar-checkbox").addEventListener("change", (e) => {
-          if (e.target.checked) {
-            selecionados.add(id);
-          } else {
-            selecionados.delete(id);
-          }
+          if (e.target.checked) selecionados.add(id);
+          else selecionados.delete(id);
         });
       });
     }
