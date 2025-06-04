@@ -3,13 +3,13 @@
   <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
     <!-- Logo -->
     <a href="/cultivo-blocos/cultivos-salvos.html" class="flex items-center gap-2">
-      <img src="/cultivo-blocos/assets/logo-jungle.png" alt="Logo Jungle Brothers" class="h-8">
+      <img src="/cultivo-blocos/assets/logo-jungle.png" alt="Logo CultivoApp" class="h-8">
       <span class="font-bold text-lg text-gray-800">CultivoApp</span>
     </a>
 
     <!-- Menu hambúrguer -->
     <div class="relative">
-      <button id="menu-button" class="text-gray-800 focus:outline-none">
+      <button id="menu-button" class="text-gray-800 text-2xl focus:outline-none">
         ☰
       </button>
       <div id="menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg hidden z-50">
@@ -28,20 +28,20 @@
 
 <script type="module">
   import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
+
   verificarLogin(user => {
     document.getElementById("user-pic").src = user.photoURL;
     document.getElementById("user-name").textContent = user.displayName || user.email;
     document.getElementById("logout").addEventListener("click", sair);
   });
 
-  // Menu toggle
   const menuBtn = document.getElementById("menu-button");
   const menuDropdown = document.getElementById("menu-dropdown");
+
   menuBtn.addEventListener("click", () => {
     menuDropdown.classList.toggle("hidden");
   });
 
-  // Fecha menu ao clicar fora
   document.addEventListener("click", (e) => {
     if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
       menuDropdown.classList.add("hidden");
