@@ -15,8 +15,9 @@ const cores = {
   "PROCESSAR": "bg-red-500"
 };
 
-const blocosContainer = document.getElementById("blocos-container");
+const inputNomeCultivo = document.getElementById("nome-cultivo");
 const inputDataInicio = document.getElementById("data-inicio");
+const blocosContainer = document.getElementById("blocos-container");
 
 window.adicionarBloco = function(tipo) {
   if (!inputDataInicio.value) {
@@ -126,12 +127,13 @@ window.salvarBloco = function (index) {
 };
 
 window.salvarCultivo = async function () {
-  if (!inputDataInicio.value || blocos.length === 0) {
-    alert("Preencha a data de início e adicione ao menos um bloco.");
+  if (!inputNomeCultivo.value || !inputDataInicio.value || blocos.length === 0) {
+    alert("Preencha o nome do cultivo, a data de início e adicione ao menos um bloco.");
     return;
   }
 
   const cultivo = {
+    nome: inputNomeCultivo.value.trim(),
     data_inicio: inputDataInicio.value,
     criado_em: Timestamp.now(),
     blocos
@@ -142,6 +144,8 @@ window.salvarCultivo = async function () {
     alert("Cultivo salvo com sucesso!");
     blocos = [];
     renderizarBlocos();
+    inputNomeCultivo.value = "";
+    inputDataInicio.value = "";
   } catch (e) {
     console.error("Erro ao salvar:", e);
     alert("Erro ao salvar cultivo.");
