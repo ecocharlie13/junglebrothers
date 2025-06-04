@@ -1,9 +1,15 @@
 import { db } from "./firebase-init.js";
 import {
-  collection, addDoc, Timestamp
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  addDoc,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let blocos = [];
+let cultivoId = null;
 
 const cores = {
   "CLONAR": "bg-purple-600",
@@ -16,6 +22,29 @@ const cores = {
 const container = document.getElementById("blocos-container");
 const inputData = document.getElementById("data-inicio");
 const inputNome = document.getElementById("nome-cultivo");
+
+window.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
+  cultivoId = params.get("id");
+  if (cultivoId) {
+    try {
+      const docRef = doc(db, "cultivos_blocos", cultivoId);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const cultivo = snap.data();
+        inputNome.value = cultivo.nome || "";
+        inputData.value = cultivo.data_inicio || "";
+        blocos = cultivo.blocos || [];
+        renderizar();
+      } else {
+        alert("Cultivo não encontrado.");
+      }
+    } catch (e) {
+      console.error("Erro ao carregar cultivo:", e);
+      alert("Erro ao carregar cultivo salvo.");
+    }
+  }
+});
 
 window.adicionarBloco = function(tipo) {
   if (!inputData.value) return alert("Preencha a data de início.");
@@ -126,19 +155,25 @@ window.salvarCultivo = async function () {
   }
 
   try {
-    await addDoc(collection(db, "cultivos_blocos"), {
+    const cultivo = {
       nome: inputNome.value,
       data_inicio: inputData.value,
       criado_em: Timestamp.now(),
       blocos
-    });
+    };
+
+    if (cultivoId) {
+      await setDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
+    } else {
+      const ref = await addDoc(collection(db, "cultivos_blocos"), cultivo);
+      cultivoId = ref.id;
+      history.replaceState(null, "", `?id=${cultivoId}`);
+    }
 
     alert("Cultivo salvo!");
-    blocos = [];
-    inputNome.value = "";
     renderizar();
   } catch (e) {
     console.error(e);
-    alert("Erro ao salvar.");
+    alert("Erro ao salvar cultivo.");
   }
 };
