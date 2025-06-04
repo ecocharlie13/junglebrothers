@@ -24,7 +24,6 @@ const inputDataInicio = document.getElementById("data-inicio");
 const inputNome = document.getElementById("nome-cultivo");
 const btnSalvar = document.getElementById("btn-salvar");
 
-// Se tiver ID na URL, carregar cultivo existente
 const params = new URLSearchParams(window.location.search);
 if (params.has("id")) {
   cultivoId = params.get("id");
@@ -89,8 +88,6 @@ function formatarData(dataStr) {
 function renderizarBlocos() {
   blocosContainer.innerHTML = "";
   const hoje = new Date();
-
-  // Agrupar blocos por tipo e numerar semanas por grupo
   const contagemPorTipo = {};
 
   blocos.forEach((bloco, i) => {
@@ -106,9 +103,9 @@ function renderizarBlocos() {
 
     let estiloExtra = "";
     if (fim < hoje) {
-      estiloExtra = "opacity-40"; // Cinza claro para semanas passadas
+      estiloExtra = "opacity-40";
     } else if (inicio <= hoje && fim >= hoje) {
-      estiloExtra = "ring-4 ring-yellow-400"; // Destaque para semana atual
+      estiloExtra = "ring-4 ring-yellow-400";
     }
 
     const header = document.createElement("div");
@@ -145,6 +142,19 @@ function renderizarBlocos() {
     blocosContainer.appendChild(wrapper);
   });
 }
+
+inputDataInicio.addEventListener("change", () => {
+  const base = new Date(inputDataInicio.value);
+  blocos.forEach((bloco, i) => {
+    const ini = new Date(base);
+    ini.setDate(ini.getDate() + i * 7);
+    const fim = new Date(ini);
+    fim.setDate(fim.getDate() + 6);
+    bloco.inicio = ini.toISOString().split("T")[0];
+    bloco.fim = fim.toISOString().split("T")[0];
+  });
+  renderizarBlocos();
+});
 
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
