@@ -95,7 +95,14 @@ function calcularInicio(ordem) {
 function renderizarBlocos() {
   blocosContainer.innerHTML = "";
 
+  // Recalcula a numeração relativa por categoria
+  const contagemPorTipo = {};
+
   blocos.forEach((bloco, i) => {
+    const tipo = bloco.nome;
+    contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
+    const semanaRelativa = contagemPorTipo[tipo];
+
     const wrapper = document.createElement("div");
     wrapper.className = `w-60 bg-white shadow border rounded overflow-hidden`;
     wrapper.setAttribute("data-index", i);
@@ -104,7 +111,7 @@ function renderizarBlocos() {
 
     const header = document.createElement("div");
     header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer`;
-    header.innerHTML = `<strong>Semana ${i + 1}</strong><br><span class="text-sm">${bloco.inicio} → ${bloco.fim}</span>`;
+    header.innerHTML = `<strong>Semana ${semanaRelativa} - ${tipo}</strong><br><span class="text-sm">${bloco.inicio} → ${bloco.fim}</span>`;
     header.addEventListener("click", () => {
       bloco.expandido = !expandido;
       renderizarBlocos();
@@ -115,7 +122,6 @@ function renderizarBlocos() {
 
     if (!expandido) {
       corpo.innerHTML = `
-        <div><strong>${bloco.nome}</strong></div>
         <div>Etapa: ${bloco.etapa || "-"}</div>
         <div>EC In: ${bloco.receita.ec_entrada || "-"}</div>
         <div>PPFD: ${bloco.receita.ppfd || "-"}</div>
