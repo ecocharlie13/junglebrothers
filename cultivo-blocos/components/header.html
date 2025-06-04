@@ -25,26 +25,3 @@
     </div>
   </div>
 </div>
-
-<script type="module">
-  import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
-
-  verificarLogin(user => {
-    document.getElementById("user-pic").src = user.photoURL;
-    document.getElementById("user-name").textContent = user.displayName || user.email;
-    document.getElementById("logout").addEventListener("click", sair);
-  });
-
-  const menuBtn = document.getElementById("menu-button");
-  const menuDropdown = document.getElementById("menu-dropdown");
-
-  menuBtn.addEventListener("click", () => {
-    menuDropdown.classList.toggle("hidden");
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
-      menuDropdown.classList.add("hidden");
-    }
-  });
-</script>
