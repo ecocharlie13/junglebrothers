@@ -1,3 +1,4 @@
+// blocos.js
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -23,6 +24,8 @@ const blocosContainer = document.getElementById("blocos-container");
 const inputDataInicio = document.getElementById("data-inicio");
 const inputNome = document.getElementById("nome-cultivo");
 const btnSalvar = document.getElementById("btn-salvar");
+const colheitaInfo = document.getElementById("colheita-info");
+const diaInfo = document.getElementById("dia-info");
 
 const params = new URLSearchParams(window.location.search);
 if (params.has("id")) {
@@ -35,7 +38,6 @@ window.adicionarBloco = function(tipo) {
     alert("Selecione a data de início primeiro.");
     return;
   }
-
   const ordem = blocos.length;
   const inicio = calcularInicio(ordem);
   const fim = new Date(inicio);
@@ -68,7 +70,6 @@ window.adicionarBloco = function(tipo) {
     cor: cores[tipo],
     expandido: false
   };
-
   blocos.push(novoBloco);
   renderizarBlocos();
 };
@@ -144,6 +145,20 @@ function renderizarBlocos() {
     wrapper.appendChild(corpo);
     blocosContainer.appendChild(wrapper);
   });
+
+  const processar = blocos.find(b => b.nome === "PROCESSAR");
+  colheitaInfo.textContent = processar ? `🌾 Colheita em ${formatarData(processar.inicio)}` : "";
+
+  const hoje = new Date();
+  const ativo = blocos.find(b => new Date(b.inicio) <= hoje && new Date(b.fim) >= hoje);
+  if (ativo) {
+    const dataInicio = new Date(ativo.inicio);
+    const diffMs = hoje - dataInicio;
+    const diaAtual = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+    diaInfo.textContent = `📆 ${ativo.nome} dia ${diaAtual}`;
+  } else {
+    diaInfo.textContent = "";
+  }
 }
 
 inputDataInicio.addEventListener("change", () => {
@@ -200,8 +215,6 @@ async function salvarCultivo() {
     alert("Erro ao salvar cultivo.");
   }
 }
-
-// Removido: salvarCultivo está agora registrado diretamente com addEventListener
 
 async function carregarCultivoExistente(id) {
   try {
