@@ -1,7 +1,7 @@
 // /cultivo-blocos/js/header-logic.js
 import { verificarLogin, sair } from "/cultivo-blocos/js/auth.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+const initMenu = () => {
   const menuBtn = document.getElementById("menu-button");
   const menuDropdown = document.getElementById("menu-dropdown");
 
@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.addEventListener("click", (e) => {
-      if (!menuDropdown.contains(e.target)) {
+      if (!menuDropdown.contains(e.target) && e.target !== menuBtn) {
         menuDropdown.classList.add("hidden");
       }
     });
@@ -27,4 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (userName) userName.textContent = user.displayName || user.email;
     if (logoutBtn) logoutBtn.addEventListener("click", sair);
   });
-});
+};
+
+export default initMenu;
