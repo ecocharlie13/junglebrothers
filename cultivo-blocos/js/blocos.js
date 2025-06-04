@@ -80,6 +80,7 @@ function calcularInicio(ordem) {
 }
 
 function formatarData(dataStr) {
+  if (!dataStr) return "--";
   const meses = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const [ano, mes, dia] = dataStr.split("-");
   return `${dia}-${meses[parseInt(mes) - 1]}-${ano}`;
@@ -98,14 +99,16 @@ function renderizarBlocos() {
     const wrapper = document.createElement("div");
     wrapper.className = `w-60 bg-white shadow border rounded overflow-hidden`;
 
-    const inicio = new Date(bloco.inicio);
-    const fim = new Date(bloco.fim);
-
     let estiloExtra = "";
-    if (fim < hoje) {
-      estiloExtra = "opacity-40";
-    } else if (inicio <= hoje && fim >= hoje) {
-      estiloExtra = "ring-4 ring-yellow-400";
+    const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
+    const fim = bloco.fim ? new Date(bloco.fim) : null;
+
+    if (inicio && fim) {
+      if (fim < hoje) {
+        estiloExtra = "opacity-40";
+      } else if (inicio <= hoje && fim >= hoje) {
+        estiloExtra = "ring-4 ring-yellow-400";
+      }
     }
 
     const header = document.createElement("div");
@@ -167,7 +170,9 @@ function atualizarDados() {
   });
 }
 
-btnSalvar?.addEventListener("click", async () => {
+document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
+
+async function salvarCultivo() {
   atualizarDados();
 
   if (!inputDataInicio.value || !inputNome.value) {
@@ -194,7 +199,9 @@ btnSalvar?.addEventListener("click", async () => {
     console.error("Erro ao salvar:", e);
     alert("Erro ao salvar cultivo.");
   }
-});
+}
+
+// Removido: salvarCultivo está agora registrado diretamente com addEventListener
 
 async function carregarCultivoExistente(id) {
   try {
