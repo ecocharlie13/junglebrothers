@@ -16,7 +16,16 @@
       .then(html => document.getElementById("header-placeholder").innerHTML = html);
   </script>
 
-  <div class="p-6 max-w-5xl mx-auto">
+  <!-- Proteção por login Google -->
+  <script type="module">
+    import { verificarLogin } from "/cultivoapp/js/auth.js";
+    verificarLogin(() => {
+      document.getElementById("conteudo-principal").style.display = "block";
+    });
+  </script>
+
+  <!-- Conteúdo principal protegido -->
+  <div id="conteudo-principal" class="p-6 max-w-5xl mx-auto" style="display: none;">
     <p id="colheita-info" class="text-center text-lg font-semibold text-green-700"></p>
     <p id="dia-info" class="text-center text-base text-gray-700 mb-4"></p>
 
