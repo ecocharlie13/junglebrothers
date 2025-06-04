@@ -116,7 +116,7 @@ function renderizarBlocos() {
     const semanaNumero = contagemPorTipo[tipo];
 
     const wrapper = document.createElement("div");
-    wrapper.className = `w-60 bg-white shadow border rounded overflow-hidden`;
+    wrapper.className = `w-60 bg-white shadow border rounded overflow-hidden relative`;
     wrapper.setAttribute("data-index", i);
 
     let estiloExtra = "";
@@ -157,6 +157,7 @@ function renderizarBlocos() {
         <label class="block mb-1">EC Entrada: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_entrada || ""}" id="ec-${i}"></label>
         <label class="block mb-1">PPFD: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ppfd || ""}" id="ppfd-${i}"></label>
         <label class="block mb-2">Notas: <textarea class="w-full border px-2 py-1 rounded" id="notas-${i}">${bloco.notas || ""}</textarea></label>
+        <button class="absolute top-1 right-1 text-red-600" onclick="if(confirm('Deseja remover este bloco?')) { blocos.splice(${i}, 1); renderizarBlocos(); }">❌</button>
       `;
     }
 
