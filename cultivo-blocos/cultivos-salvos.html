@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cultivos Salvos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <h1 class="text-3xl font-bold text-center mb-6">Cultivos Salvos</h1>
+
+  <div id="lista-cultivos" class="space-y-4 max-w-3xl mx-auto"></div>
+
+  <script type="module">
+    import { db } from "./js/firebase-init.js";
+    import { getDocs, collection } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    const lista = document.getElementById("lista-cultivos");
+
+    async function carregarCultivos() {
+      const snap = await getDocs(collection(db, "cultivos_blocos"));
+      if (snap.empty) {
+        lista.innerHTML = "<p class='text-center text-gray-500'>Nenhum cultivo encontrado.</p>";
+        return;
+      }
+
+      snap.forEach(doc => {
+        const cultivo = doc.data();
+        const blocos = cultivo.blocos || [];
+
+        const card = document.createElement("div");
+        card.className = "bg-white p-4 rounded shadow flex justify-between items-center";
+
+        card.innerHTML = `
+          <div>
+            <h2 class="text-xl font-semibold">${cultivo.nome || "(Sem nome)"}</h2>
+            <p class="text-sm text-gray-600">Início: ${cultivo.data_inicio || "?"} • ${blocos.length} semana(s)</p>
+          </div>
+          <a href="novo-cultivo.html?id=${doc.id}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">🔍 Abrir</a>
+        `;
+
+        lista.appendChild(card);
+      });
+    }
+
+    carregarCultivos();
+  </script>
+</body>
+</html>
