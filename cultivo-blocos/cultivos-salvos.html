@@ -11,10 +11,40 @@
   <!-- Header dinâmico -->
   <div id="header-placeholder"></div>
   <script type="module">
+    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
+
     fetch("/cultivo-blocos/components/header.html")
       .then(res => res.text())
       .then(html => {
         document.getElementById("header-placeholder").innerHTML = html;
+
+        // Ativa menu hambúrguer
+        const menuBtn = document.getElementById("menu-button");
+        const menuDropdown = document.getElementById("menu-dropdown");
+
+        if (menuBtn && menuDropdown) {
+          menuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menuDropdown.classList.toggle("hidden");
+          });
+
+          document.addEventListener("click", (e) => {
+            if (!menuDropdown.contains(e.target) && e.target !== menuBtn) {
+              menuDropdown.classList.add("hidden");
+            }
+          });
+        }
+
+        // Autenticação
+        verificarLogin(user => {
+          const userPic = document.getElementById("user-pic");
+          const userName = document.getElementById("user-name");
+          const logoutBtn = document.getElementById("logout");
+
+          if (userPic) userPic.src = user.photoURL;
+          if (userName) userName.textContent = user.displayName || user.email;
+          if (logoutBtn) logoutBtn.addEventListener("click", sair);
+        });
       });
   </script>
 
@@ -26,7 +56,7 @@
     });
   </script>
 
-  <!-- Conteúdo principal (oculto até login) -->
+  <!-- Conteúdo principal -->
   <div id="conteudo-principal" class="p-6" style="display: none;">
     <h1 class="text-3xl font-bold text-center mb-6">Cultivos Salvos</h1>
 
@@ -41,7 +71,10 @@
   <!-- Script principal -->
   <script type="module">
     import { db } from "./js/firebase-init.js";
-    import { getDocs, collection, deleteDoc, doc, addDoc, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import {
+      getDocs, collection, deleteDoc, doc,
+      addDoc, getDoc, Timestamp
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
     const lista = document.getElementById("lista-cultivos");
     const btnDuplicar = document.getElementById("btn-duplicar");
