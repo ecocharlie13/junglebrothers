@@ -13,7 +13,26 @@
   <script>
     fetch("/cultivo-blocos/components/header.html")
       .then(res => res.text())
-      .then(html => document.getElementById("header-placeholder").innerHTML = html);
+      .then(html => {
+        document.getElementById("header-placeholder").innerHTML = html;
+
+        // Ativa o menu hamburguer após o header ser carregado
+        const menuBtn = document.getElementById("menu-button");
+        const menuDropdown = document.getElementById("menu-dropdown");
+
+        if (menuBtn && menuDropdown) {
+          menuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menuDropdown.classList.toggle("hidden");
+          });
+
+          document.addEventListener("click", (e) => {
+            if (!menuDropdown.contains(e.target) && e.target !== menuBtn) {
+              menuDropdown.classList.add("hidden");
+            }
+          });
+        }
+      });
   </script>
 
   <!-- Proteção por login Google -->
