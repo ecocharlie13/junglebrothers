@@ -6,16 +6,37 @@
   <title>Cultivos Salvos</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
-  <h1 class="text-3xl font-bold text-center mb-6">Cultivos Salvos</h1>
+<body class="bg-gray-100 min-h-screen">
 
-  <div id="lista-cultivos" class="space-y-4 max-w-3xl mx-auto"></div>
+  <!-- Header dinâmico -->
+  <div id="header-placeholder"></div>
+  <script>
+    fetch("/cultivo-blocos/components/header.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("header-placeholder").innerHTML = html);
+  </script>
 
-  <div class="flex justify-center gap-4 mt-8">
-    <button id="btn-duplicar" class="w-32 bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700">🔁 Duplicar</button>
-    <button id="btn-apagar" class="w-32 bg-red-600 text-white py-2 rounded font-semibold hover:bg-red-700">🗑️ Apagar</button>
+  <!-- Proteção com login -->
+  <script type="module">
+    import { verificarLogin } from "/cultivoapp/js/auth.js";
+    verificarLogin(() => {
+      document.getElementById("conteudo-principal").style.display = "block";
+    });
+  </script>
+
+  <!-- Conteúdo principal (oculto até login) -->
+  <div id="conteudo-principal" class="p-6" style="display: none;">
+    <h1 class="text-3xl font-bold text-center mb-6">Cultivos Salvos</h1>
+
+    <div id="lista-cultivos" class="space-y-4 max-w-3xl mx-auto"></div>
+
+    <div class="flex justify-center gap-4 mt-8">
+      <button id="btn-duplicar" class="w-32 bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700">🔁 Duplicar</button>
+      <button id="btn-apagar" class="w-32 bg-red-600 text-white py-2 rounded font-semibold hover:bg-red-700">🗑️ Apagar</button>
+    </div>
   </div>
 
+  <!-- Script principal -->
   <script type="module">
     import { db } from "./js/firebase-init.js";
     import { getDocs, collection, deleteDoc, doc, addDoc, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
