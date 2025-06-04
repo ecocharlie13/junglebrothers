@@ -1,12 +1,50 @@
-<!-- header.html -->
-<header class="bg-white shadow mb-6">
-  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-    <a href="/index.html" class="text-2xl font-bold text-indigo-600">CultivoApp</a>
-    <nav class="space-x-4 text-sm">
-      <a href="/cultivo-blocos/cultivos-salvos.html" class="text-gray-700 hover:text-indigo-600">Cultivos</a>
-      <a href="/cultivo-blocos/novo-cultivo.html" class="text-gray-700 hover:text-indigo-600">Novo</a>
-      <a href="/cultivo-blocos/etapas.html" class="text-gray-700 hover:text-indigo-600">Etapas</a>
-      <!-- Adicione mais links conforme o app evoluir -->
-    </nav>
+<!-- /cultivo-blocos/components/header.html -->
+<div class="bg-white shadow mb-6">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <!-- Logo -->
+    <a href="/cultivo-blocos/cultivos-salvos.html" class="flex items-center gap-2">
+      <img src="/cultivoapp/assets/logo-jungle.png" alt="Logo Jungle Brothers" class="h-8">
+      <span class="font-bold text-lg text-gray-800">Jungle Brothers</span>
+    </a>
+
+    <!-- Menu hambúrguer -->
+    <div class="relative">
+      <button id="menu-button" class="text-gray-800 focus:outline-none">
+        ☰
+      </button>
+      <div id="menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg hidden z-50">
+        <a href="/cultivo-blocos/novo-cultivo.html" class="block px-4 py-2 hover:bg-gray-100">Novo</a>
+        <a href="/cultivo-blocos/cultivos-salvos.html" class="block px-4 py-2 hover:bg-gray-100">Cultivo</a>
+        <a href="/cultivo-blocos/ajuda.html" class="block px-4 py-2 hover:bg-gray-100">Ajuda</a>
+        <div class="flex items-center px-4 py-2 border-t border-gray-200">
+          <img id="user-pic" src="" alt="Perfil" class="w-6 h-6 rounded-full mr-2">
+          <span id="user-name" class="text-sm text-gray-700">Usuário</span>
+        </div>
+        <button id="logout" class="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">Sair</button>
+      </div>
+    </div>
   </div>
-</header>
+</div>
+
+<script type="module">
+  import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
+  verificarLogin(user => {
+    document.getElementById("user-pic").src = user.photoURL;
+    document.getElementById("user-name").textContent = user.displayName || user.email;
+    document.getElementById("logout").addEventListener("click", sair);
+  });
+
+  // Menu toggle
+  const menuBtn = document.getElementById("menu-button");
+  const menuDropdown = document.getElementById("menu-dropdown");
+  menuBtn.addEventListener("click", () => {
+    menuDropdown.classList.toggle("hidden");
+  });
+
+  // Fecha menu ao clicar fora
+  document.addEventListener("click", (e) => {
+    if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
+      menuDropdown.classList.add("hidden");
+    }
+  });
+</script>
