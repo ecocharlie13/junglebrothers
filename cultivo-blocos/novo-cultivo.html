@@ -7,8 +7,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
+
+  <!-- Header dinâmico -->
+  <div id="header-placeholder"></div>
+  <script>
+    fetch("/cultivo-blocos/components/header.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("header-placeholder").innerHTML = html);
+  </script>
+
   <div class="p-6 max-w-5xl mx-auto">
-    <h1 class="text-3xl font-bold text-center mb-1">🧬 Blueprint do Cultivo</h1>
     <p id="colheita-info" class="text-center text-lg font-semibold text-green-700"></p>
     <p id="dia-info" class="text-center text-base text-gray-700 mb-4"></p>
 
@@ -23,11 +31,9 @@
     </div>
 
     <!-- Blocos -->
-    
     <div id="blocos-container" class="grid gap-4 mb-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"></div>
-    
+
     <!-- Botões de adicionar blocos -->
-  
     <div class="flex flex-wrap gap-2 mb-6 justify-center">
       <button class="w-32 bg-purple-600 text-white py-2 rounded" onclick="adicionarBloco('CLONAR')">+ CLONAR</button>
       <button class="w-32 bg-green-600 text-white py-2 rounded" onclick="adicionarBloco('VEGETAR')">+ VEGETAR</button>
