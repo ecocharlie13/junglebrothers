@@ -1,4 +1,3 @@
-// /cultivoapp/js/etapas.js
 import { db } from "/cultivoapp/js/firebase-init.js";
 import {
   collection, getDocs, addDoc, updateDoc, deleteDoc, doc
@@ -9,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnAdd = document.getElementById("add-row");
 
   const campos = [
-    "Evento", "Semana", "Data Inicial", "Data Final", "Fase", "Estratégia",
+    "Evento", "Semana", "ETD", "Fase", "Estratégia",
     "Nutrientes", "Receita", "EC Entrada", "EC Saída",
     "Runoff", "Dryback", "Temperatura", "UR", "VPD", "PPFD", "Observações"
   ];
@@ -28,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const td = document.createElement("td");
       const input = document.createElement("input");
 
-      input.type = (campo.includes("Data")) ? "date" : "text";
+      input.type = (campo === "ETD") ? "number" : "text";
       input.className = "border px-2 py-1 w-full";
       input.value = dados[campo] || "";
       input.dataset.campo = campo;
