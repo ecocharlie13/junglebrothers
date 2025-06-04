@@ -1,7 +1,6 @@
-// /cultivo-blocos/js/header-logic.js
-import { verificarLogin, sair } from "/cultivo-blocos/js/auth.js";
+import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
 
-const initMenu = () => {
+export default function initHeader() {
   const menuBtn = document.getElementById("menu-button");
   const menuDropdown = document.getElementById("menu-dropdown");
 
@@ -19,14 +18,8 @@ const initMenu = () => {
   }
 
   verificarLogin(user => {
-    const userPic = document.getElementById("user-pic");
-    const userName = document.getElementById("user-name");
-    const logoutBtn = document.getElementById("logout");
-
-    if (userPic) userPic.src = user.photoURL;
-    if (userName) userName.textContent = user.displayName || user.email;
-    if (logoutBtn) logoutBtn.addEventListener("click", sair);
+    document.getElementById("user-pic").src = user.photoURL;
+    document.getElementById("user-name").textContent = user.displayName || user.email;
+    document.getElementById("logout").addEventListener("click", sair);
   });
-};
-
-export default initMenu;
+}
