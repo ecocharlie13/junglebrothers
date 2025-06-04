@@ -40,10 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
       adicionarLinha(docSnap.id, docSnap.data());
     });
 
-    setTimeout(() => {
-      tornarColunasRedimensionaveis();
-      ativarReordenacao();
-    }, 500);
+    setTimeout(() => tornarColunasRedimensionaveis(), 500);
   }
 
   function adicionarLinha(id = null, dados = {}) {
@@ -151,11 +148,14 @@ document.addEventListener("DOMContentLoaded", () => {
     tdExcluir.appendChild(btnExcluir);
     tr.appendChild(tdExcluir);
 
+    tr.setAttribute("draggable", true);
+    configurarDrag(tr);
+
     document.getElementById("tabela-etapas").appendChild(tr);
   }
 });
 
-// Função: redimensionar colunas
+// Redimensionamento de colunas
 function tornarColunasRedimensionaveis() {
   const ths = document.querySelectorAll("#header-row th");
 
@@ -189,33 +189,27 @@ function tornarColunasRedimensionaveis() {
   });
 }
 
-// Função: reordenar linhas via drag & drop
-function ativarReordenacao() {
-  const tbody = document.getElementById("tabela-etapas");
-  let dragging;
+// Ativa drag & drop linha por linha
+function configurarDrag(row) {
+  row.addEventListener("dragstart", () => {
+    row.style.opacity = "0.5";
+    row.classList.add("dragging");
+  });
 
-  tbody.querySelectorAll("tr").forEach(row => {
-    row.setAttribute("draggable", true);
+  row.addEventListener("dragend", () => {
+    row.style.opacity = "1";
+    row.classList.remove("dragging");
+  });
 
-    row.addEventListener("dragstart", () => {
-      dragging = row;
-      row.style.opacity = "0.5";
-    });
-
-    row.addEventListener("dragend", () => {
-      row.style.opacity = "1";
-    });
-
-    row.addEventListener("dragover", e => {
-      e.preventDefault();
-      const target = e.currentTarget;
-      const bounding = target.getBoundingClientRect();
-      const offset = bounding.y + bounding.height / 2;
-      if (e.clientY - offset > 0) {
-        target.after(dragging);
-      } else {
-        target.before(dragging);
-      }
-    });
+  row.addEventListener("dragover", e => {
+    e.preventDefault();
+    const dragging = document.querySelector(".dragging");
+    const bounding = row.getBoundingClientRect();
+    const offset = e.clientY - (bounding.top + bounding.height / 2);
+    if (offset > 0) {
+      row.after(dragging);
+    } else {
+      row.before(dragging);
+    }
   });
 }
