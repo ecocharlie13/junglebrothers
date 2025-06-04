@@ -10,10 +10,12 @@
 
   <!-- Header dinâmico -->
   <div id="header-placeholder"></div>
-  <script>
+  <script type="module">
     fetch("/cultivo-blocos/components/header.html")
       .then(res => res.text())
-      .then(html => document.getElementById("header-placeholder").innerHTML = html);
+      .then(html => {
+        document.getElementById("header-placeholder").innerHTML = html;
+      });
   </script>
 
   <!-- Proteção com login -->
