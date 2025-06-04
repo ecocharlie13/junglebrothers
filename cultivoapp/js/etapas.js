@@ -1,17 +1,17 @@
 import { db } from "/cultivoapp/js/firebase-init.js";
 import {
-  collection, getDocs, addDoc, updateDoc, deleteDoc, doc
+  collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const campos = [
-  "Evento", "ETD (dias)", "Etapa", "Fase", "Estratégia de manejo", "Nutrientes",
+  "Selecionar", "Evento", "ETD (dias)", "Etapa", "Fase", "Estratégia de manejo", "Nutrientes",
   "Receita", "EC Entrada", "EC Saída", "Runoff (%)", "Dryback (%)", "Temp. (°C)",
   "UR (%)", "VPD (kPa)", "PPFD", "Observações", "Ações"
 ];
 
 const etapaOptions = [
-  "Clonar", "Germinar", "Vegetar", 
-  "Florar > Transição", "Florar > Início de Flora", "Florar > Meio de Flora", 
+  "Clonar", "Germinar", "Vegetar",
+  "Florar > Transição", "Florar > Início de Flora", "Florar > Meio de Flora",
   "Florar > Fim de Flora", "Florar > Flush"
 ];
 
@@ -21,9 +21,11 @@ const estrategiaOptions = ["Vegetativo", "Generativo", "Misto (Veg/Gen)"];
 document.addEventListener("DOMContentLoaded", () => {
   const tabela = document.getElementById("tabela-etapas");
   const btnAdd = document.getElementById("add-row");
+  const btnSalvarTudo = document.getElementById("salvar-tudo");
+  const btnExcluirSelecionados = document.getElementById("excluir-selecionados");
 
   const headerRow = document.getElementById("header-row");
-  campos.concat("Salvar", "Excluir").forEach(campo => {
+  campos.forEach(campo => {
     const th = document.createElement("th");
     th.className = "border px-2 py-1";
     th.textContent = campo;
@@ -32,54 +34,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
   btnAdd.addEventListener("click", () => adicionarLinha());
 
+  btnSalvarTudo.addEventListener("click", salvarTudo);
+  btnExcluirSelecionados.addEventListener("click", excluirSelecionados);
+
   carregarEtapas();
+});
 
-  async function carregarEtapas() {
-    const snapshot = await getDocs(collection(db, "etapas"));
-    snapshot.forEach(docSnap => {
-      adicionarLinha(docSnap.id, docSnap.data());
-    });
+async function carregarEtapas() {
+  const q = query(collection(db, "etapas"), orderBy("ordem"));
+  const snapshot = await getDocs(q);
+  snapshot.forEach(docSnap => {
+    adicionarLinha(docSnap.id, docSnap.data());
+  });
 
-    setTimeout(() => tornarColunasRedimensionaveis(), 500);
-  }
+  setTimeout(() => tornarColunasRedimensionaveis(), 500);
+}
 
-  function adicionarLinha(id = null, dados = {}) {
-    const tr = document.createElement("tr");
-    const inputs = {};
+function adicionarLinha(id = null, dados = {}) {
+  const tr = document.createElement("tr");
+  const inputs = {};
+  if (id) tr.dataset.id = id;
 
-    campos.forEach(campo => {
-      const td = document.createElement("td");
-      td.className = "border px-2 py-1";
-      let input;
+  campos.forEach(campo => {
+    const td = document.createElement("td");
+    td.className = "border px-2 py-1";
+    let input;
+
+    if (campo === "Selecionar") {
+      input = document.createElement("input");
+      input.type = "checkbox";
+      input.className = "checkbox-selecionar";
+    } else {
       const valor = dados[campo] || "";
 
       if (campo === "Etapa") {
-        input = document.createElement("select");
-        etapaOptions.forEach(opt => {
-          const option = document.createElement("option");
-          option.value = opt;
-          option.textContent = opt;
-          if (valor === opt) option.selected = true;
-          input.appendChild(option);
-        });
+        input = criarSelect(etapaOptions, valor);
       } else if (campo === "Fase") {
-        input = document.createElement("select");
-        faseOptions.forEach(opt => {
-          const option = document.createElement("option");
-          option.value = opt;
-          option.textContent = opt;
-          if (valor === opt) option.selected = true;
-          input.appendChild(option);
-        });
+        input = criarSelect(faseOptions, valor);
       } else if (campo === "Estratégia de manejo") {
-        input = document.createElement("select");
-        estrategiaOptions.forEach(opt => {
-          const option = document.createElement("option");
-          option.value = opt;
-          option.textContent = opt;
-          if (valor === opt) option.selected = true;
-          input.appendChild(option);
-        });
+        input = criarSelect(estrategiaOptions, valor);
       } else if (["Observações", "Ações", "Receita"].includes(campo)) {
         input = document.createElement("textarea");
         input.className = "w-full";
@@ -102,66 +95,92 @@ document.addEventListener("DOMContentLoaded", () => {
         input.value = valor;
       }
 
-      inputs[campo] = input;
-      td.appendChild(input);
-      tr.appendChild(td);
-    });
-
-    // Botão Salvar
-    const tdSalvar = document.createElement("td");
-    tdSalvar.className = "border px-2 py-1 text-center";
-    const btnSalvar = document.createElement("button");
-    btnSalvar.textContent = "💾";
-    btnSalvar.className = "px-2 py-1 bg-blue-500 text-white rounded";
-    btnSalvar.addEventListener("click", async () => {
-      const dadosSalvar = {};
-      campos.forEach(campo => {
-        dadosSalvar[campo] = inputs[campo].value;
+      // Marcar linha como modificada ao editar
+      input.addEventListener("input", () => {
+        tr.classList.add("bg-yellow-50");
+        tr.dataset.modified = "true";
       });
-      if (id) {
-        await updateDoc(doc(db, "etapas", id), dadosSalvar);
-        alert("Etapa atualizada!");
-      } else {
-        await addDoc(collection(db, "etapas"), dadosSalvar);
-        alert("Etapa criada!");
-        location.reload();
-      }
-    });
-    tdSalvar.appendChild(btnSalvar);
-    tr.appendChild(tdSalvar);
+    }
 
-    // Botão Excluir
-    const tdExcluir = document.createElement("td");
-    tdExcluir.className = "border px-2 py-1 text-center";
-    const btnExcluir = document.createElement("button");
-    btnExcluir.textContent = "🗑️";
-    btnExcluir.className = "px-2 py-1 bg-red-500 text-white rounded";
-    btnExcluir.addEventListener("click", async () => {
-      if (id && confirm("Deseja mesmo deletar esta etapa?")) {
-        await deleteDoc(doc(db, "etapas", id));
-        alert("Etapa excluída!");
-        location.reload();
-      } else if (!id) {
-        tr.remove();
-      }
-    });
-    tdExcluir.appendChild(btnExcluir);
-    tr.appendChild(tdExcluir);
+    td.appendChild(input);
+    tr.appendChild(td);
 
-    tr.setAttribute("draggable", true);
-    configurarDrag(tr);
+    if (campo !== "Selecionar") {
+      inputs[campo] = input;
+    }
+  });
 
-    document.getElementById("tabela-etapas").appendChild(tr);
+  tr.dataset.inputs = JSON.stringify(inputs);
+  tr.setAttribute("draggable", true);
+  configurarDrag(tr);
+  document.getElementById("tabela-etapas").appendChild(tr);
+}
+
+function criarSelect(opcoes, valorSelecionado) {
+  const select = document.createElement("select");
+  opcoes.forEach(opt => {
+    const option = document.createElement("option");
+    option.value = opt;
+    option.textContent = opt;
+    if (valorSelecionado === opt) option.selected = true;
+    select.appendChild(option);
+  });
+  return select;
+}
+
+async function salvarTudo() {
+  const linhas = document.querySelectorAll("#tabela-etapas tr");
+  let ordem = 0;
+
+  for (const linha of linhas) {
+    const id = linha.dataset.id;
+    const tds = linha.querySelectorAll("td");
+    const dados = {};
+    let i = 1; // começa após coluna Selecionar
+
+    for (const campo of campos.slice(1)) {
+      const input = tds[i]?.querySelector("input, select, textarea");
+      if (input) dados[campo] = input.value;
+      i++;
+    }
+
+    dados.ordem = ordem;
+    ordem++;
+
+    if (id) {
+      await updateDoc(doc(db, "etapas", id), dados);
+    } else {
+      await addDoc(collection(db, "etapas"), dados);
+    }
+
+    linha.classList.remove("bg-yellow-50");
+    linha.dataset.modified = "false";
   }
-});
+
+  alert("Todas as etapas foram salvas com sucesso!");
+}
+
+async function excluirSelecionados() {
+  const selecionadas = document.querySelectorAll("input.checkbox-selecionar:checked");
+  if (selecionadas.length === 0) return;
+
+  if (!confirm(`Deseja excluir ${selecionadas.length} etapa(s)?`)) return;
+
+  for (const checkbox of selecionadas) {
+    const linha = checkbox.closest("tr");
+    const id = linha.dataset.id;
+    if (id) await deleteDoc(doc(db, "etapas", id));
+    linha.remove();
+  }
+
+  alert("Etapas excluídas com sucesso!");
+}
 
 // Redimensionamento de colunas
 function tornarColunasRedimensionaveis() {
   const ths = document.querySelectorAll("#header-row th");
-
   ths.forEach(th => {
     th.classList.add("resizable");
-
     const resizer = document.createElement("div");
     resizer.className = "resizer";
     th.appendChild(resizer);
@@ -182,14 +201,13 @@ function tornarColunasRedimensionaveis() {
     resizer.addEventListener("mousedown", e => {
       x = e.clientX;
       w = th.offsetWidth;
-
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
     });
   });
 }
 
-// Ativa drag & drop linha por linha
+// Drag & Drop por linha
 function configurarDrag(row) {
   row.addEventListener("dragstart", () => {
     row.style.opacity = "0.5";
