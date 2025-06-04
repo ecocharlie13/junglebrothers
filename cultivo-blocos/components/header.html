@@ -1,27 +1,54 @@
-<!-- /cultivo-blocos/components/header.html -->
-<div class="bg-white shadow mb-6">
-  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-    <!-- Logo -->
-    <a href="/cultivo-blocos/cultivos-salvos.html" class="flex items-center gap-2">
-      <img src="/cultivo-blocos/assets/logo-jungle.png" alt="Logo CultivoApp" class="h-8">
-      <span class="font-bold text-lg text-gray-800">CultivoApp</span>
-    </a>
+<header class="bg-white shadow-md">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+    <a href="/cultivoapp/home.html" class="text-xl font-bold text-green-700">🌱 CultivoApp</a>
 
-    <!-- Botão menu -->
-    <div class="relative">
-      <button id="menu-button" class="text-gray-800 text-2xl focus:outline-none">
-        ☰
-      </button>
-      <div id="menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg hidden z-50">
-        <a href="/cultivo-blocos/novo-cultivo.html" class="block px-4 py-2 hover:bg-gray-100">Novo</a>
-        <a href="/cultivo-blocos/cultivos-salvos.html" class="block px-4 py-2 hover:bg-gray-100">Cultivo</a>
-        <a href="/cultivo-blocos/ajuda.html" class="block px-4 py-2 hover:bg-gray-100">Ajuda</a>
-        <div class="flex items-center px-4 py-2 border-t border-gray-200">
-          <img id="user-pic" src="" alt="Perfil" class="w-6 h-6 rounded-full mr-2">
-          <span id="user-name" class="text-sm text-gray-700">Usuário</span>
-        </div>
-        <button id="logout" class="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">Sair</button>
-      </div>
-    </div>
+    <!-- Botão hambúrguer -->
+    <button id="menu-button" class="lg:hidden text-gray-700 focus:outline-none">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+
+    <!-- Menu completo (desktop) -->
+    <nav class="hidden lg:flex gap-4 items-center text-sm font-medium text-gray-700">
+      <a href="/cultivoapp/blueprints.html" class="hover:text-green-700">Blueprints</a>
+      <a href="/cultivoapp/cultivos.html" class="hover:text-green-700">Cultivos</a>
+      <a href="/cultivoapp/etapas.html" class="hover:text-green-700">Etapas</a>
+      <a href="/cultivoapp/relatorio.html" class="hover:text-green-700">Relatório</a>
+      <button id="logout" class="ml-4 text-red-600 hover:underline">Sair</button>
+    </nav>
   </div>
-</div>
+
+  <!-- Menu dropdown (mobile) -->
+  <div id="menu-dropdown" class="hidden px-4 pb-4 lg:hidden">
+    <nav class="flex flex-col gap-2 text-sm font-medium text-gray-700">
+      <a href="/cultivoapp/blueprints.html" class="hover:text-green-700">Blueprints</a>
+      <a href="/cultivoapp/cultivos.html" class="hover:text-green-700">Cultivos</a>
+      <a href="/cultivoapp/etapas.html" class="hover:text-green-700">Etapas</a>
+      <a href="/cultivoapp/relatorio.html" class="hover:text-green-700">Relatório</a>
+      <button id="logout" class="text-left text-red-600 hover:underline">Sair</button>
+    </nav>
+  </div>
+
+  <!-- Script do menu hamburguer -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const menuBtn = document.getElementById("menu-button");
+      const dropdown = document.getElementById("menu-dropdown");
+
+      if (menuBtn && dropdown) {
+        menuBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          dropdown.classList.toggle("hidden");
+        });
+
+        document.addEventListener("click", (e) => {
+          if (!dropdown.contains(e.target) && e.target !== menuBtn) {
+            dropdown.classList.add("hidden");
+          }
+        });
+      }
+    });
+  </script>
+</header>
