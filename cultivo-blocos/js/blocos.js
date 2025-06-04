@@ -43,6 +43,18 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+inputDataInicio.addEventListener("change", () => {
+  blocos.forEach((bloco, i) => {
+    const novaData = new Date(inputDataInicio.value);
+    novaData.setDate(novaData.getDate() + i * 7);
+    bloco.inicio = novaData.toISOString().split("T")[0];
+    const fim = new Date(novaData);
+    fim.setDate(fim.getDate() + 6);
+    bloco.fim = fim.toISOString().split("T")[0];
+  });
+  renderizarBlocos();
+});
+
 window.adicionarBloco = function(tipo) {
   if (!inputDataInicio.value) {
     alert("Selecione a data de início primeiro.");
@@ -95,7 +107,6 @@ function calcularInicio(ordem) {
 function renderizarBlocos() {
   blocosContainer.innerHTML = "";
 
-  // Recalcula a numeração relativa por categoria
   const contagemPorTipo = {};
 
   blocos.forEach((bloco, i) => {
