@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Etapas - CultivoApp</title>
   <script src="https://cdn.tailwindcss.com"></script>
+<style>
+  th.resizable {
+    position: relative;
+  }
+
+  th.resizable .resizer {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 6px;
+    cursor: col-resize;
+    user-select: none;
+    height: 100%;
+    background-color: transparent;
+  }
+
+  /* Opcional: destaca o resizer ao passar o mouse */
+  th.resizable .resizer:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+</style>
 </head>
 <body class="bg-gray-100 min-h-screen">
   <div id="header-placeholder"></div>
