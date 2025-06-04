@@ -29,29 +29,32 @@
 <script type="module">
   import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
 
-  verificarLogin(user => {
-    const userPic = document.getElementById("user-pic");
-    const userName = document.getElementById("user-name");
-    const logoutBtn = document.getElementById("logout");
+  // Aguarda DOM carregar após injeção via fetch
+  window.addEventListener("DOMContentLoaded", () => {
+    const menuBtn = document.getElementById("menu-button");
+    const menuDropdown = document.getElementById("menu-dropdown");
 
-    if (userPic) userPic.src = user.photoURL;
-    if (userName) userName.textContent = user.displayName || user.email;
-    if (logoutBtn) logoutBtn.addEventListener("click", sair);
+    if (menuBtn && menuDropdown) {
+      menuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menuDropdown.classList.toggle("hidden");
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!menuDropdown.contains(e.target) && e.target !== menuBtn) {
+          menuDropdown.classList.add("hidden");
+        }
+      });
+    }
+
+    verificarLogin(user => {
+      const userPic = document.getElementById("user-pic");
+      const userName = document.getElementById("user-name");
+      const logoutBtn = document.getElementById("logout");
+
+      if (userPic) userPic.src = user.photoURL;
+      if (userName) userName.textContent = user.displayName || user.email;
+      if (logoutBtn) logoutBtn.addEventListener("click", sair);
+    });
   });
-
-  const menuBtn = document.getElementById("menu-button");
-  const menuDropdown = document.getElementById("menu-dropdown");
-
-  if (menuBtn && menuDropdown) {
-    menuBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      menuDropdown.classList.toggle("hidden");
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!menuDropdown.contains(e.target) && e.target !== menuBtn) {
-        menuDropdown.classList.add("hidden");
-      }
-    });
-  }
 </script>
