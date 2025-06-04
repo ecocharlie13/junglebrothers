@@ -39,6 +39,11 @@ document.addEventListener("DOMContentLoaded", () => {
     snapshot.forEach(docSnap => {
       adicionarLinha(docSnap.id, docSnap.data());
     });
+
+    setTimeout(() => {
+      tornarColunasRedimensionaveis();
+      ativarReordenacao();
+    }, 500);
   }
 
   function adicionarLinha(id = null, dados = {}) {
@@ -148,12 +153,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("tabela-etapas").appendChild(tr);
   }
-
-  // Ativa redimensionamento de colunas
-  setTimeout(() => tornarColunasRedimensionaveis(), 500);
 });
 
-// Função: torna colunas <th> redimensionáveis no desktop
+// Função: redimensionar colunas
 function tornarColunasRedimensionaveis() {
   const ths = document.querySelectorAll("#header-row th");
 
@@ -183,6 +185,37 @@ function tornarColunasRedimensionaveis() {
 
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
+    });
+  });
+}
+
+// Função: reordenar linhas via drag & drop
+function ativarReordenacao() {
+  const tbody = document.getElementById("tabela-etapas");
+  let dragging;
+
+  tbody.querySelectorAll("tr").forEach(row => {
+    row.setAttribute("draggable", true);
+
+    row.addEventListener("dragstart", () => {
+      dragging = row;
+      row.style.opacity = "0.5";
+    });
+
+    row.addEventListener("dragend", () => {
+      row.style.opacity = "1";
+    });
+
+    row.addEventListener("dragover", e => {
+      e.preventDefault();
+      const target = e.currentTarget;
+      const bounding = target.getBoundingClientRect();
+      const offset = bounding.y + bounding.height / 2;
+      if (e.clientY - offset > 0) {
+        target.after(dragging);
+      } else {
+        target.before(dragging);
+      }
     });
   });
 }
