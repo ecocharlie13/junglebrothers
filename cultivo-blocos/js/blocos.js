@@ -89,6 +89,22 @@ function formatarData(dataStr) {
   return `${dia}-${meses[parseInt(mes) - 1]}-${ano}`;
 }
 
+function atualizarColheitaEDiaAtual() {
+  const hoje = new Date();
+  const processar = blocos.find((b) => b.nome === "PROCESSAR");
+  colheitaInfo.textContent = processar ? `🌾 Colheita em ${formatarData(processar.inicio)}` : "";
+
+  const ativo = blocos.find((b) => new Date(b.inicio) <= hoje && new Date(b.fim) >= hoje);
+  if (ativo) {
+    const dataInicio = new Date(ativo.inicio);
+    const diffMs = hoje - dataInicio;
+    const diaAtual = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+    diaInfo.textContent = `📆 ${ativo.nome} dia ${diaAtual}`;
+  } else {
+    diaInfo.textContent = "";
+  }
+}
+
 function renderizarBlocos() {
   blocosContainer.innerHTML = "";
   const hoje = new Date();
@@ -149,18 +165,7 @@ function renderizarBlocos() {
     blocosContainer.appendChild(wrapper);
   });
 
-  const processar = blocos.find((b) => b.nome === "PROCESSAR");
-  colheitaInfo.textContent = processar ? `🌾 Colheita em ${formatarData(processar.inicio)}` : "";
-
-  const ativo = blocos.find((b) => new Date(b.inicio) <= hoje && new Date(b.fim) >= hoje);
-  if (ativo) {
-    const dataInicio = new Date(ativo.inicio);
-    const diffMs = hoje - dataInicio;
-    const diaAtual = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-    diaInfo.textContent = `📆 ${ativo.nome} dia ${diaAtual}`;
-  } else {
-    diaInfo.textContent = "";
-  }
+  atualizarColheitaEDiaAtual();
 
   Sortable.create(blocosContainer, {
     animation: 150,
