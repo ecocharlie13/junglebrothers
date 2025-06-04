@@ -149,7 +149,7 @@ function renderizarBlocos() {
   const processar = blocos.find(b => b.nome === "PROCESSAR");
   colheitaInfo.textContent = processar ? `🌾 Colheita em ${formatarData(processar.inicio)}` : "";
 
-  const hoje = new Date();
+  // const hoje = new Date();
   const ativo = blocos.find(b => new Date(b.inicio) <= hoje && new Date(b.fim) >= hoje);
   if (ativo) {
     const dataInicio = new Date(ativo.inicio);
