@@ -8,6 +8,8 @@ import {
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+import Sortable from "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/+esm";
+
 let blocos = [];
 let cultivoId = null;
 
@@ -23,7 +25,6 @@ const inputNomeCultivo = document.getElementById("nome-cultivo");
 const inputDataInicio = document.getElementById("data-inicio");
 const blocosContainer = document.getElementById("blocos-container");
 
-// Detecta e carrega cultivo salvo via ?id=XYZ
 window.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   cultivoId = params.get("id");
@@ -97,6 +98,7 @@ function renderizarBlocos() {
   blocos.forEach((bloco, i) => {
     const wrapper = document.createElement("div");
     wrapper.className = `w-60 bg-white shadow border rounded overflow-hidden`;
+    wrapper.setAttribute("data-index", i);
 
     const expandido = bloco.expandido ?? false;
 
@@ -145,6 +147,24 @@ function renderizarBlocos() {
     wrapper.appendChild(corpo);
     blocosContainer.appendChild(wrapper);
   });
+
+  Sortable.create(blocosContainer, {
+    animation: 150,
+    onEnd: (evt) => {
+      const movedItem = blocos.splice(evt.oldIndex, 1)[0];
+      blocos.splice(evt.newIndex, 0, movedItem);
+      blocos.forEach((b, i) => {
+        const dataInicial = new Date(inputDataInicio.value);
+        dataInicial.setDate(dataInicial.getDate() + i * 7);
+        b.ordem = i;
+        b.inicio = dataInicial.toISOString().split("T")[0];
+        const fim = new Date(dataInicial);
+        fim.setDate(fim.getDate() + 6);
+        b.fim = fim.toISOString().split("T")[0];
+      });
+      renderizarBlocos();
+    }
+  });
 }
 
 window.salvarCultivo = async function () {
@@ -153,12 +173,10 @@ window.salvarCultivo = async function () {
     return;
   }
 
-  // Sincroniza os campos dos blocos
   document.querySelectorAll("[data-i]").forEach(input => {
     const i = parseInt(input.dataset.i);
     const k = input.dataset.k;
     const val = input.value;
-
     if (k === "etapa" || k === "fase" || k === "estrategia") {
       blocos[i][k] = val;
     } else if (k === "notas") {
