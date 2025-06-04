@@ -148,4 +148,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("tabela-etapas").appendChild(tr);
   }
+
+  // Ativa redimensionamento de colunas
+  setTimeout(() => tornarColunasRedimensionaveis(), 500);
 });
+
+// Função: torna colunas <th> redimensionáveis no desktop
+function tornarColunasRedimensionaveis() {
+  const ths = document.querySelectorAll("#header-row th");
+
+  ths.forEach(th => {
+    th.classList.add("resizable");
+
+    const resizer = document.createElement("div");
+    resizer.className = "resizer";
+    th.appendChild(resizer);
+
+    let x = 0;
+    let w = 0;
+
+    const onMouseMove = e => {
+      const dx = e.clientX - x;
+      th.style.width = `${w + dx}px`;
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    resizer.addEventListener("mousedown", e => {
+      x = e.clientX;
+      w = th.offsetWidth;
+
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    });
+  });
+}
