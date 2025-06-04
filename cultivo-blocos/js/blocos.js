@@ -1,11 +1,15 @@
 import { db } from "./firebase-init.js";
 import {
   collection,
+  doc,
+  getDoc,
+  setDoc,
   addDoc,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let blocos = [];
+let cultivoId = null;
 
 const cores = {
   "CLONAR": "bg-purple-600",
@@ -18,6 +22,25 @@ const cores = {
 const inputNomeCultivo = document.getElementById("nome-cultivo");
 const inputDataInicio = document.getElementById("data-inicio");
 const blocosContainer = document.getElementById("blocos-container");
+
+// Detecta e carrega cultivo salvo via ?id=XYZ
+window.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
+  cultivoId = params.get("id");
+  if (cultivoId) {
+    const docRef = doc(db, "cultivos_blocos", cultivoId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const cultivo = snap.data();
+      inputNomeCultivo.value = cultivo.nome || "";
+      inputDataInicio.value = cultivo.data_inicio || "";
+      blocos = cultivo.blocos || [];
+      renderizarBlocos();
+    } else {
+      alert("Cultivo não encontrado.");
+    }
+  }
+});
 
 window.adicionarBloco = function(tipo) {
   if (!inputDataInicio.value) {
@@ -87,7 +110,7 @@ function renderizarBlocos() {
 
     const corpo = document.createElement("div");
     corpo.className = "p-4 text-sm";
-    
+
     if (!expandido) {
       corpo.innerHTML = `
         <div><strong>${bloco.nome}</strong></div>
@@ -97,13 +120,12 @@ function renderizarBlocos() {
       `;
     } else {
       corpo.innerHTML = `
-        <label class="block mb-1">Etapa: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.etapa || ""}" id="etapa-${i}"></label>
-        <label class="block mb-1">Fase: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.fase || ""}" id="fase-${i}"></label>
-        <label class="block mb-1">Estratégia: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.estrategia || ""}" id="estrategia-${i}"></label>
-        <label class="block mb-1">EC Entrada: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_entrada || ""}" id="ec-${i}"></label>
-        <label class="block mb-1">PPFD: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ppfd || ""}" id="ppfd-${i}"></label>
-        <label class="block mb-2">Notas: <textarea class="w-full border px-2 py-1 rounded" id="notas-${i}">${bloco.notas || ""}</textarea></label>
-        <button class="bg-green-600 text-white px-3 py-1 rounded w-full" onclick="salvarBloco(${i})">💾 Salvar</button>
+        <label class="block mb-1">Etapa: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.etapa || ""}" oninput="blocos[${i}].etapa = this.value"></label>
+        <label class="block mb-1">Fase: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.fase || ""}" oninput="blocos[${i}].fase = this.value"></label>
+        <label class="block mb-1">Estratégia: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.estrategia || ""}" oninput="blocos[${i}].estrategia = this.value"></label>
+        <label class="block mb-1">EC Entrada: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_entrada || ""}" oninput="blocos[${i}].receita.ec_entrada = this.value"></label>
+        <label class="block mb-1">PPFD: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ppfd || ""}" oninput="blocos[${i}].receita.ppfd = this.value"></label>
+        <label class="block mb-2">Notas: <textarea class="w-full border px-2 py-1 rounded" oninput="blocos[${i}].notas = this.value">${bloco.notas || ""}</textarea></label>
       `;
     }
 
@@ -112,19 +134,6 @@ function renderizarBlocos() {
     blocosContainer.appendChild(wrapper);
   });
 }
-
-window.salvarBloco = function (index) {
-  const bloco = blocos[index];
-  bloco.etapa = document.getElementById(`etapa-${index}`).value;
-  bloco.fase = document.getElementById(`fase-${index}`).value;
-  bloco.estrategia = document.getElementById(`estrategia-${index}`).value;
-  bloco.receita.ec_entrada = document.getElementById(`ec-${index}`).value;
-  bloco.receita.ppfd = document.getElementById(`ppfd-${index}`).value;
-  bloco.notas = document.getElementById(`notas-${index}`).value;
-
-  blocos[index] = bloco;
-  renderizarBlocos();
-};
 
 window.salvarCultivo = async function () {
   if (!inputNomeCultivo.value || !inputDataInicio.value || blocos.length === 0) {
@@ -140,12 +149,16 @@ window.salvarCultivo = async function () {
   };
 
   try {
-    await addDoc(collection(db, "cultivos_blocos"), cultivo);
+    if (cultivoId) {
+      await setDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
+    } else {
+      const ref = await addDoc(collection(db, "cultivos_blocos"), cultivo);
+      cultivoId = ref.id;
+      history.replaceState(null, "", `?id=${cultivoId}`);
+    }
+
     alert("Cultivo salvo com sucesso!");
-    blocos = [];
     renderizarBlocos();
-    inputNomeCultivo.value = "";
-    inputDataInicio.value = "";
   } catch (e) {
     console.error("Erro ao salvar:", e);
     alert("Erro ao salvar cultivo.");
