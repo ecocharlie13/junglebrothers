@@ -9,15 +9,17 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+import Sortable from "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/modular/sortable.esm.js";
+
 let blocos = [];
 let cultivoId = null;
 
 const cores = {
-  "CLONAR": "bg-purple-600",
-  "VEGETAR": "bg-green-600",
-  "FLORAR": "bg-orange-500",
-  "FLUSH": "bg-blue-500",
-  "PROCESSAR": "bg-red-500"
+  CLONAR: "bg-purple-600",
+  VEGETAR: "bg-green-600",
+  FLORAR: "bg-orange-500",
+  FLUSH: "bg-blue-500",
+  PROCESSAR: "bg-red-500",
 };
 
 const blocosContainer = document.getElementById("blocos-container");
@@ -33,7 +35,7 @@ if (params.has("id")) {
   carregarCultivoExistente(cultivoId);
 }
 
-window.adicionarBloco = function(tipo) {
+window.adicionarBloco = function (tipo) {
   if (!inputDataInicio.value) {
     alert("Selecione a data de início primeiro.");
     return;
@@ -63,12 +65,12 @@ window.adicionarBloco = function(tipo) {
       temperatura: "",
       ur: "",
       vpd: "",
-      ppfd: ""
+      ppfd: "",
     },
     notas: "",
     tarefas: [],
     cor: cores[tipo],
-    expandido: false
+    expandido: false,
   };
   blocos.push(novoBloco);
   renderizarBlocos();
@@ -99,6 +101,7 @@ function renderizarBlocos() {
 
     const wrapper = document.createElement("div");
     wrapper.className = `w-60 bg-white shadow border rounded overflow-hidden`;
+    wrapper.setAttribute("data-index", i);
 
     let estiloExtra = "";
     const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
@@ -146,11 +149,10 @@ function renderizarBlocos() {
     blocosContainer.appendChild(wrapper);
   });
 
-  const processar = blocos.find(b => b.nome === "PROCESSAR");
+  const processar = blocos.find((b) => b.nome === "PROCESSAR");
   colheitaInfo.textContent = processar ? `🌾 Colheita em ${formatarData(processar.inicio)}` : "";
 
-  // const hoje = new Date();
-  const ativo = blocos.find(b => new Date(b.inicio) <= hoje && new Date(b.fim) >= hoje);
+  const ativo = blocos.find((b) => new Date(b.inicio) <= hoje && new Date(b.fim) >= hoje);
   if (ativo) {
     const dataInicio = new Date(ativo.inicio);
     const diffMs = hoje - dataInicio;
@@ -159,10 +161,35 @@ function renderizarBlocos() {
   } else {
     diaInfo.textContent = "";
   }
+
+  Sortable.create(blocosContainer, {
+    animation: 150,
+    onEnd: (evt) => {
+      const novosBlocos = [];
+      const blocosDom = blocosContainer.querySelectorAll("[data-index]");
+      blocosDom.forEach((el) => {
+        const index = parseInt(el.getAttribute("data-index"));
+        novosBlocos.push(blocos[index]);
+      });
+      blocos = novosBlocos;
+      blocos.forEach((bloco, i) => {
+        const ini = new Date(inputDataInicio.value);
+        ini.setDate(ini.getDate() + i * 7);
+        const fim = new Date(ini);
+        fim.setDate(fim.getDate() + 6);
+        bloco.inicio = ini.toISOString().split("T")[0];
+        bloco.fim = fim.toISOString().split("T")[0];
+      });
+      renderizarBlocos();
+    },
+  });
 }
 
 inputDataInicio.addEventListener("change", () => {
+  if (!inputDataInicio.value) return;
   const base = new Date(inputDataInicio.value);
+  if (isNaN(base)) return;
+
   blocos.forEach((bloco, i) => {
     const ini = new Date(base);
     ini.setDate(ini.getDate() + i * 7);
@@ -199,7 +226,7 @@ async function salvarCultivo() {
     nome: inputNome.value,
     data_inicio: inputDataInicio.value,
     criado_em: Timestamp.now(),
-    blocos
+    blocos,
   };
 
   try {
