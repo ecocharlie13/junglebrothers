@@ -1,75 +1,84 @@
-// ==========================
-// ✅ ARQUIVO 2: bloco.js
-// ==========================
-
 import { db } from "./firebase-init.js";
 import {
-  collection,
-  addDoc,
-  Timestamp
+  doc, setDoc, collection, addDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let blocos = [];
-const cores = {
-  CLONAR: "bg-purple-600",
-  VEGETAR: "bg-green-600",
-  FLORAR: "bg-orange-500",
-  FLUSH: "bg-blue-500",
-  PROCESSAR: "bg-red-500",
-};
 
-const blocosContainer = document.getElementById("blocos-container");
-const inputDataInicio = document.getElementById("data-inicio");
-const inputNome = document.getElementById("nome-cultivo");
-const btnSalvar = document.getElementById("btn-salvar");
+window.adicionarBloco = function (fase) {
+  const dataInicio = document.getElementById("data-inicio").value;
+  if (!dataInicio) return alert("Defina a data de início.");
 
-window.adicionarBloco = function (tipo) {
   const ordem = blocos.length;
-  const inicio = new Date(inputDataInicio.value);
+  const inicio = new Date(dataInicio);
   inicio.setDate(inicio.getDate() + ordem * 7);
   const fim = new Date(inicio);
   fim.setDate(fim.getDate() + 6);
 
-  blocos.push({
-    nome: tipo,
+  const bloco = {
+    fase,
+    etapa: "",
+    estrategia: "",
     inicio: inicio.toISOString().split("T")[0],
     fim: fim.toISOString().split("T")[0],
-    etapa: "",
-    fase: "",
-    estrategia: "",
-    receita: {},
-    notas: "",
-    ordem,
-    cor: cores[tipo],
-  });
+    ec_entrada: "",
+    ph_entrada: "",
+    notas: ""
+  };
 
-  renderizarBlocos();
+  blocos.push(bloco);
+  renderizar();
 };
 
-function renderizarBlocos() {
-  blocosContainer.innerHTML = "";
+function renderizar() {
+  const container = document.getElementById("blocos-container");
+  container.innerHTML = "";
+
   blocos.forEach((b, i) => {
     const div = document.createElement("div");
-    div.className = `${b.cor} p-4 rounded shadow text-white`;
+    div.className = "bg-white shadow p-4 rounded border";
+
     div.innerHTML = `
-      <h2 class="font-bold mb-2">${b.nome} #${i + 1}</h2>
-      <p>Início: ${b.inicio}</p>
-      <p>Fim: ${b.fim}</p>
+      <h2 class="font-bold mb-2">${b.fase} (${b.inicio} → ${b.fim})</h2>
+      <label class="block mb-1">Etapa:
+        <input data-i="${i}" data-k="etapa" value="${b.etapa}" class="w-full border px-2 py-1 rounded" />
+      </label>
+      <label class="block mb-1">Estratégia:
+        <input data-i="${i}" data-k="estrategia" value="${b.estrategia}" class="w-full border px-2 py-1 rounded" />
+      </label>
+      <label class="block mb-1">EC Entrada:
+        <input data-i="${i}" data-k="ec_entrada" value="${b.ec_entrada}" class="w-full border px-2 py-1 rounded" />
+      </label>
+      <label class="block mb-1">PH Entrada:
+        <input data-i="${i}" data-k="ph_entrada" value="${b.ph_entrada}" class="w-full border px-2 py-1 rounded" />
+      </label>
+      <label class="block">Notas:
+        <textarea data-i="${i}" data-k="notas" class="w-full border px-2 py-1 rounded">${b.notas}</textarea>
+      </label>
     `;
-    blocosContainer.appendChild(div);
+    container.appendChild(div);
+  });
+
+  container.querySelectorAll("input, textarea").forEach(el => {
+    el.addEventListener("input", (e) => {
+      const i = e.target.dataset.i;
+      const k = e.target.dataset.k;
+      blocos[i][k] = e.target.value;
+    });
   });
 }
 
-btnSalvar.addEventListener("click", async () => {
-  if (!inputNome.value || !inputDataInicio.value || blocos.length === 0) {
-    alert("Preencha os campos e adicione ao menos um bloco.");
-    return;
-  }
-  await addDoc(collection(db, "cultivos"), {
-    nome: inputNome.value,
-    inicio: inputDataInicio.value,
+document.getElementById("btn-salvar").addEventListener("click", async () => {
+  const nome = document.getElementById("nome-cultivo").value;
+  const data = document.getElementById("data-inicio").value;
+  if (!nome || !data) return alert("Preencha nome e data.");
+
+  const docRef = await addDoc(collection(db, "cultivos"), {
+    nome,
+    data_inicio: data,
     blocos,
-    criado_em: Timestamp.now(),
+    criado_em: new Date().toISOString()
   });
-  alert("Cultivo salvo com sucesso!");
+
+  alert("Cultivo salvo com sucesso.");
 });
