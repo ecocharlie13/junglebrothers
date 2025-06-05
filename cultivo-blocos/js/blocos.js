@@ -326,3 +326,14 @@ window.atualizarCampo = function (i, event) {
     blocos[i][campo] = valor;
   }
 };
+
+//nova tentativa
+window.addEventListener("DOMContentLoaded", () => {
+  const botao = document.getElementById("btn-salvar");
+  if (!botao) {
+    console.warn("❌ Botão #btn-salvar não encontrado no DOM.");
+  } else {
+    console.log("✅ Botão #btn-salvar encontrado.");
+    botao.addEventListener("click", salvarCultivo);
+  }
+});
