@@ -7,49 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-  <div id="header-placeholder"></div>
-
-  <script type="module">
-    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
-
-    fetch("/cultivo-blocos/components/header.html")
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById("header-placeholder").innerHTML = html;
-
-        const menuBtn = document.getElementById("menu-button");
-        const menuDropdown = document.getElementById("menu-dropdown");
-
-        if (menuBtn && menuDropdown) {
-          menuBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            menuDropdown.classList.toggle("hidden");
-          });
-
-          document.addEventListener("click", (e) => {
-            if (!menuDropdown.contains(e.target) && e.target !== menuBtn) {
-              menuDropdown.classList.add("hidden");
-            }
-          });
-        }
-
-        verificarLogin(user => {
-          const userPic = document.getElementById("user-pic");
-          const userName = document.getElementById("user-name");
-          const logoutBtn = document.getElementById("logout");
-
-          if (userPic) userPic.src = user.photoURL;
-          if (userName) userName.textContent = user.displayName || user.email;
-          if (logoutBtn) logoutBtn.addEventListener("click", sair);
-
-          document.getElementById("conteudo-principal").style.display = "block";
-        });
-      });
-  </script>
-
-  <div id="conteudo-principal" class="p-6 max-w-7xl mx-auto" style="display: none;">
-    <p id="colheita-info" class="text-center text-lg font-semibold text-green-700"></p>
-    <p id="dia-info" class="text-center text-base text-gray-700 mb-4"></p>
+  <div class="p-6 max-w-7xl mx-auto">
+    <h1 class="text-2xl font-bold text-center mb-4">Blueprint do Cultivo</h1>
 
     <div class="mb-4">
       <label for="nome-cultivo" class="block font-semibold mb-1">Nome do cultivo:</label>
@@ -61,10 +20,8 @@
       <input id="data-inicio" type="date" class="px-3 py-2 border rounded w-full max-w-xs" />
     </div>
 
-    <!-- Blocos -->
     <div id="blocos-container" class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-6"></div>
 
-    <!-- Botões de adicionar blocos -->
     <div class="flex flex-wrap gap-2 mb-6 justify-center">
       <button class="w-32 bg-purple-600 text-white py-2 rounded" onclick="adicionarBloco('CLONAR')">+ CLONAR</button>
       <button class="w-32 bg-green-600 text-white py-2 rounded" onclick="adicionarBloco('VEGETAR')">+ VEGETAR</button>
@@ -73,12 +30,98 @@
       <button class="w-32 bg-red-500 text-white py-2 rounded" onclick="adicionarBloco('PROCESSAR')">+ PROCESSAR</button>
     </div>
 
-    <!-- Botão salvar -->
     <div class="text-center">
-      <button id="btn-salvar" class="w-40 bg-black text-white py-3 rounded font-semibold">Salvar</button>
+      <button onclick="salvarCultivo()" class="w-40 bg-black text-white py-3 rounded font-semibold">Salvar</button>
     </div>
   </div>
 
-  <script type="module" src="./js/blocos.js"></script>
+  <script>
+    let blocos = [];
+
+    function adicionarBloco(tipo) {
+      const ordem = blocos.length;
+      const dataInicio = document.getElementById('data-inicio').value;
+      if (!dataInicio) {
+        alert("Selecione a data de início primeiro.");
+        return;
+      }
+      const inicio = new Date(dataInicio);
+      inicio.setDate(inicio.getDate() + ordem * 7);
+      const fim = new Date(inicio);
+      fim.setDate(fim.getDate() + 6);
+      blocos.push({
+        tipo,
+        etapa: "",
+        fase: "",
+        estrategia: "",
+        inicio: inicio.toISOString().split("T")[0],
+        fim: fim.toISOString().split("T")[0],
+        ec: "",
+        ph: "",
+        notas: ""
+      });
+      renderizarBlocos();
+    }
+
+    function renderizarBlocos() {
+      const container = document.getElementById("blocos-container");
+      container.innerHTML = "";
+      blocos.forEach((bloco, i) => {
+        const div = document.createElement("div");
+        div.className = "p-4 rounded shadow bg-white";
+        div.innerHTML = `
+          <h2 class="font-bold mb-2">${bloco.tipo} (${bloco.inicio} → ${bloco.fim})</h2>
+          <select id="etapa-${i}" class="mb-2 w-full">
+            <option value="">Etapa</option>
+            <option value="germinacao">Germinação</option>
+            <option value="vega">Vega</option>
+            <option value="inicio_de_flora">Início de Flora</option>
+          </select>
+          <select id="fase-${i}" class="mb-2 w-full">
+            <option value="">Fase</option>
+            <option value="propagacao">Propagação</option>
+            <option value="vegetacao">Vegetação</option>
+            <option value="floracao">Floração</option>
+          </select>
+          <select id="estrategia-${i}" class="mb-2 w-full">
+            <option value="">Estratégia</option>
+            <option value="vegetativo">Vegetativo</option>
+            <option value="generativo">Generativo</option>
+            <option value="misto">Misto</option>
+          </select>
+          <input id="ec-${i}" placeholder="EC" class="mb-2 w-full border px-2 py-1" />
+          <input id="ph-${i}" placeholder="pH" class="mb-2 w-full border px-2 py-1" />
+          <textarea id="notas-${i}" placeholder="Notas" class="w-full border px-2 py-1"></textarea>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function salvarCultivo() {
+      const nome = document.getElementById("nome-cultivo").value;
+      const dataInicio = document.getElementById("data-inicio").value;
+
+      const blocosAtualizados = blocos.map((bloco, i) => ({
+        tipo: bloco.tipo,
+        inicio: bloco.inicio,
+        fim: bloco.fim,
+        etapa: document.getElementById(`etapa-${i}`).value,
+        fase: document.getElementById(`fase-${i}`).value,
+        estrategia: document.getElementById(`estrategia-${i}`).value,
+        ec: document.getElementById(`ec-${i}`).value,
+        ph: document.getElementById(`ph-${i}`).value,
+        notas: document.getElementById(`notas-${i}`).value,
+      }));
+
+      const cultivo = {
+        nome,
+        dataInicio,
+        blocos: blocosAtualizados
+      };
+
+      console.log("SALVANDO:", cultivo);
+      alert("Simulação de salvamento no console.log");
+    }
+  </script>
 </body>
 </html>
