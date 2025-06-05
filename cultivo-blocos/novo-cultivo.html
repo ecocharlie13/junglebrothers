@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
+  <div id="header-placeholder"></div>
+
   <div class="p-6 max-w-7xl mx-auto">
     <h1 class="text-2xl font-bold text-center mb-4">🧬 Blueprint do Cultivo</h1>
 
@@ -24,15 +26,31 @@
       <button onclick="adicionarBloco('CLONAR')" class="bg-purple-600 text-white px-4 py-2 rounded">+ CLONAR</button>
       <button onclick="adicionarBloco('VEGETAR')" class="bg-green-600 text-white px-4 py-2 rounded">+ VEGETAR</button>
       <button onclick="adicionarBloco('FLORAR')" class="bg-orange-500 text-white px-4 py-2 rounded">+ FLORAR</button>
+      <button onclick="adicionarBloco('FLUSH')" class="bg-blue-500 text-white px-4 py-2 rounded">+ FLUSH</button>
       <button onclick="adicionarBloco('PROCESSAR')" class="bg-red-500 text-white px-4 py-2 rounded">+ PROCESSAR</button>
     </div>
 
     <div id="blocos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"></div>
 
     <div class="text-center">
-      <button id="btn-salvar" class="bg-black text-white px-6 py-3 rounded font-bold">Salvar Cultivo</button>
+      <button id="btn-salvar" class="bg-black text-white px-6 py-3 rounded font-bold">Salvar</button>
     </div>
   </div>
+
+  <script type="module">
+    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
+
+    fetch("/cultivo-blocos/components/header.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("header-placeholder").innerHTML = html;
+
+        verificarLogin(user => {
+          document.getElementById("conteudo-principal")?.classList.remove("hidden");
+          document.getElementById("logout")?.addEventListener("click", sair);
+        });
+      });
+  </script>
 
   <script type="module" src="./js/blocos.js"></script>
 </body>
