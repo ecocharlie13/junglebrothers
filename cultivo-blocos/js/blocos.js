@@ -1,4 +1,5 @@
-// blocos.js atualizado 2
+// blocos.js COMPLETO
+
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -113,13 +114,14 @@ function atualizarColheitaEDiaAtual() {
         break;
       }
     }
-    diaInfo.textContent = `📅 ${faseAtual} dia ${diaTotal}`;
+    diaInfo.textContent = `🗕️ ${faseAtual} dia ${diaTotal}`;
   } else {
     diaInfo.textContent = "";
   }
 }
 
 function renderizarBlocos() {
+  atualizarDados();
   blocosContainer.innerHTML = "";
   const hoje = new Date();
   const contagemPorTipo = {};
@@ -145,6 +147,7 @@ function renderizarBlocos() {
     header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
     header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
     header.addEventListener("click", () => {
+      atualizarDados();
       bloco.expandido = !bloco.expandido;
       renderizarBlocos();
     });
@@ -160,51 +163,7 @@ function renderizarBlocos() {
         <div>Estratégia: ${bloco.estrategia || "-"}</div>
       `;
     } else {
-      corpo.innerHTML = `
-        <label class="block mb-1">Etapa:
-          <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="germinacao" ${bloco.etapa === "germinacao" ? "selected" : ""}>germinação</option>
-            <option value="vega" ${bloco.etapa === "vega" ? "selected" : ""}>vega</option>
-            <option value="inicio de flora" ${bloco.etapa === "inicio de flora" ? "selected" : ""}>início de flora</option>
-            <option value="meio de flora" ${bloco.etapa === "meio de flora" ? "selected" : ""}>meio de flora</option>
-            <option value="fim de flora" ${bloco.etapa === "fim de flora" ? "selected" : ""}>fim de flora</option>
-            <option value="flush" ${bloco.etapa === "flush" ? "selected" : ""}>flush</option>
-          </select>
-        </label>
-        <label class="block mb-1">Fase:
-          <select id="fase-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="propagacao" ${bloco.fase === "propagacao" ? "selected" : ""}>propagação</option>
-            <option value="vegetacao" ${bloco.fase === "vegetacao" ? "selected" : ""}>vegetação</option>
-            <option value="estiramento" ${bloco.fase === "estiramento" ? "selected" : ""}>estiramento</option>
-            <option value="engorda" ${bloco.fase === "engorda" ? "selected" : ""}>engorda</option>
-            <option value="finalizacao" ${bloco.fase === "finalizacao" ? "selected" : ""}>finalização</option>
-          </select>
-        </label>
-        <label class="block mb-1">Estratégia:
-          <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="clonagem" ${bloco.estrategia === "clonagem" ? "selected" : ""}>clonagem</option>
-            <option value="vegetativo" ${bloco.estrategia === "vegetativo" ? "selected" : ""}>vegetativo</option>
-            <option value="generativo" ${bloco.estrategia === "generativo" ? "selected" : ""}>generativo</option>
-            <option value="misto" ${bloco.estrategia === "misto" ? "selected" : ""}>misto (veg/gen)</option>
-          </select>
-        </label>
-        <label class="block">EC Entrada (mS/cm): <input type="number" id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada || ""}" /></label>
-        <label class="block">pH Entrada: <input type="number" id="ph-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ph_entrada || ""}" /></label>
-        <label class="block">Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes || ""}" /></label>
-        <label class="block">Receita: <textarea id="receita-${i}" class="w-full border rounded px-2 py-1">${bloco.receita.receita || ""}</textarea></label>
-        <label class="block">EC Saída (mS/cm): <input type="number" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_saida || ""}" /></label>
-        <label class="block">Runoff (%): <input type="number" id="runoff-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.runoff || ""}" /></label>
-        <label class="block">Dryback (%): <input type="number" id="dryback-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.dryback || ""}" /></label>
-        <label class="block">Temperatura (°C): <input type="number" id="temp-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.temperatura || ""}" /></label>
-        <label class="block">Umidade Relativa (%): <input type="number" id="ur-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ur || ""}" /></label>
-        <label class="block">VPD (kPa): <input type="number" id="vpd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.vpd || ""}" /></label>
-        <label class="block">PPFD (µmol/m²/s): <input type="number" id="ppfd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ppfd || ""}" /></label>
-        <label class="block">Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1">${bloco.notas || ""}</textarea></label>
-        <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
-      `;
+      corpo.innerHTML = gerarFormularioExpandido(bloco, i);
     }
 
     wrapper.appendChild(header);
@@ -231,7 +190,6 @@ function renderizarBlocos() {
         fim.setDate(fim.getDate() + 6);
         bloco.inicio = ini.toISOString().split("T")[0];
         bloco.fim = fim.toISOString().split("T")[0];
-        bloco.expandido = false; // força todos a iniciarem fechados
       });
       renderizarBlocos();
     },
@@ -244,8 +202,6 @@ window.removerBloco = function (index) {
     renderizarBlocos();
   }
 };
-
-document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
 
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
@@ -268,20 +224,20 @@ function atualizarDados() {
   });
 }
 
+document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
+
 async function salvarCultivo() {
   atualizarDados();
   if (!inputDataInicio.value || !inputNome.value) {
     alert("Preencha o nome do cultivo e a data de início.");
     return;
   }
-
   const cultivo = {
     nome: inputNome.value,
     data_inicio: inputDataInicio.value,
     criado_em: Timestamp.now(),
-    blocos,
+    blocos: JSON.parse(JSON.stringify(blocos)),
   };
-
   try {
     if (cultivoId) {
       await updateDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
@@ -311,4 +267,39 @@ async function carregarCultivoExistente(id) {
   } catch (e) {
     console.error("Erro ao carregar cultivo:", e);
   }
+}
+
+function gerarFormularioExpandido(bloco, i) {
+  return `
+    <label class="block mb-1">Etapa:
+      <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
+        <option value="">Selecione</option>
+        <option value="germinacao" ${bloco.etapa === "germinacao" ? "selected" : ""}>germinação</option>
+        <option value="vega" ${bloco.etapa === "vega" ? "selected" : ""}>vega</option>
+        <option value="inicio de flora" ${bloco.etapa === "inicio de flora" ? "selected" : ""}>início de flora</option>
+        <option value="meio de flora" ${bloco.etapa === "meio de flora" ? "selected" : ""}>meio de flora</option>
+        <option value="fim de flora" ${bloco.etapa === "fim de flora" ? "selected" : ""}>fim de flora</option>
+        <option value="flush" ${bloco.etapa === "flush" ? "selected" : ""}>flush</option>
+      </select>
+    </label>
+    <label class="block mb-1">Fase:
+      <input id="fase-${i}" class="w-full border rounded px-2 py-1" value="${bloco.fase || ""}" />
+    </label>
+    <label class="block mb-1">Estratégia:
+      <input id="estrategia-${i}" class="w-full border rounded px-2 py-1" value="${bloco.estrategia || ""}" />
+    </label>
+    <label class="block mb-1">EC Entrada: <input id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada}" /></label>
+    <label class="block mb-1">pH Entrada: <input id="ph-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ph_entrada}" /></label>
+    <label class="block mb-1">Nutrientes: <input id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes}" /></label>
+    <label class="block mb-1">Receita: <input id="receita-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.receita}" /></label>
+    <label class="block mb-1">EC Saída: <input id="ec_saida-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_saida}" /></label>
+    <label class="block mb-1">Runoff (%): <input id="runoff-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.runoff}" /></label>
+    <label class="block mb-1">Dryback (%): <input id="dryback-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.dryback}" /></label>
+    <label class="block mb-1">Temperatura (°C): <input id="temp-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.temperatura}" /></label>
+    <label class="block mb-1">Umidade Relativa (%): <input id="ur-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ur}" /></label>
+    <label class="block mb-1">VPD (kPa): <input id="vpd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.vpd}" /></label>
+    <label class="block mb-1">PPFD (µmol/m²/s): <input id="ppfd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ppfd}" /></label>
+    <label class="block">Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1">${bloco.notas || ""}</textarea></label>
+    <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
+  `;
 }
