@@ -1,80 +1,75 @@
-// blocos.js funcional: salva todos os campos ao clicar no botão "Salvar"
+// ==========================
+// ✅ ARQUIVO 2: bloco.js
+// ==========================
+
 import { db } from "./firebase-init.js";
 import {
   collection,
   addDoc,
-  getDoc,
-  doc,
-  updateDoc
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 let blocos = [];
-let cultivoId = null;
+const cores = {
+  CLONAR: "bg-purple-600",
+  VEGETAR: "bg-green-600",
+  FLORAR: "bg-orange-500",
+  FLUSH: "bg-blue-500",
+  PROCESSAR: "bg-red-500",
+};
 
 const blocosContainer = document.getElementById("blocos-container");
 const inputDataInicio = document.getElementById("data-inicio");
 const inputNome = document.getElementById("nome-cultivo");
 const btnSalvar = document.getElementById("btn-salvar");
 
-btnSalvar.addEventListener("click", salvarCultivo);
+window.adicionarBloco = function (tipo) {
+  const ordem = blocos.length;
+  const inicio = new Date(inputDataInicio.value);
+  inicio.setDate(inicio.getDate() + ordem * 7);
+  const fim = new Date(inicio);
+  fim.setDate(fim.getDate() + 6);
 
-function salvarCultivo() {
-  const nome = inputNome.value;
-  const dataInicio = inputDataInicio.value;
-  if (!nome || !dataInicio) return alert("Preencha o nome e a data inicial.");
-
-  const blocosDOM = document.querySelectorAll(".bloco");
-  const novosBlocos = [];
-
-  blocosDOM.forEach((el, i) => {
-    const id = el.dataset.index;
-    const get = (sel) => el.querySelector(`#${sel}-${id}`)?.value || "";
-
-    const bloco = {
-      nome: el.dataset.tipo,
-      etapa: get("etapa"),
-      fase: get("fase"),
-      estrategia: get("estrategia"),
-      ordem: i,
-      inicio: el.dataset.inicio,
-      fim: el.dataset.fim,
-      receita: {
-        ec_entrada: get("ec"),
-        ph_entrada: get("ph"),
-        nutrientes: get("nutrientes"),
-        receita: get("receita"),
-        ec_saida: get("ec_saida"),
-        runoff: get("runoff"),
-        dryback: get("dryback"),
-        temperatura: get("temp"),
-        ur: get("ur"),
-        vpd: get("vpd"),
-        ppfd: get("ppfd"),
-      },
-      notas: get("notas"),
-      tarefas: [],
-      cor: el.dataset.cor || "",
-      expandido: false,
-    };
-
-    novosBlocos.push(bloco);
+  blocos.push({
+    nome: tipo,
+    inicio: inicio.toISOString().split("T")[0],
+    fim: fim.toISOString().split("T")[0],
+    etapa: "",
+    fase: "",
+    estrategia: "",
+    receita: {},
+    notas: "",
+    ordem,
+    cor: cores[tipo],
   });
 
-  const dados = {
-    nome,
-    data_inicio: dataInicio,
-    blocos: novosBlocos,
-    atualizado_em: new Date().toISOString(),
-  };
+  renderizarBlocos();
+};
 
-  if (cultivoId) {
-    const ref = doc(db, "cultivos", cultivoId);
-    updateDoc(ref, dados).then(() => alert("Cultivo atualizado com sucesso."));
-  } else {
-    addDoc(collection(db, "cultivos"), dados).then((ref) => {
-      cultivoId = ref.id;
-      alert("Cultivo salvo com sucesso.");
-      history.replaceState({}, "", `?id=${cultivoId}`);
-    });
-  }
+function renderizarBlocos() {
+  blocosContainer.innerHTML = "";
+  blocos.forEach((b, i) => {
+    const div = document.createElement("div");
+    div.className = `${b.cor} p-4 rounded shadow text-white`;
+    div.innerHTML = `
+      <h2 class="font-bold mb-2">${b.nome} #${i + 1}</h2>
+      <p>Início: ${b.inicio}</p>
+      <p>Fim: ${b.fim}</p>
+    `;
+    blocosContainer.appendChild(div);
+  });
 }
+
+btnSalvar.addEventListener("click", async () => {
+  if (!inputNome.value || !inputDataInicio.value || blocos.length === 0) {
+    alert("Preencha os campos e adicione ao menos um bloco.");
+    return;
+  }
+  await addDoc(collection(db, "cultivos"), {
+    nome: inputNome.value,
+    inicio: inputDataInicio.value,
+    blocos,
+    criado_em: Timestamp.now(),
+  });
+  alert("Cultivo salvo com sucesso!");
+});
