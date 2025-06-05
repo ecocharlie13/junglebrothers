@@ -1,109 +1,141 @@
+// blocos.js
+
 import { db } from "./firebase-init.js";
 import {
-  doc, setDoc, collection, addDoc
+  collection,
+  addDoc,
+  getDoc,
+  doc,
+  Timestamp,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { verificarLogin } from "./auth.js";
 
 let blocos = [];
+let cultivoId = null;
 
-window.adicionarBloco = function (fase) {
-  const dataInicio = document.getElementById("data-inicio").value;
-  if (!dataInicio) return alert("Defina a data de início.");
+const cores = {
+  CLONAR: "bg-purple-600",
+  VEGETAR: "bg-green-600",
+  FLORAR: "bg-orange-500",
+  FLUSH: "bg-blue-500",
+  PROCESSAR: "bg-red-500",
+};
+
+const blocosContainer = document.getElementById("blocos-container");
+const inputDataInicio = document.getElementById("data-inicio");
+const inputNome = document.getElementById("nome-cultivo");
+const btnSalvar = document.getElementById("btn-salvar");
+
+verificarLogin(async (user) => {
+  document.getElementById("conteudo-principal").style.display = "block";
+});
+
+window.adicionarBloco = function (tipo) {
+  if (!inputDataInicio.value) {
+    alert("Selecione a data de início primeiro.");
+    return;
+  }
 
   const ordem = blocos.length;
-  const inicio = new Date(dataInicio);
+  const inicio = new Date(inputDataInicio.value);
   inicio.setDate(inicio.getDate() + ordem * 7);
   const fim = new Date(inicio);
   fim.setDate(fim.getDate() + 6);
 
   const bloco = {
-    fase,
-    etapa: "",
-    estrategia: "",
+    nome: tipo,
+    ordem,
     inicio: inicio.toISOString().split("T")[0],
     fim: fim.toISOString().split("T")[0],
-    ec_entrada: "",
-    ph_entrada: "",
-    notas: ""
+    etapa: "",
+    fase: "",
+    estrategia: "",
+    receita: {
+      ec_entrada: "",
+      ph_entrada: "",
+      nutrientes: "",
+      receita: "",
+      ec_saida: "",
+      runoff: "",
+      dryback: "",
+      temperatura: "",
+      ur: "",
+      vpd: "",
+      ppfd: "",
+    },
+    notas: "",
+    cor: cores[tipo],
   };
 
   blocos.push(bloco);
-  renderizar();
+  renderizarBlocos();
 };
 
-function renderizar() {
-  const container = document.getElementById("blocos-container");
-  container.innerHTML = "";
+function renderizarBlocos() {
+  blocosContainer.innerHTML = "";
 
-  blocos.forEach((b, i) => {
-    const div = document.createElement("div");
-    div.className = "bg-white shadow p-4 rounded border";
+  blocos.forEach((bloco, i) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "bg-white p-4 shadow border rounded";
 
-    div.innerHTML = `
-      <h2 class="font-bold mb-2">${b.fase} (${b.inicio} → ${b.fim})</h2>
-      <label class="block mb-1">Etapa:
-        <input data-i="${i}" data-k="etapa" value="${b.etapa}" class="w-full border px-2 py-1 rounded" />
+    wrapper.innerHTML = `
+      <h2 class="font-bold text-lg mb-2">${bloco.nome} (Semana ${i + 1})</h2>
+      <p class="text-sm mb-2 text-gray-600">${bloco.inicio} a ${bloco.fim}</p>
+
+      <label>Etapa:
+        <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
+          <option value="">Selecione</option>
+          <option value="germinacao">Germinação</option>
+          <option value="vega">Vega</option>
+          <option value="flora">Flora</option>
+        </select>
       </label>
-      <label class="block mb-1">Estratégia:
-        <input data-i="${i}" data-k="estrategia" value="${b.estrategia}" class="w-full border px-2 py-1 rounded" />
+
+      <label>Fase:
+        <input type="text" id="fase-${i}" class="w-full border rounded px-2 py-1" />
       </label>
-      <label class="block mb-1">EC Entrada:
-        <input data-i="${i}" data-k="ec_entrada" value="${b.ec_entrada}" class="w-full border px-2 py-1 rounded" />
+
+      <label>Estratégia:
+        <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
+          <option value="">Selecione</option>
+          <option value="clonagem">Clonagem</option>
+          <option value="vegetativo">Vegetativo</option>
+          <option value="generativo">Generativo</option>
+        </select>
       </label>
-      <label class="block mb-1">PH Entrada:
-        <input data-i="${i}" data-k="ph_entrada" value="${b.ph_entrada}" class="w-full border px-2 py-1 rounded" />
-      </label>
-      <label class="block">Notas:
-        <textarea data-i="${i}" data-k="notas" class="w-full border px-2 py-1 rounded">${b.notas}</textarea>
+
+      <label>Notas:
+        <textarea id="notas-${i}" class="w-full border rounded px-2 py-1"></textarea>
       </label>
     `;
-    container.appendChild(div);
-  });
 
-  container.querySelectorAll("input, textarea").forEach(el => {
-    el.addEventListener("input", (e) => {
-      const i = e.target.dataset.i;
-      const k = e.target.dataset.k;
-      blocos[i][k] = e.target.value;
-    });
+    blocosContainer.appendChild(wrapper);
   });
 }
 
-document.getElementById("btn-salvar").addEventListener("click", async () => {
-  const nome = document.getElementById("nome-cultivo").value;
-  const data = document.getElementById("data-inicio").value;
+btnSalvar.addEventListener("click", async () => {
+  const nome = inputNome.value;
+  const data = inputDataInicio.value;
   if (!nome || !data) return alert("Preencha nome e data.");
 
-  // Atualiza os dados dos blocos com os valores atuais da interface
   blocos.forEach((bloco, i) => {
     bloco.etapa = document.getElementById(`etapa-${i}`)?.value || "";
     bloco.fase = document.getElementById(`fase-${i}`)?.value || "";
     bloco.estrategia = document.getElementById(`estrategia-${i}`)?.value || "";
-
-    bloco.receita.ec_entrada = document.getElementById(`ec-${i}`)?.value || "";
-    bloco.receita.ph_entrada = document.getElementById(`ph-${i}`)?.value || "";
-    bloco.receita.nutrientes = document.getElementById(`nutrientes-${i}`)?.value || "";
-    bloco.receita.receita = document.getElementById(`receita-${i}`)?.value || "";
-    bloco.receita.ec_saida = document.getElementById(`ec_saida-${i}`)?.value || "";
-    bloco.receita.runoff = document.getElementById(`runoff-${i}`)?.value || "";
-    bloco.receita.dryback = document.getElementById(`dryback-${i}`)?.value || "";
-    bloco.receita.temperatura = document.getElementById(`temp-${i}`)?.value || "";
-    bloco.receita.ur = document.getElementById(`ur-${i}`)?.value || "";
-    bloco.receita.vpd = document.getElementById(`vpd-${i}`)?.value || "";
-    bloco.receita.ppfd = document.getElementById(`ppfd-${i}`)?.value || "";
     bloco.notas = document.getElementById(`notas-${i}`)?.value || "";
   });
 
   try {
-    const docRef = await addDoc(collection(db, "cultivos"), {
+    await addDoc(collection(db, "cultivos_blocos"), {
       nome,
       data_inicio: data,
       blocos,
-      criado_em: new Date().toISOString()
+      criado_em: Timestamp.now(),
     });
-
-    alert("✅ Cultivo salvo com sucesso.");
+    alert("Cultivo salvo com sucesso.");
   } catch (e) {
-    console.error("❌ Erro ao salvar cultivo:", e);
+    console.error(e);
     alert("Erro ao salvar cultivo.");
   }
 });
