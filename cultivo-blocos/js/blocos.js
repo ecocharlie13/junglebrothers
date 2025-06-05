@@ -1,4 +1,5 @@
-// blocos.js atualiz 3
+
+// blocos.js. 330 linhas bom
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -120,27 +121,6 @@ function atualizarColheitaEDiaAtual() {
 }
 
 function renderizarBlocos() {
-  // 🛠️ Salva dados dos blocos expandidos antes de redesenhar
-  blocos.forEach((bloco, i) => {
-    if (bloco.expandido) {
-      bloco.etapa = document.getElementById(`etapa-${i}`)?.value || "";
-      bloco.fase = document.getElementById(`fase-${i}`)?.value || "";
-      bloco.estrategia = document.getElementById(`estrategia-${i}`)?.value || "";
-      bloco.ec_entrada = document.getElementById(`ec_entrada-${i}`)?.value || "";
-      bloco.ph_entrada = document.getElementById(`ph_entrada-${i}`)?.value || "";
-      bloco.nutrientes = document.getElementById(`nutrientes-${i}`)?.value || "";
-      bloco.receita = document.getElementById(`receita-${i}`)?.value || "";
-      bloco.ec_saida = document.getElementById(`ec_saida-${i}`)?.value || "";
-      bloco.runoff = document.getElementById(`runoff-${i}`)?.value || "";
-      bloco.dryback = document.getElementById(`dryback-${i}`)?.value || "";
-      bloco.temperatura = document.getElementById(`temperatura-${i}`)?.value || "";
-      bloco.umidade = document.getElementById(`umidade-${i}`)?.value || "";
-      bloco.vpd = document.getElementById(`vpd-${i}`)?.value || "";
-      bloco.ppfd = document.getElementById(`ppfd-${i}`)?.value || "";
-      bloco.notas = document.getElementById(`notas-${i}`)?.value || "";
-    }
-  });
-
   blocosContainer.innerHTML = "";
   const hoje = new Date();
   const contagemPorTipo = {};
@@ -166,119 +146,9 @@ function renderizarBlocos() {
     header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
     header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
     header.addEventListener("click", () => {
-      // Salva dados atuais antes de trocar expansão
-      blocos.forEach((b, j) => {
-        if (b.expandido && j !== i) {
-          b.etapa = document.getElementById(`etapa-${j}`)?.value || "";
-          b.fase = document.getElementById(`fase-${j}`)?.value || "";
-          b.estrategia = document.getElementById(`estrategia-${j}`)?.value || "";
-          b.ec_entrada = document.getElementById(`ec_entrada-${j}`)?.value || "";
-          b.ph_entrada = document.getElementById(`ph_entrada-${j}`)?.value || "";
-          b.nutrientes = document.getElementById(`nutrientes-${j}`)?.value || "";
-          b.receita = document.getElementById(`receita-${j}`)?.value || "";
-          b.ec_saida = document.getElementById(`ec_saida-${j}`)?.value || "";
-          b.runoff = document.getElementById(`runoff-${j}`)?.value || "";
-          b.dryback = document.getElementById(`dryback-${j}`)?.value || "";
-          b.temperatura = document.getElementById(`temperatura-${j}`)?.value || "";
-          b.umidade = document.getElementById(`umidade-${j}`)?.value || "";
-          b.vpd = document.getElementById(`vpd-${j}`)?.value || "";
-          b.ppfd = document.getElementById(`ppfd-${j}`)?.value || "";
-          b.notas = document.getElementById(`notas-${j}`)?.value || "";
-          b.expandido = false;
-        }
-      });
-
       bloco.expandido = !bloco.expandido;
       renderizarBlocos();
     });
-
-    const corpo = document.createElement("div");
-    corpo.className = "p-4 text-sm";
-
-    if (!bloco.expandido) {
-      corpo.innerHTML = `
-        <div><strong>${bloco.nome}</strong></div>
-        <div>Etapa: ${bloco.etapa || "-"}</div>
-        <div>Fase: ${bloco.fase || "-"}</div>
-        <div>Estratégia: ${bloco.estrategia || "-"}</div>
-      `;
-    } else {
-      corpo.innerHTML = gerarFormularioExpandido(bloco, i); // Função que monta o HTML dos campos
-    }
-
-    wrapper.appendChild(header);
-    wrapper.appendChild(corpo);
-    blocosContainer.appendChild(wrapper);
-  });
-
-  atualizarColheitaEDiaAtual();
-
-  Sortable.create(blocosContainer, {
-    animation: 150,
-    onEnd: () => {
-      const novosBlocos = [];
-      const blocosDom = blocosContainer.querySelectorAll("[data-index]");
-      blocosDom.forEach((el) => {
-        const index = parseInt(el.getAttribute("data-index"));
-        novosBlocos.push(blocos[index]);
-      });
-      blocos = novosBlocos;
-      blocos.forEach((bloco, i) => {
-        const ini = new Date(inputDataInicio.value);
-        ini.setDate(ini.getDate() + i * 7);
-        const fim = new Date(ini);
-        fim.setDate(fim.getDate() + 6);
-        bloco.inicio = ini.toISOString().split("T")[0];
-        bloco.fim = fim.toISOString().split("T")[0];
-      });
-      renderizarBlocos();
-    },
-  });
-}
-
-    const corpo = document.createElement("div");
-    corpo.className = "p-4 text-sm";
-
-    if (!bloco.expandido) {
-      corpo.innerHTML = `
-        <div><strong>${bloco.nome}</strong></div>
-        <div>Etapa: ${bloco.etapa || "-"}</div>
-        <div>Fase: ${bloco.fase || "-"}</div>
-        <div>Estratégia: ${bloco.estrategia || "-"}</div>
-      `;
-    } else {
-      corpo.innerHTML = gerarFormularioExpandido(bloco, i);
-    }
-
-    wrapper.appendChild(header);
-    wrapper.appendChild(corpo);
-    blocosContainer.appendChild(wrapper);
-  });
-
-  atualizarColheitaEDiaAtual();
-
-  Sortable.create(blocosContainer, {
-    animation: 150,
-    onEnd: () => {
-      const novosBlocos = [];
-      const blocosDom = blocosContainer.querySelectorAll("[data-index]");
-      blocosDom.forEach((el) => {
-        const index = parseInt(el.getAttribute("data-index"));
-        novosBlocos.push(blocos[index]);
-      });
-      blocos = novosBlocos;
-      blocos.forEach((bloco, i) => {
-        const ini = new Date(inputDataInicio.value);
-        ini.setDate(ini.getDate() + i * 7);
-        const fim = new Date(ini);
-        fim.setDate(fim.getDate() + 6);
-        bloco.inicio = ini.toISOString().split("T")[0];
-        bloco.fim = fim.toISOString().split("T")[0];
-      });
-      renderizarBlocos();
-    },
-  });
-}
 
     const corpo = document.createElement("div");
     corpo.className = "p-4 text-sm";
@@ -295,31 +165,31 @@ function renderizarBlocos() {
         <label class="block mb-1">Etapa:
           <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
             <option value="">Selecione</option>
-            <option value="germinacao" ${bloco.etapa === "germinacao" ? "selected" : ""}>germinação</option>
-            <option value="vega" ${bloco.etapa === "vega" ? "selected" : ""}>vega</option>
-            <option value="inicio de flora" ${bloco.etapa === "inicio de flora" ? "selected" : ""}>início de flora</option>
-            <option value="meio de flora" ${bloco.etapa === "meio de flora" ? "selected" : ""}>meio de flora</option>
-            <option value="fim de flora" ${bloco.etapa === "fim de flora" ? "selected" : ""}>fim de flora</option>
-            <option value="flush" ${bloco.etapa === "flush" ? "selected" : ""}>flush</option>
+            <option value="germinacao">germinação</option>
+            <option value="vega">vega</option>
+            <option value="inicio de flora">início de flora</option>
+            <option value="meio de flora">meio de flora</option>
+            <option value="fim de flora">fim de flora</option>
+            <option value="flush">flush</option>
           </select>
         </label>
         <label class="block mb-1">Fase:
           <select id="fase-${i}" class="w-full border rounded px-2 py-1">
             <option value="">Selecione</option>
-            <option value="propagacao" ${bloco.fase === "propagacao" ? "selected" : ""}>propagação</option>
-            <option value="vegetacao" ${bloco.fase === "vegetacao" ? "selected" : ""}>vegetação</option>
-            <option value="estiramento" ${bloco.fase === "estiramento" ? "selected" : ""}>estiramento</option>
-            <option value="engorda" ${bloco.fase === "engorda" ? "selected" : ""}>engorda</option>
-            <option value="finalizacao" ${bloco.fase === "finalizacao" ? "selected" : ""}>finalização</option>
+            <option value="propagacao">propagação</option>
+            <option value="vegetacao">vegetação</option>
+            <option value="estiramento">estiramento</option>
+            <option value="engorda">engorda</option>
+            <option value="finalizacao">finalização</option>
           </select>
         </label>
         <label class="block mb-1">Estratégia:
           <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
             <option value="">Selecione</option>
-            <option value="clonagem" ${bloco.estrategia === "clonagem" ? "selected" : ""}>clonagem</option>
-            <option value="vegetativo" ${bloco.estrategia === "vegetativo" ? "selected" : ""}>vegetativo</option>
-            <option value="generativo" ${bloco.estrategia === "generativo" ? "selected" : ""}>generativo</option>
-            <option value="misto" ${bloco.estrategia === "misto" ? "selected" : ""}>misto (veg/gen)</option>
+            <option value="clonagem">clonagem</option>
+            <option value="vegetativo">vegetativo</option>
+            <option value="generativo">generativo</option>
+            <option value="misto">misto (veg/gen)</option>
           </select>
         </label>
         <label class="block">EC Entrada (mS/cm): <input type="number" id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada || ""}" /></label>
@@ -362,7 +232,6 @@ function renderizarBlocos() {
         fim.setDate(fim.getDate() + 6);
         bloco.inicio = ini.toISOString().split("T")[0];
         bloco.fim = fim.toISOString().split("T")[0];
-        bloco.expandido = false; // força todos a iniciarem fechados
       });
       renderizarBlocos();
     },
@@ -375,6 +244,22 @@ window.removerBloco = function (index) {
     renderizarBlocos();
   }
 };
+
+inputDataInicio.addEventListener("change", () => {
+  if (!inputDataInicio.value) return;
+  const base = new Date(inputDataInicio.value);
+  if (isNaN(base)) return;
+
+  blocos.forEach((bloco, i) => {
+    const ini = new Date(base);
+    ini.setDate(ini.getDate() + i * 7);
+    const fim = new Date(ini);
+    fim.setDate(fim.getDate() + 6);
+    bloco.inicio = ini.toISOString().split("T")[0];
+    bloco.fim = fim.toISOString().split("T")[0];
+  });
+  renderizarBlocos();
+});
 
 document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
 
@@ -400,9 +285,7 @@ function atualizarDados() {
 }
 
 async function salvarCultivo() {
-  // ⚠️ Salva os dados do DOM nos objetos blocos antes de montar o cultivo
   atualizarDados();
-
   if (!inputDataInicio.value || !inputNome.value) {
     alert("Preencha o nome do cultivo e a data de início.");
     return;
@@ -412,7 +295,7 @@ async function salvarCultivo() {
     nome: inputNome.value,
     data_inicio: inputDataInicio.value,
     criado_em: Timestamp.now(),
-    blocos: JSON.parse(JSON.stringify(blocos)), // 🔒 cópia profunda pra garantir persistência do estado
+    blocos,
   };
 
   try {
@@ -420,9 +303,7 @@ async function salvarCultivo() {
       await updateDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
       alert("Cultivo atualizado com sucesso!");
     } else {
-      const docRef = await addDoc(collection(db, "cultivos_blocos"), cultivo);
-      cultivoId = docRef.id;
-      window.history.replaceState(null, null, `?id=${cultivoId}`);
+      await addDoc(collection(db, "cultivos_blocos"), cultivo);
       alert("Cultivo salvo com sucesso!");
     }
   } catch (e) {
@@ -438,7 +319,7 @@ async function carregarCultivoExistente(id) {
       const dados = docSnap.data();
       inputDataInicio.value = dados.data_inicio;
       inputNome.value = dados.nome;
-      blocos = (dados.blocos || []).map(b => ({ ...b, expandido: false }));
+      blocos = dados.blocos || [];
       renderizarBlocos();
     }
   } catch (e) {
