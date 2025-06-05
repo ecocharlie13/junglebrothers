@@ -1,4 +1,3 @@
-
 // blocos.js
 import { db } from "./firebase-init.js";
 import {
@@ -55,23 +54,23 @@ window.adicionarBloco = function (tipo) {
     inicio: inicio.toISOString().split("T")[0],
     fim: fim.toISOString().split("T")[0],
     receita: {
-      ec_entrada: "",
-      ec_saida: "",
       nutrientes: "",
       A: "",
       B: "",
       C: "",
+      ec_entrada: "",
+      ec_saida: "",
       runoff: "",
       dryback: "",
       temperatura: "",
       ur: "",
       vpd: "",
-      ppfd: "",
+      ppfd: ""
     },
     notas: "",
     tarefas: [],
     cor: cores[tipo],
-    expandido: false,
+    expandido: false
   };
   blocos.push(novoBloco);
   renderizarBlocos();
@@ -165,16 +164,24 @@ function renderizarBlocos() {
       corpo.innerHTML = `
         <div><strong>${bloco.nome}</strong></div>
         <div>Etapa: ${bloco.etapa || "-"}</div>
-        <div>EC In: ${bloco.receita.ec_entrada || "-"}</div>
-        <div>PPFD: ${bloco.receita.ppfd || "-"}</div>
+        <div>Fase: ${bloco.fase || "-"}</div>
+        <div>Estratégia: ${bloco.estrategia || "-"}</div>
       `;
     } else {
       corpo.innerHTML = `
-        <label class="block mb-1">Etapa: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.etapa || ""}" id="etapa-${i}"></label>
-        <label class="block mb-1">Fase: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.fase || ""}" id="fase-${i}"></label>
-        <label class="block mb-1">Estratégia: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.estrategia || ""}" id="estrategia-${i}"></label>
-        <label class="block mb-1">EC Entrada: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_entrada || ""}" id="ec-${i}"></label>
-        <label class="block mb-1">PPFD: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ppfd || ""}" id="ppfd-${i}"></label>
+        <label class="block mb-1">Etapa: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.etapa}" id="etapa-${i}"></label>
+        <label class="block mb-1">Fase: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.fase}" id="fase-${i}"></label>
+        <label class="block mb-1">Estratégia: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.estrategia}" id="estrategia-${i}"></label>
+        <label class="block mb-1">Nutrientes: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.nutrientes}" id="nutrientes-${i}"></label>
+        <label class="block mb-1">Receita: <input type="text" class="w-full border px-2 py-1 rounded" value="A: ${bloco.receita.A} / B: ${bloco.receita.B} / C: ${bloco.receita.C}" id="receita-${i}"></label>
+        <label class="block mb-1">EC Entrada: <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_entrada}" id="ec-${i}"></label>
+        <label class="block mb-1">EC Saída: <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_saida}" id="ecout-${i}"></label>
+        <label class="block mb-1">Runoff (%): <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.runoff}" id="runoff-${i}"></label>
+        <label class="block mb-1">Dryback (%): <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.dryback}" id="dryback-${i}"></label>
+        <label class="block mb-1">Temperatura (°C): <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.temperatura}" id="temp-${i}"></label>
+        <label class="block mb-1">RH (%): <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ur}" id="ur-${i}"></label>
+        <label class="block mb-1">VPD (kPa): <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.vpd}" id="vpd-${i}"></label>
+        <label class="block mb-1">PPFD: <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ppfd}" id="ppfd-${i}"></label>
         <label class="block mb-2">Notas: <textarea class="w-full border px-2 py-1 rounded" id="notas-${i}">${bloco.notas || ""}</textarea></label>
         <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
       `;
@@ -240,7 +247,14 @@ function atualizarDados() {
     bloco.etapa = document.getElementById(`etapa-${i}`)?.value || bloco.etapa;
     bloco.fase = document.getElementById(`fase-${i}`)?.value || bloco.fase;
     bloco.estrategia = document.getElementById(`estrategia-${i}`)?.value || bloco.estrategia;
+    bloco.receita.nutrientes = document.getElementById(`nutrientes-${i}`)?.value || bloco.receita.nutrientes;
     bloco.receita.ec_entrada = document.getElementById(`ec-${i}`)?.value || bloco.receita.ec_entrada;
+    bloco.receita.ec_saida = document.getElementById(`ecout-${i}`)?.value || bloco.receita.ec_saida;
+    bloco.receita.runoff = document.getElementById(`runoff-${i}`)?.value || bloco.receita.runoff;
+    bloco.receita.dryback = document.getElementById(`dryback-${i}`)?.value || bloco.receita.dryback;
+    bloco.receita.temperatura = document.getElementById(`temp-${i}`)?.value || bloco.receita.temperatura;
+    bloco.receita.ur = document.getElementById(`ur-${i}`)?.value || bloco.receita.ur;
+    bloco.receita.vpd = document.getElementById(`vpd-${i}`)?.value || bloco.receita.vpd;
     bloco.receita.ppfd = document.getElementById(`ppfd-${i}`)?.value || bloco.receita.ppfd;
     bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
   });
