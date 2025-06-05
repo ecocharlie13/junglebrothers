@@ -169,36 +169,38 @@ function renderizarBlocos() {
       `;
     } else {
       corpo.innerHTML = `
-        <label class="block mb-1">Etapa:
-          <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="PROPAGAR">PROPAGAR</option>
-            <option value="VEGETAR">VEGETAR</option>
-            <option value="INÍCIO DE FLORA">INÍCIO DE FLORA</option>
-            <option value="MEIO DE FLORA">MEIO DE FLORA</option>
-            <option value="FIM DE FLORA">FIM DE FLORA</option>
-            <option value="FLUSH">FLUSH</option>
-          </select>
-        </label>
-        <label class="block mb-1">Fase:
-          <select id="fase-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="PROPAGAR">PROPAGAR</option>
-            <option value="VEGETAR">VEGETAR</option>
-            <option value="ESTIRAMENTO">ESTIRAMENTO</option>
-            <option value="VOLUME">VOLUME</option>
-            <option value="ACABAMENTO">ACABAMENTO</option>
-          </select>
-        </label>
-        <label class="block mb-1">Estratégia:
-          <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="PROPAGAR">PROPAGAR</option>
-            <option value="VEGETATIVO">VEGETATIVO</option>
-            <option value="GENERATIVO">GENERATIVO</option>
-            <option value="MISTO (VEG/GEN)">MISTO (VEG/GEN)</option>
-          </select>
-        </label>
+    <label class="block mb-1">Etapa:
+       <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
+        <option value="">Selecione</option>
+        <option value="PROPAGAR" ${bloco.etapa === "PROPAGAR" ? "selected" : ""}>PROPAGAR</option>
+        <option value="VEGETAR" ${bloco.etapa === "VEGETAR" ? "selected" : ""}>VEGETAR</option>
+        <option value="INÍCIO DE FLORA" ${bloco.etapa === "INÍCIO DE FLORA" ? "selected" : ""}>INÍCIO DE FLORA</option>
+        <option value="MEIO DE FLORA" ${bloco.etapa === "MEIO DE FLORA" ? "selected" : ""}>MEIO DE FLORA</option>
+        <option value="FIM DE FLORA" ${bloco.etapa === "FIM DE FLORA" ? "selected" : ""}>FIM DE FLORA</option>
+        <option value="FLUSH" ${bloco.etapa === "FLUSH" ? "selected" : ""}>FLUSH</option>
+      </select>
+    </label>
+
+    <label class="block mb-1">Fase:
+      <select id="fase-${i}" class="w-full border rounded px-2 py-1">
+        <option value="">Selecione</option>
+        <option value="PROPAGAR" ${bloco.fase === "PROPAGAR" ? "selected" : ""}>PROPAGAR</option>
+        <option value="VEGETAR" ${bloco.fase === "VEGETAR" ? "selected" : ""}>VEGETAR</option>
+        <option value="ESTIRAMENTO" ${bloco.fase === "ESTIRAMENTO" ? "selected" : ""}>ESTIRAMENTO</option>
+        <option value="VOLUME" ${bloco.fase === "VOLUME" ? "selected" : ""}>VOLUME</option>
+        <option value="ACABAMENTO" ${bloco.fase === "ACABAMENTO" ? "selected" : ""}>ACABAMENTO</option>
+      </select>
+    </label>
+
+    <label class="block mb-1">Estratégia:
+      <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
+        <option value="">Selecione</option>
+        <option value="PROPAGAR" ${bloco.estrategia === "PROPAGAR" ? "selected" : ""}>PROPAGAR</option>
+        <option value="VEGETATIVO" ${bloco.estrategia === "VEGETATIVO" ? "selected" : ""}>VEGETATIVO</option>
+        <option value="GENERATIVO" ${bloco.estrategia === "GENERATIVO" ? "selected" : ""}>GENERATIVO</option>
+        <option value="MISTO (VEG/GEN)" ${bloco.estrategia === "MISTO (VEG/GEN)" ? "selected" : ""}>MISTO (VEG/GEN)</option>
+      </select>
+  </label>
         <label class="block">Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes || ""}" /></label>
         <label class="block">Receita (g/L): <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" value="A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}" /></label>
         <label class="block">EC Entrada (mS/cm): <input type="number" id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada || ""}" /></label>
@@ -246,78 +248,6 @@ function renderizarBlocos() {
 
 // ... restante do código permanece inalterado
 
-Blocos Renderizado
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
     bloco.etapa = document.getElementById(`etapa-${i}`)?.value || bloco.etapa;
