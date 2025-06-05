@@ -271,17 +271,18 @@ async function carregarCultivoExistente(id) {
 
 function gerarFormularioExpandido(bloco, i) {
   return `
-    <label class="block mb-1">Etapa:
-      <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
-        <option value="">Selecione</option>
-        <option value="germinacao" ${bloco.etapa === "germinacao" ? "selected" : ""}>germinação</option>
-        <option value="vega" ${bloco.etapa === "vega" ? "selected" : ""}>vega</option>
-        <option value="inicio de flora" ${bloco.etapa === "inicio de flora" ? "selected" : ""}>início de flora</option>
-        <option value="meio de flora" ${bloco.etapa === "meio de flora" ? "selected" : ""}>meio de flora</option>
-        <option value="fim de flora" ${bloco.etapa === "fim de flora" ? "selected" : ""}>fim de flora</option>
-        <option value="flush" ${bloco.etapa === "flush" ? "selected" : ""}>flush</option>
-      </select>
-    </label>
+    <form oninput="atualizarCampo(${i}, event)">
+      <label class="block mb-1">Etapa:
+        <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
+          <option value="">Selecione</option>
+          <option value="germinacao" ${bloco.etapa === "germinacao" ? "selected" : ""}>germinação</option>
+          <option value="vega" ${bloco.etapa === "vega" ? "selected" : ""}>vega</option>
+          <option value="inicio de flora" ${bloco.etapa === "inicio de flora" ? "selected" : ""}>início de flora</option>
+          <option value="meio de flora" ${bloco.etapa === "meio de flora" ? "selected" : ""}>meio de flora</option>
+          <option value="fim de flora" ${bloco.etapa === "fim de flora" ? "selected" : ""}>fim de flora</option>
+          <option value="flush" ${bloco.etapa === "flush" ? "selected" : ""}>flush</option>
+        </select>
+      </label>
     <label class="block mb-1">Fase:
       <input id="fase-${i}" class="w-full border rounded px-2 py-1" value="${bloco.fase || ""}" />
     </label>
@@ -303,3 +304,24 @@ function gerarFormularioExpandido(bloco, i) {
     <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
   `;
 }
+// função global atualizarCampo
+window.atualizarCampo = function (i, event) {
+  const campo = event.target.id.split("-")[0];
+  const valor = event.target.value;
+
+  if (!blocos[i]) return;
+
+  if (["ec", "ph", "nutrientes", "receita", "ec_saida", "runoff", "dryback", "temp", "ur", "vpd", "ppfd"].includes(campo)) {
+    const map = {
+      ec: "ec_entrada",
+      ph: "ph_entrada",
+      temp: "temperatura"
+    };
+    const campoReceita = map[campo] || campo;
+    blocos[i].receita[campoReceita] = valor;
+  } else if (campo === "notas") {
+    blocos[i].notas = valor;
+  } else {
+    blocos[i][campo] = valor;
+  }
+};
