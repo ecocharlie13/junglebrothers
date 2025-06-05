@@ -146,6 +146,7 @@ function renderizarBlocos() {
     header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
     header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
     header.addEventListener("click", () => {
+      atualizarDados(); // 👈 salva os dados preenchidos antes de redesenhar
       bloco.expandido = !bloco.expandido;
       renderizarBlocos();
     });
