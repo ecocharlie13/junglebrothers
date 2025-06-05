@@ -134,7 +134,7 @@ function renderizarBlocos() {
     const semanaNumero = contagemPorTipo[tipo];
 
     const wrapper = document.createElement("div");
-    wrapper.className = `w-full bg-white shadow border rounded overflow-hidden relative mb-4`;
+    wrapper.className = `bg-white shadow border rounded overflow-hidden relative ${bloco.expandido ? 'col-span-full' : ''}`;
     wrapper.setAttribute("data-index", i);
 
     let estiloExtra = "";
@@ -158,7 +158,7 @@ function renderizarBlocos() {
     });
 
     const corpo = document.createElement("div");
-    corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
+    corpo.className = "p-4 text-sm";
 
     if (!bloco.expandido) {
       corpo.innerHTML = `
