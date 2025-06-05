@@ -227,6 +227,7 @@ function atualizarDados() {
 document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
 
 async function salvarCultivo() {
+  console.log("📦 Conteúdo a salvar:", JSON.stringify(blocos, null, 2));
   atualizarDados();
   if (!inputDataInicio.value || !inputNome.value) {
     alert("Preencha o nome do cultivo e a data de início.");
