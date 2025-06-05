@@ -286,6 +286,7 @@ function atualizarDados() {
 
 async function salvarCultivo() {
   atualizarDados();
+
   if (!inputDataInicio.value || !inputNome.value) {
     alert("Preencha o nome do cultivo e a data de início.");
     return;
@@ -295,23 +296,26 @@ async function salvarCultivo() {
     nome: inputNome.value,
     data_inicio: inputDataInicio.value,
     criado_em: Timestamp.now(),
-    blocos,
+    blocos: JSON.parse(JSON.stringify(blocos)), // garantir estrutura limpa
   };
+
+  console.log("📦 Salvando dados:", cultivo); // para depurar
 
   try {
     if (cultivoId) {
       await updateDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
-      alert("Cultivo atualizado com sucesso!");
+      alert("✅ Cultivo atualizado com sucesso!");
     } else {
-      await addDoc(collection(db, "cultivos_blocos"), cultivo);
-      alert("Cultivo salvo com sucesso!");
+      const ref = await addDoc(collection(db, "cultivos_blocos"), cultivo);
+      cultivoId = ref.id;
+      window.history.replaceState(null, null, `?id=${cultivoId}`);
+      alert("✅ Cultivo salvo com sucesso!");
     }
   } catch (e) {
-    console.error("Erro ao salvar:", e);
+    console.error("❌ Erro ao salvar:", e);
     alert("Erro ao salvar cultivo.");
   }
 }
-
 async function carregarCultivoExistente(id) {
   try {
     const docSnap = await getDoc(doc(db, "cultivos_blocos", id));
