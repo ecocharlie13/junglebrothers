@@ -56,9 +56,9 @@ window.adicionarBloco = function (tipo) {
     receita: {
       ec_entrada: "",
       ph_entrada: "",
-      ec_saida: "",
       nutrientes: "",
-      receita_texto: "",
+      receita: "",
+      ec_saida: "",
       runoff: "",
       dryback: "",
       temperatura: "",
@@ -102,12 +102,10 @@ function atualizarColheitaEDiaAtual() {
   if (ativo) {
     const faseAtual = ativo.nome;
     let diaTotal = 0;
-
     for (const bloco of blocos) {
       if (bloco.nome !== faseAtual) continue;
       const ini = new Date(bloco.inicio);
       const fim = new Date(bloco.fim);
-
       if (hoje > fim) {
         diaTotal += 7;
       } else if (hoje >= ini && hoje <= fim) {
@@ -115,12 +113,12 @@ function atualizarColheitaEDiaAtual() {
         break;
       }
     }
-
     diaInfo.textContent = `📅 ${faseAtual} dia ${diaTotal}`;
   } else {
     diaInfo.textContent = "";
   }
 }
+
 function renderizarBlocos() {
   blocosContainer.innerHTML = "";
   const hoje = new Date();
@@ -132,19 +130,15 @@ function renderizarBlocos() {
     const semanaNumero = contagemPorTipo[tipo];
 
     const wrapper = document.createElement("div");
-    wrapper.className = `bg-white shadow border rounded overflow-hidden relative ${bloco.expandido ? 'col-span-full' : 'col-span-1'}`;
+    wrapper.className = `bg-white shadow border rounded overflow-hidden relative ${bloco.expandido ? 'col-span-full' : ''}`;
     wrapper.setAttribute("data-index", i);
 
     let estiloExtra = "";
     const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
     const fim = bloco.fim ? new Date(bloco.fim) : null;
-
     if (inicio && fim) {
-      if (fim < hoje) {
-        estiloExtra = "opacity-40";
-      } else if (inicio <= hoje && fim >= hoje) {
-        estiloExtra = "ring-4 ring-yellow-400";
-      }
+      if (fim < hoje) estiloExtra = "opacity-40";
+      else if (inicio <= hoje && fim >= hoje) estiloExtra = "ring-4 ring-yellow-400";
     }
 
     const header = document.createElement("div");
@@ -160,15 +154,16 @@ function renderizarBlocos() {
 
     if (!bloco.expandido) {
       corpo.innerHTML = `
-        <div><strong>${bloco.etapa || "-"}</strong></div>
+        <div><strong>${bloco.nome}</strong></div>
+        <div>Etapa: ${bloco.etapa || "-"}</div>
         <div>Fase: ${bloco.fase || "-"}</div>
         <div>Estratégia: ${bloco.estrategia || "-"}</div>
       `;
     } else {
       corpo.innerHTML = `
         <label class="block mb-1">Etapa:
-          <select class="w-full border px-2 py-1 rounded" id="etapa-${i}">
-            <option value="">--</option>
+          <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
+            <option value="">Selecione</option>
             <option value="germinacao">germinação</option>
             <option value="vega">vega</option>
             <option value="inicio de flora">início de flora</option>
@@ -178,8 +173,8 @@ function renderizarBlocos() {
           </select>
         </label>
         <label class="block mb-1">Fase:
-          <select class="w-full border px-2 py-1 rounded" id="fase-${i}">
-            <option value="">--</option>
+          <select id="fase-${i}" class="w-full border rounded px-2 py-1">
+            <option value="">Selecione</option>
             <option value="propagacao">propagação</option>
             <option value="vegetacao">vegetação</option>
             <option value="estiramento">estiramento</option>
@@ -188,34 +183,28 @@ function renderizarBlocos() {
           </select>
         </label>
         <label class="block mb-1">Estratégia:
-          <select class="w-full border px-2 py-1 rounded" id="estrategia-${i}">
-            <option value="">--</option>
+          <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
+            <option value="">Selecione</option>
             <option value="clonagem">clonagem</option>
             <option value="vegetativo">vegetativo</option>
             <option value="generativo">generativo</option>
-            <option value="misto (veg/gen)">misto (veg/gen)</option>
+            <option value="misto">misto (veg/gen)</option>
           </select>
         </label>
-        <label class="block mb-1">EC Entrada: <input type="number" class="w-full border px-2 py-1 rounded" id="ec_entrada-${i}" value="${bloco.receita.ec_entrada || ""}"></label>
-        <label class="block mb-1">pH Entrada: <input type="number" class="w-full border px-2 py-1 rounded" id="ph_entrada-${i}" value="${bloco.receita.ph_entrada || ""}"></label>
-        <label class="block mb-1">Nutrientes (fabricante): <input type="text" class="w-full border px-2 py-1 rounded" id="nutrientes-${i}" value="${bloco.receita.nutrientes || ""}"></label>
-        <label class="block mb-1">Receita: <textarea class="w-full border px-2 py-1 rounded" id="receita_texto-${i}">${bloco.receita.receita_texto || ""}</textarea></label>
-        <label class="block mb-1">EC Saída: <input type="number" class="w-full border px-2 py-1 rounded" id="ec_saida-${i}" value="${bloco.receita.ec_saida || ""}"></label>
-        <label class="block mb-1">Runoff (%): <input type="number" class="w-full border px-2 py-1 rounded" id="runoff-${i}" value="${bloco.receita.runoff || ""}"></label>
-        <label class="block mb-1">Dryback (%): <input type="number" class="w-full border px-2 py-1 rounded" id="dryback-${i}" value="${bloco.receita.dryback || ""}"></label>
-        <label class="block mb-1">Temperatura (°C): <input type="number" class="w-full border px-2 py-1 rounded" id="temperatura-${i}" value="${bloco.receita.temperatura || ""}"></label>
-        <label class="block mb-1">Umidade Relativa (%): <input type="number" class="w-full border px-2 py-1 rounded" id="ur-${i}" value="${bloco.receita.ur || ""}"></label>
-        <label class="block mb-1">VPD (kPa): <input type="number" class="w-full border px-2 py-1 rounded" id="vpd-${i}" value="${bloco.receita.vpd || ""}"></label>
-        <label class="block mb-1">PPFD (µmol/m²/s): <input type="number" class="w-full border px-2 py-1 rounded" id="ppfd-${i}" value="${bloco.receita.ppfd || ""}"></label>
-        <label class="block mb-1">Notas: <textarea class="w-full border px-2 py-1 rounded" id="notas-${i}">${bloco.notas || ""}</textarea></label>
-        <button class="text-red-600 mt-2" onclick="removerBloco(${i})">❌ Excluir Semana</button>
+        <label class="block">EC Entrada (mS/cm): <input type="number" id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada || ""}" /></label>
+        <label class="block">pH Entrada: <input type="number" id="ph-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ph_entrada || ""}" /></label>
+        <label class="block">Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes || ""}" /></label>
+        <label class="block">Receita: <textarea id="receita-${i}" class="w-full border rounded px-2 py-1">${bloco.receita.receita || ""}</textarea></label>
+        <label class="block">EC Saída (mS/cm): <input type="number" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_saida || ""}" /></label>
+        <label class="block">Runoff (%): <input type="number" id="runoff-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.runoff || ""}" /></label>
+        <label class="block">Dryback (%): <input type="number" id="dryback-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.dryback || ""}" /></label>
+        <label class="block">Temperatura (°C): <input type="number" id="temp-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.temperatura || ""}" /></label>
+        <label class="block">Umidade Relativa (%): <input type="number" id="ur-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ur || ""}" /></label>
+        <label class="block">VPD (kPa): <input type="number" id="vpd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.vpd || ""}" /></label>
+        <label class="block">PPFD (µmol/m²/s): <input type="number" id="ppfd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ppfd || ""}" /></label>
+        <label class="block">Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1">${bloco.notas || ""}</textarea></label>
+        <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
       `;
-
-      setTimeout(() => {
-        document.getElementById(`etapa-${i}`).value = bloco.etapa || "";
-        document.getElementById(`fase-${i}`).value = bloco.fase || "";
-        document.getElementById(`estrategia-${i}`).value = bloco.estrategia || "";
-      }, 0);
     }
 
     wrapper.appendChild(header);
@@ -224,72 +213,115 @@ function renderizarBlocos() {
   });
 
   atualizarColheitaEDiaAtual();
+
+  Sortable.create(blocosContainer, {
+    animation: 150,
+    onEnd: () => {
+      const novosBlocos = [];
+      const blocosDom = blocosContainer.querySelectorAll("[data-index]");
+      blocosDom.forEach((el) => {
+        const index = parseInt(el.getAttribute("data-index"));
+        novosBlocos.push(blocos[index]);
+      });
+      blocos = novosBlocos;
+      blocos.forEach((bloco, i) => {
+        const ini = new Date(inputDataInicio.value);
+        ini.setDate(ini.getDate() + i * 7);
+        const fim = new Date(ini);
+        fim.setDate(fim.getDate() + 6);
+        bloco.inicio = ini.toISOString().split("T")[0];
+        bloco.fim = fim.toISOString().split("T")[0];
+      });
+      renderizarBlocos();
+    },
+  });
 }
 
-window.removerBloco = function (i) {
-  if (confirm("Tem certeza que deseja excluir este bloco?")) {
-    blocos.splice(i, 1);
-    blocos.forEach((b, idx) => (b.ordem = idx));
+window.removerBloco = function (index) {
+  if (confirm("Deseja remover este bloco?")) {
+    blocos.splice(index, 1);
     renderizarBlocos();
   }
 };
 
-btnSalvar.addEventListener("click", async () => {
-  atualizarDados();
+inputDataInicio.addEventListener("change", () => {
+  if (!inputDataInicio.value) return;
+  const base = new Date(inputDataInicio.value);
+  if (isNaN(base)) return;
 
-  const nome = inputNome.value.trim();
-  const data = inputDataInicio.value;
-
-  if (!nome || !data || blocos.length === 0) {
-    alert("Preencha o nome, data de início e adicione pelo menos um bloco.");
-    return;
-  }
-
-  const payload = {
-    nome,
-    data_inicio: data,
-    blocos,
-    uid: firebase.auth().currentUser?.uid || null
-  };
-
-  if (cultivoId) {
-    await updateDoc(doc(db, "cultivos_blocos", cultivoId), payload);
-    alert("Cultivo atualizado com sucesso!");
-  } else {
-    const docRef = await addDoc(collection(db, "cultivos_blocos"), payload);
-    cultivoId = docRef.id;
-    window.history.replaceState(null, null, `?id=${cultivoId}`);
-    alert("Cultivo salvo com sucesso!");
-  }
+  blocos.forEach((bloco, i) => {
+    const ini = new Date(base);
+    ini.setDate(ini.getDate() + i * 7);
+    const fim = new Date(ini);
+    fim.setDate(fim.getDate() + 6);
+    bloco.inicio = ini.toISOString().split("T")[0];
+    bloco.fim = fim.toISOString().split("T")[0];
+  });
+  renderizarBlocos();
 });
+
+document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
 
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
     bloco.etapa = document.getElementById(`etapa-${i}`)?.value || "";
     bloco.fase = document.getElementById(`fase-${i}`)?.value || "";
     bloco.estrategia = document.getElementById(`estrategia-${i}`)?.value || "";
-    bloco.notas = document.getElementById(`notas-${i}`)?.value || "";
-    bloco.receita.ec_entrada = document.getElementById(`ec_entrada-${i}`)?.value || "";
-    bloco.receita.ph_entrada = document.getElementById(`ph_entrada-${i}`)?.value || "";
+
+    bloco.receita.ec_entrada = document.getElementById(`ec-${i}`)?.value || "";
+    bloco.receita.ph_entrada = document.getElementById(`ph-${i}`)?.value || "";
     bloco.receita.nutrientes = document.getElementById(`nutrientes-${i}`)?.value || "";
-    bloco.receita.receita_texto = document.getElementById(`receita_texto-${i}`)?.value || "";
+    bloco.receita.receita = document.getElementById(`receita-${i}`)?.value || "";
     bloco.receita.ec_saida = document.getElementById(`ec_saida-${i}`)?.value || "";
     bloco.receita.runoff = document.getElementById(`runoff-${i}`)?.value || "";
     bloco.receita.dryback = document.getElementById(`dryback-${i}`)?.value || "";
-    bloco.receita.temperatura = document.getElementById(`temperatura-${i}`)?.value || "";
+    bloco.receita.temperatura = document.getElementById(`temp-${i}`)?.value || "";
     bloco.receita.ur = document.getElementById(`ur-${i}`)?.value || "";
     bloco.receita.vpd = document.getElementById(`vpd-${i}`)?.value || "";
     bloco.receita.ppfd = document.getElementById(`ppfd-${i}`)?.value || "";
+    bloco.notas = document.getElementById(`notas-${i}`)?.value || "";
   });
 }
 
+async function salvarCultivo() {
+  atualizarDados();
+  if (!inputDataInicio.value || !inputNome.value) {
+    alert("Preencha o nome do cultivo e a data de início.");
+    return;
+  }
+
+  const cultivo = {
+    nome: inputNome.value,
+    data_inicio: inputDataInicio.value,
+    criado_em: Timestamp.now(),
+    blocos,
+  };
+
+  try {
+    if (cultivoId) {
+      await updateDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
+      alert("Cultivo atualizado com sucesso!");
+    } else {
+      await addDoc(collection(db, "cultivos_blocos"), cultivo);
+      alert("Cultivo salvo com sucesso!");
+    }
+  } catch (e) {
+    console.error("Erro ao salvar:", e);
+    alert("Erro ao salvar cultivo.");
+  }
+}
+
 async function carregarCultivoExistente(id) {
-  const snap = await getDoc(doc(db, "cultivos_blocos", id));
-  if (snap.exists()) {
-    const dados = snap.data();
-    inputNome.value = dados.nome;
-    inputDataInicio.value = dados.data_inicio;
-    blocos = dados.blocos || [];
-    renderizarBlocos();
+  try {
+    const docSnap = await getDoc(doc(db, "cultivos_blocos", id));
+    if (docSnap.exists()) {
+      const dados = docSnap.data();
+      inputDataInicio.value = dados.data_inicio;
+      inputNome.value = dados.nome;
+      blocos = dados.blocos || [];
+      renderizarBlocos();
+    }
+  } catch (e) {
+    console.error("Erro ao carregar cultivo:", e);
   }
 }
