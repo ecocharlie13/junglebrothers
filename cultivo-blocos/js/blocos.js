@@ -252,6 +252,19 @@ function atualizarDados() {
     bloco.etapa = document.getElementById(`etapa-${i}`)?.value || "";
     bloco.fase = document.getElementById(`fase-${i}`)?.value || "";
     bloco.estrategia = document.getElementById(`estrategia-${i}`)?.value || "";
+
+    bloco.receita.ec_entrada = document.getElementById(`ec-${i}`)?.value || "";
+    bloco.receita.ph_entrada = document.getElementById(`ph-${i}`)?.value || "";
+    bloco.receita.nutrientes = document.getElementById(`nutrientes-${i}`)?.value || "";
+    bloco.receita.receita = document.getElementById(`receita-${i}`)?.value || "";
+    bloco.receita.ec_saida = document.getElementById(`ec_saida-${i}`)?.value || "";
+    bloco.receita.runoff = document.getElementById(`runoff-${i}`)?.value || "";
+    bloco.receita.dryback = document.getElementById(`dryback-${i}`)?.value || "";
+    bloco.receita.temperatura = document.getElementById(`temp-${i}`)?.value || "";
+    bloco.receita.ur = document.getElementById(`ur-${i}`)?.value || "";
+    bloco.receita.vpd = document.getElementById(`vpd-${i}`)?.value || "";
+    bloco.receita.ppfd = document.getElementById(`ppfd-${i}`)?.value || "";
+    bloco.notas = document.getElementById(`notas-${i}`)?.value || "";
   });
 }
 
