@@ -123,15 +123,33 @@ function atualizarColheitaEDiaAtual() {
 }
 function renderizarBlocos() {
   blocosContainer.innerHTML = "";
-  blocos.forEach((bloco, i) => {
-    const wrapper = document.createElement("div");
-    wrapper.className = `rounded shadow-md mb-4 ${bloco.expandido ? "w-full" : "inline-block align-top w-[calc(25%-1rem)] mx-2"}`;
-    wrapper.style.verticalAlign = "top";
+  const hoje = new Date();
+  const contagemPorTipo = {};
 
-    const estiloExtra = bloco.expandido ? "rounded-t" : "rounded";
+  blocos.forEach((bloco, i) => {
+    const tipo = bloco.nome;
+    contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
+    const semanaNumero = contagemPorTipo[tipo];
+
+    const wrapper = document.createElement("div");
+    wrapper.className = `bg-white shadow border rounded overflow-hidden relative ${bloco.expandido ? 'col-span-full' : 'col-span-1'}`;
+    wrapper.setAttribute("data-index", i);
+
+    let estiloExtra = "";
+    const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
+    const fim = bloco.fim ? new Date(bloco.fim) : null;
+
+    if (inicio && fim) {
+      if (fim < hoje) {
+        estiloExtra = "opacity-40";
+      } else if (inicio <= hoje && fim >= hoje) {
+        estiloExtra = "ring-4 ring-yellow-400";
+      }
+    }
+
     const header = document.createElement("div");
     header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
-    header.innerHTML = `<strong>Semana ${i + 1} - ${bloco.nome}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
+    header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
     header.addEventListener("click", () => {
       bloco.expandido = !bloco.expandido;
       renderizarBlocos();
