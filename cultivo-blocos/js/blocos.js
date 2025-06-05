@@ -120,7 +120,27 @@ function atualizarColheitaEDiaAtual() {
 }
 
 function renderizarBlocos() {
-  atualizarDados();
+  // 🛠️ Salva dados dos blocos expandidos antes de redesenhar
+  blocos.forEach((bloco, i) => {
+    if (bloco.expandido) {
+      bloco.etapa = document.getElementById(`etapa-${i}`)?.value || "";
+      bloco.fase = document.getElementById(`fase-${i}`)?.value || "";
+      bloco.estrategia = document.getElementById(`estrategia-${i}`)?.value || "";
+      bloco.ec_entrada = document.getElementById(`ec_entrada-${i}`)?.value || "";
+      bloco.ph_entrada = document.getElementById(`ph_entrada-${i}`)?.value || "";
+      bloco.nutrientes = document.getElementById(`nutrientes-${i}`)?.value || "";
+      bloco.receita = document.getElementById(`receita-${i}`)?.value || "";
+      bloco.ec_saida = document.getElementById(`ec_saida-${i}`)?.value || "";
+      bloco.runoff = document.getElementById(`runoff-${i}`)?.value || "";
+      bloco.dryback = document.getElementById(`dryback-${i}`)?.value || "";
+      bloco.temperatura = document.getElementById(`temperatura-${i}`)?.value || "";
+      bloco.umidade = document.getElementById(`umidade-${i}`)?.value || "";
+      bloco.vpd = document.getElementById(`vpd-${i}`)?.value || "";
+      bloco.ppfd = document.getElementById(`ppfd-${i}`)?.value || "";
+      bloco.notas = document.getElementById(`notas-${i}`)?.value || "";
+    }
+  });
+
   blocosContainer.innerHTML = "";
   const hoje = new Date();
   const contagemPorTipo = {};
@@ -146,10 +166,119 @@ function renderizarBlocos() {
     header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
     header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
     header.addEventListener("click", () => {
-      atualizarDados(); // 👈 salva os dados preenchidos antes de redesenhar
+      // Salva dados atuais antes de trocar expansão
+      blocos.forEach((b, j) => {
+        if (b.expandido && j !== i) {
+          b.etapa = document.getElementById(`etapa-${j}`)?.value || "";
+          b.fase = document.getElementById(`fase-${j}`)?.value || "";
+          b.estrategia = document.getElementById(`estrategia-${j}`)?.value || "";
+          b.ec_entrada = document.getElementById(`ec_entrada-${j}`)?.value || "";
+          b.ph_entrada = document.getElementById(`ph_entrada-${j}`)?.value || "";
+          b.nutrientes = document.getElementById(`nutrientes-${j}`)?.value || "";
+          b.receita = document.getElementById(`receita-${j}`)?.value || "";
+          b.ec_saida = document.getElementById(`ec_saida-${j}`)?.value || "";
+          b.runoff = document.getElementById(`runoff-${j}`)?.value || "";
+          b.dryback = document.getElementById(`dryback-${j}`)?.value || "";
+          b.temperatura = document.getElementById(`temperatura-${j}`)?.value || "";
+          b.umidade = document.getElementById(`umidade-${j}`)?.value || "";
+          b.vpd = document.getElementById(`vpd-${j}`)?.value || "";
+          b.ppfd = document.getElementById(`ppfd-${j}`)?.value || "";
+          b.notas = document.getElementById(`notas-${j}`)?.value || "";
+          b.expandido = false;
+        }
+      });
+
       bloco.expandido = !bloco.expandido;
       renderizarBlocos();
     });
+
+    const corpo = document.createElement("div");
+    corpo.className = "p-4 text-sm";
+
+    if (!bloco.expandido) {
+      corpo.innerHTML = `
+        <div><strong>${bloco.nome}</strong></div>
+        <div>Etapa: ${bloco.etapa || "-"}</div>
+        <div>Fase: ${bloco.fase || "-"}</div>
+        <div>Estratégia: ${bloco.estrategia || "-"}</div>
+      `;
+    } else {
+      corpo.innerHTML = gerarFormularioExpandido(bloco, i); // Função que monta o HTML dos campos
+    }
+
+    wrapper.appendChild(header);
+    wrapper.appendChild(corpo);
+    blocosContainer.appendChild(wrapper);
+  });
+
+  atualizarColheitaEDiaAtual();
+
+  Sortable.create(blocosContainer, {
+    animation: 150,
+    onEnd: () => {
+      const novosBlocos = [];
+      const blocosDom = blocosContainer.querySelectorAll("[data-index]");
+      blocosDom.forEach((el) => {
+        const index = parseInt(el.getAttribute("data-index"));
+        novosBlocos.push(blocos[index]);
+      });
+      blocos = novosBlocos;
+      blocos.forEach((bloco, i) => {
+        const ini = new Date(inputDataInicio.value);
+        ini.setDate(ini.getDate() + i * 7);
+        const fim = new Date(ini);
+        fim.setDate(fim.getDate() + 6);
+        bloco.inicio = ini.toISOString().split("T")[0];
+        bloco.fim = fim.toISOString().split("T")[0];
+      });
+      renderizarBlocos();
+    },
+  });
+}
+
+    const corpo = document.createElement("div");
+    corpo.className = "p-4 text-sm";
+
+    if (!bloco.expandido) {
+      corpo.innerHTML = `
+        <div><strong>${bloco.nome}</strong></div>
+        <div>Etapa: ${bloco.etapa || "-"}</div>
+        <div>Fase: ${bloco.fase || "-"}</div>
+        <div>Estratégia: ${bloco.estrategia || "-"}</div>
+      `;
+    } else {
+      corpo.innerHTML = gerarFormularioExpandido(bloco, i);
+    }
+
+    wrapper.appendChild(header);
+    wrapper.appendChild(corpo);
+    blocosContainer.appendChild(wrapper);
+  });
+
+  atualizarColheitaEDiaAtual();
+
+  Sortable.create(blocosContainer, {
+    animation: 150,
+    onEnd: () => {
+      const novosBlocos = [];
+      const blocosDom = blocosContainer.querySelectorAll("[data-index]");
+      blocosDom.forEach((el) => {
+        const index = parseInt(el.getAttribute("data-index"));
+        novosBlocos.push(blocos[index]);
+      });
+      blocos = novosBlocos;
+      blocos.forEach((bloco, i) => {
+        const ini = new Date(inputDataInicio.value);
+        ini.setDate(ini.getDate() + i * 7);
+        const fim = new Date(ini);
+        fim.setDate(fim.getDate() + 6);
+        bloco.inicio = ini.toISOString().split("T")[0];
+        bloco.fim = fim.toISOString().split("T")[0];
+      });
+      renderizarBlocos();
+    },
+  });
+}
 
     const corpo = document.createElement("div");
     corpo.className = "p-4 text-sm";
