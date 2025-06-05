@@ -1,4 +1,3 @@
-
 // blocos.js. 330 linhas bom
 import { db } from "./firebase-init.js";
 import {
@@ -114,128 +113,10 @@ function atualizarColheitaEDiaAtual() {
         break;
       }
     }
-    diaInfo.textContent = `📅 ${faseAtual} dia ${diaTotal}`;
+    diaInfo.textContent = `🗕️ ${faseAtual} dia ${diaTotal}`;
   } else {
     diaInfo.textContent = "";
   }
-}
-
-function renderizarBlocos() {
-  blocosContainer.innerHTML = "";
-  const hoje = new Date();
-  const contagemPorTipo = {};
-
-  blocos.forEach((bloco, i) => {
-    const tipo = bloco.nome;
-    contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
-    const semanaNumero = contagemPorTipo[tipo];
-
-    const wrapper = document.createElement("div");
-    wrapper.className = `bg-white shadow border rounded overflow-hidden relative ${bloco.expandido ? 'col-span-full' : ''}`;
-    wrapper.setAttribute("data-index", i);
-
-    let estiloExtra = "";
-    const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
-    const fim = bloco.fim ? new Date(bloco.fim) : null;
-    if (inicio && fim) {
-      if (fim < hoje) estiloExtra = "opacity-40";
-      else if (inicio <= hoje && fim >= hoje) estiloExtra = "ring-4 ring-yellow-400";
-    }
-
-    const header = document.createElement("div");
-    header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
-    header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
-    header.addEventListener("click", () => {
-      bloco.expandido = !bloco.expandido;
-      renderizarBlocos();
-    });
-
-    const corpo = document.createElement("div");
-    corpo.className = "p-4 text-sm";
-
-    if (!bloco.expandido) {
-      corpo.innerHTML = `
-        <div><strong>${bloco.nome}</strong></div>
-        <div>Etapa: ${bloco.etapa || "-"}</div>
-        <div>Fase: ${bloco.fase || "-"}</div>
-        <div>Estratégia: ${bloco.estrategia || "-"}</div>
-      `;
-    } else {
-      corpo.innerHTML = `
-        <label class="block mb-1">Etapa:
-          <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="germinacao">germinação</option>
-            <option value="vega">vega</option>
-            <option value="inicio de flora">início de flora</option>
-            <option value="meio de flora">meio de flora</option>
-            <option value="fim de flora">fim de flora</option>
-            <option value="flush">flush</option>
-          </select>
-        </label>
-        <label class="block mb-1">Fase:
-          <select id="fase-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="propagacao">propagação</option>
-            <option value="vegetacao">vegetação</option>
-            <option value="estiramento">estiramento</option>
-            <option value="engorda">engorda</option>
-            <option value="finalizacao">finalização</option>
-          </select>
-        </label>
-        <label class="block mb-1">Estratégia:
-          <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="clonagem">clonagem</option>
-            <option value="vegetativo">vegetativo</option>
-            <option value="generativo">generativo</option>
-            <option value="misto">misto (veg/gen)</option>
-          </select>
-        </label>
-        <label class="block">EC Entrada (mS/cm): <input type="number" id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada || ""}" /></label>
-        <label class="block">pH Entrada: <input type="number" id="ph-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ph_entrada || ""}" /></label>
-        <label class="block">Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes || ""}" /></label>
-        <label class="block">Receita: <textarea id="receita-${i}" class="w-full border rounded px-2 py-1">${bloco.receita.receita || ""}</textarea></label>
-        <label class="block">EC Saída (mS/cm): <input type="number" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_saida || ""}" /></label>
-        <label class="block">Runoff (%): <input type="number" id="runoff-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.runoff || ""}" /></label>
-        <label class="block">Dryback (%): <input type="number" id="dryback-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.dryback || ""}" /></label>
-        <label class="block">Temperatura (°C): <input type="number" id="temp-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.temperatura || ""}" /></label>
-        <label class="block">Umidade Relativa (%): <input type="number" id="ur-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ur || ""}" /></label>
-        <label class="block">VPD (kPa): <input type="number" id="vpd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.vpd || ""}" /></label>
-        <label class="block">PPFD (µmol/m²/s): <input type="number" id="ppfd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ppfd || ""}" /></label>
-        <label class="block">Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1">${bloco.notas || ""}</textarea></label>
-        <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
-      `;
-    }
-
-    wrapper.appendChild(header);
-    wrapper.appendChild(corpo);
-    blocosContainer.appendChild(wrapper);
-  });
-
-  atualizarColheitaEDiaAtual();
-
-  Sortable.create(blocosContainer, {
-    animation: 150,
-    onEnd: () => {
-      const novosBlocos = [];
-      const blocosDom = blocosContainer.querySelectorAll("[data-index]");
-      blocosDom.forEach((el) => {
-        const index = parseInt(el.getAttribute("data-index"));
-        novosBlocos.push(blocos[index]);
-      });
-      blocos = novosBlocos;
-      blocos.forEach((bloco, i) => {
-        const ini = new Date(inputDataInicio.value);
-        ini.setDate(ini.getDate() + i * 7);
-        const fim = new Date(ini);
-        fim.setDate(fim.getDate() + 6);
-        bloco.inicio = ini.toISOString().split("T")[0];
-        bloco.fim = fim.toISOString().split("T")[0];
-      });
-      renderizarBlocos();
-    },
-  });
 }
 
 window.removerBloco = function (index) {
@@ -296,10 +177,8 @@ async function salvarCultivo() {
     nome: inputNome.value,
     data_inicio: inputDataInicio.value,
     criado_em: Timestamp.now(),
-    blocos: JSON.parse(JSON.stringify(blocos)), // garantir estrutura limpa
+    blocos: JSON.parse(JSON.stringify(blocos)),
   };
-
-  console.log("📦 Salvando dados:", cultivo); // para depurar
 
   try {
     if (cultivoId) {
@@ -316,6 +195,7 @@ async function salvarCultivo() {
     alert("Erro ao salvar cultivo.");
   }
 }
+
 async function carregarCultivoExistente(id) {
   try {
     const docSnap = await getDoc(doc(db, "cultivos_blocos", id));
@@ -323,7 +203,7 @@ async function carregarCultivoExistente(id) {
       const dados = docSnap.data();
       inputDataInicio.value = dados.data_inicio;
       inputNome.value = dados.nome;
-      blocos = dados.blocos || [];
+      blocos = (dados.blocos || []).map(b => ({ ...b, expandido: false }));
       renderizarBlocos();
     }
   } catch (e) {
