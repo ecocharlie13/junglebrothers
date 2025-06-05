@@ -54,23 +54,23 @@ window.adicionarBloco = function (tipo) {
     inicio: inicio.toISOString().split("T")[0],
     fim: fim.toISOString().split("T")[0],
     receita: {
+      ec_entrada: "",
+      ec_saida: "",
       nutrientes: "",
       A: "",
       B: "",
       C: "",
-      ec_entrada: "",
-      ec_saida: "",
       runoff: "",
       dryback: "",
       temperatura: "",
       ur: "",
       vpd: "",
-      ppfd: ""
+      ppfd: "",
     },
     notas: "",
     tarefas: [],
     cor: cores[tipo],
-    expandido: false
+    expandido: false,
   };
   blocos.push(novoBloco);
   renderizarBlocos();
@@ -169,20 +169,47 @@ function renderizarBlocos() {
       `;
     } else {
       corpo.innerHTML = `
-        <label class="block mb-1">Etapa: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.etapa}" id="etapa-${i}"></label>
-        <label class="block mb-1">Fase: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.fase}" id="fase-${i}"></label>
-        <label class="block mb-1">Estratégia: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.estrategia}" id="estrategia-${i}"></label>
-        <label class="block mb-1">Nutrientes: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.nutrientes}" id="nutrientes-${i}"></label>
-        <label class="block mb-1">Receita: <input type="text" class="w-full border px-2 py-1 rounded" value="A: ${bloco.receita.A} / B: ${bloco.receita.B} / C: ${bloco.receita.C}" id="receita-${i}"></label>
-        <label class="block mb-1">EC Entrada: <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_entrada}" id="ec-${i}"></label>
-        <label class="block mb-1">EC Saída: <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_saida}" id="ecout-${i}"></label>
-        <label class="block mb-1">Runoff (%): <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.runoff}" id="runoff-${i}"></label>
-        <label class="block mb-1">Dryback (%): <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.dryback}" id="dryback-${i}"></label>
-        <label class="block mb-1">Temperatura (°C): <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.temperatura}" id="temp-${i}"></label>
-        <label class="block mb-1">RH (%): <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ur}" id="ur-${i}"></label>
-        <label class="block mb-1">VPD (kPa): <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.vpd}" id="vpd-${i}"></label>
-        <label class="block mb-1">PPFD: <input type="number" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ppfd}" id="ppfd-${i}"></label>
-        <label class="block mb-2">Notas: <textarea class="w-full border px-2 py-1 rounded" id="notas-${i}">${bloco.notas || ""}</textarea></label>
+        <label class="block mb-1">Etapa:
+          <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
+            <option value="">Selecione</option>
+            <option value="PROPAGAR">PROPAGAR</option>
+            <option value="VEGETAR">VEGETAR</option>
+            <option value="INÍCIO DE FLORA">INÍCIO DE FLORA</option>
+            <option value="MEIO DE FLORA">MEIO DE FLORA</option>
+            <option value="FIM DE FLORA">FIM DE FLORA</option>
+            <option value="FLUSH">FLUSH</option>
+          </select>
+        </label>
+        <label class="block mb-1">Fase:
+          <select id="fase-${i}" class="w-full border rounded px-2 py-1">
+            <option value="">Selecione</option>
+            <option value="PROPAGAR">PROPAGAR</option>
+            <option value="VEGETAR">VEGETAR</option>
+            <option value="ESTIRAMENTO">ESTIRAMENTO</option>
+            <option value="VOLUME">VOLUME</option>
+            <option value="ACABAMENTO">ACABAMENTO</option>
+          </select>
+        </label>
+        <label class="block mb-1">Estratégia:
+          <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
+            <option value="">Selecione</option>
+            <option value="PROPAGAR">PROPAGAR</option>
+            <option value="VEGETATIVO">VEGETATIVO</option>
+            <option value="GENERATIVO">GENERATIVO</option>
+            <option value="MISTO (VEG/GEN)">MISTO (VEG/GEN)</option>
+          </select>
+        </label>
+        <label class="block">Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes || ""}" /></label>
+        <label class="block">Receita (g/L): <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" value="A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}" /></label>
+        <label class="block">EC Entrada (mS/cm): <input type="number" id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada || ""}" /></label>
+        <label class="block">EC Saída (mS/cm): <input type="number" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_saida || ""}" /></label>
+        <label class="block">Runoff (%): <input type="number" id="runoff-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.runoff || ""}" /></label>
+        <label class="block">Dryback (%): <input type="number" id="dryback-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.dryback || ""}" /></label>
+        <label class="block">Temperatura (°C): <input type="number" id="temp-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.temperatura || ""}" /></label>
+        <label class="block">RH (%): <input type="number" id="ur-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ur || ""}" /></label>
+        <label class="block">VPD (kPa): <input type="number" id="vpd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.vpd || ""}" /></label>
+        <label class="block">PPFD: <input type="number" id="ppfd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ppfd || ""}" /></label>
+        <label class="block">Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1">${bloco.notas || ""}</textarea></label>
         <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
       `;
     }
@@ -217,39 +244,97 @@ function renderizarBlocos() {
   });
 }
 
-window.removerBloco = function (index) {
-  if (confirm("Deseja remover este bloco?")) {
-    blocos.splice(index, 1);
-    renderizarBlocos();
-  }
-};
+// ... restante do código permanece inalterado
 
-inputDataInicio.addEventListener("change", () => {
-  if (!inputDataInicio.value) return;
-  const base = new Date(inputDataInicio.value);
-  if (isNaN(base)) return;
-
-  blocos.forEach((bloco, i) => {
-    const ini = new Date(base);
-    ini.setDate(ini.getDate() + i * 7);
-    const fim = new Date(ini);
-    fim.setDate(fim.getDate() + 6);
-    bloco.inicio = ini.toISOString().split("T")[0];
-    bloco.fim = fim.toISOString().split("T")[0];
-  });
-  renderizarBlocos();
-});
-
-document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
-
+Blocos Renderizado
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
     bloco.etapa = document.getElementById(`etapa-${i}`)?.value || bloco.etapa;
     bloco.fase = document.getElementById(`fase-${i}`)?.value || bloco.fase;
     bloco.estrategia = document.getElementById(`estrategia-${i}`)?.value || bloco.estrategia;
     bloco.receita.nutrientes = document.getElementById(`nutrientes-${i}`)?.value || bloco.receita.nutrientes;
+
+    const receitaCompleta = document.getElementById(`receita-${i}`)?.value || "";
+    const matches = receitaCompleta.match(/A:\s*([\d.,]+)\s*\/\s*B:\s*([\d.,]+)\s*\/\s*C:\s*([\d.,]+)/);
+    if (matches) {
+      bloco.receita.A = matches[1];
+      bloco.receita.B = matches[2];
+      bloco.receita.C = matches[3];
+    }
+
     bloco.receita.ec_entrada = document.getElementById(`ec-${i}`)?.value || bloco.receita.ec_entrada;
-    bloco.receita.ec_saida = document.getElementById(`ecout-${i}`)?.value || bloco.receita.ec_saida;
+    bloco.receita.ec_saida = document.getElementById(`ec_saida-${i}`)?.value || bloco.receita.ec_saida;
     bloco.receita.runoff = document.getElementById(`runoff-${i}`)?.value || bloco.receita.runoff;
     bloco.receita.dryback = document.getElementById(`dryback-${i}`)?.value || bloco.receita.dryback;
     bloco.receita.temperatura = document.getElementById(`temp-${i}`)?.value || bloco.receita.temperatura;
@@ -260,9 +345,10 @@ function atualizarDados() {
   });
 }
 
+document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
+
 async function salvarCultivo() {
   atualizarDados();
-
   if (!inputDataInicio.value || !inputNome.value) {
     alert("Preencha o nome do cultivo e a data de início.");
     return;
@@ -303,3 +389,4 @@ async function carregarCultivoExistente(id) {
     console.error("Erro ao carregar cultivo:", e);
   }
 }
+
