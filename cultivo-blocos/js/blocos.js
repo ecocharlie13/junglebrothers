@@ -134,7 +134,7 @@ function renderizarBlocos() {
     const semanaNumero = contagemPorTipo[tipo];
 
     const wrapper = document.createElement("div");
-    wrapper.className = `w-60 bg-white shadow border rounded overflow-hidden relative`;
+    wrapper.className = `w-full bg-white shadow border rounded overflow-hidden relative mb-4`;
     wrapper.setAttribute("data-index", i);
 
     let estiloExtra = "";
@@ -158,7 +158,7 @@ function renderizarBlocos() {
     });
 
     const corpo = document.createElement("div");
-    corpo.className = "p-4 text-sm";
+    corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
 
     if (!bloco.expandido) {
       corpo.innerHTML = `
@@ -232,6 +232,8 @@ inputDataInicio.addEventListener("change", () => {
   renderizarBlocos();
 });
 
+document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
+
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
     bloco.etapa = document.getElementById(`etapa-${i}`)?.value || bloco.etapa;
@@ -242,8 +244,6 @@ function atualizarDados() {
     bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
   });
 }
-
-document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
 
 async function salvarCultivo() {
   atualizarDados();
