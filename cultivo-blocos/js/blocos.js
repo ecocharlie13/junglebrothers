@@ -55,11 +55,10 @@ window.adicionarBloco = function (tipo) {
     fim: fim.toISOString().split("T")[0],
     receita: {
       ec_entrada: "",
-      ec_saida: "",
+      ph_entrada: "",
       nutrientes: "",
-      A: "",
-      B: "",
-      C: "",
+      receita_detalhes: "",
+      ec_saida: "",
       runoff: "",
       dryback: "",
       temperatura: "",
@@ -134,7 +133,7 @@ function renderizarBlocos() {
     const semanaNumero = contagemPorTipo[tipo];
 
     const wrapper = document.createElement("div");
-    wrapper.className = `bg-white shadow border rounded overflow-hidden relative ${bloco.expandido ? 'col-span-full' : ''}`;
+    wrapper.className = `bg-white shadow border rounded overflow-hidden relative p-2 ${bloco.expandido ? 'col-span-full' : 'w-full sm:w-1/2 md:w-1/3 lg:w-1/4'} box-border`;
     wrapper.setAttribute("data-index", i);
 
     let estiloExtra = "";
@@ -162,19 +161,54 @@ function renderizarBlocos() {
 
     if (!bloco.expandido) {
       corpo.innerHTML = `
-        <div><strong>${bloco.nome}</strong></div>
         <div>Etapa: ${bloco.etapa || "-"}</div>
-        <div>EC In: ${bloco.receita.ec_entrada || "-"}</div>
-        <div>PPFD: ${bloco.receita.ppfd || "-"}</div>
+        <div>Fase: ${bloco.fase || "-"}</div>
+        <div>Estratégia: ${bloco.estrategia || "-"}</div>
       `;
     } else {
       corpo.innerHTML = `
-        <label class="block mb-1">Etapa: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.etapa || ""}" id="etapa-${i}"></label>
-        <label class="block mb-1">Fase: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.fase || ""}" id="fase-${i}"></label>
-        <label class="block mb-1">Estratégia: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.estrategia || ""}" id="estrategia-${i}"></label>
-        <label class="block mb-1">EC Entrada: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ec_entrada || ""}" id="ec-${i}"></label>
-        <label class="block mb-1">PPFD: <input type="text" class="w-full border px-2 py-1 rounded" value="${bloco.receita.ppfd || ""}" id="ppfd-${i}"></label>
-        <label class="block mb-2">Notas: <textarea class="w-full border px-2 py-1 rounded" id="notas-${i}">${bloco.notas || ""}</textarea></label>
+        <label class="block mb-1">Etapa:
+          <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
+            <option value="">-</option>
+            <option value="germinacao">germinação</option>
+            <option value="vega">vega</option>
+            <option value="inicio de flora">início de flora</option>
+            <option value="meio de flora">meio de flora</option>
+            <option value="fim de flora">fim de flora</option>
+            <option value="flush">flush</option>
+          </select>
+        </label>
+        <label class="block mb-1">Fase:
+          <select id="fase-${i}" class="w-full border rounded px-2 py-1">
+            <option value="">-</option>
+            <option value="propagacao">propagação</option>
+            <option value="vegetacao">vegetação</option>
+            <option value="estiramento">estiramento</option>
+            <option value="engorda">engorda</option>
+            <option value="finalizacao">finalização</option>
+          </select>
+        </label>
+        <label class="block mb-1">Estratégia:
+          <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
+            <option value="">-</option>
+            <option value="clonagem">clonagem</option>
+            <option value="vegetativo">vegetativo</option>
+            <option value="generativo">generativo</option>
+            <option value="misto">misto (veg/gen)</option>
+          </select>
+        </label>
+        <label class="block">EC Entrada: <input id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada || ""}" /></label>
+        <label class="block">PH Entrada: <input id="ph-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ph_entrada || ""}" /></label>
+        <label class="block">Nutrientes: <input id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes || ""}" /></label>
+        <label class="block">Receita: <textarea id="receita-${i}" class="w-full border rounded px-2 py-1">${bloco.receita.receita_detalhes || ""}</textarea></label>
+        <label class="block">EC Saída: <input id="ec_saida-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_saida || ""}" /></label>
+        <label class="block">Runoff: <input id="runoff-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.runoff || ""}" /></label>
+        <label class="block">Dryback: <input id="dryback-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.dryback || ""}" /></label>
+        <label class="block">Temperatura: <input id="temperatura-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.temperatura || ""}" /></label>
+        <label class="block">Umidade Relativa: <input id="ur-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ur || ""}" /></label>
+        <label class="block">VPD: <input id="vpd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.vpd || ""}" /></label>
+        <label class="block">PPFD: <input id="ppfd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ppfd || ""}" /></label>
+        <label class="block">Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1">${bloco.notas || ""}</textarea></label>
         <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
       `;
     }
@@ -240,6 +274,15 @@ function atualizarDados() {
     bloco.fase = document.getElementById(`fase-${i}`)?.value || bloco.fase;
     bloco.estrategia = document.getElementById(`estrategia-${i}`)?.value || bloco.estrategia;
     bloco.receita.ec_entrada = document.getElementById(`ec-${i}`)?.value || bloco.receita.ec_entrada;
+    bloco.receita.ph_entrada = document.getElementById(`ph-${i}`)?.value || bloco.receita.ph_entrada;
+    bloco.receita.nutrientes = document.getElementById(`nutrientes-${i}`)?.value || bloco.receita.nutrientes;
+    bloco.receita.receita_detalhes = document.getElementById(`receita-${i}`)?.value || bloco.receita.receita_detalhes;
+    bloco.receita.ec_saida = document.getElementById(`ec_saida-${i}`)?.value || bloco.receita.ec_saida;
+    bloco.receita.runoff = document.getElementById(`runoff-${i}`)?.value || bloco.receita.runoff;
+    bloco.receita.dryback = document.getElementById(`dryback-${i}`)?.value || bloco.receita.dryback;
+    bloco.receita.temperatura = document.getElementById(`temperatura-${i}`)?.value || bloco.receita.temperatura;
+    bloco.receita.ur = document.getElementById(`ur-${i}`)?.value || bloco.receita.ur;
+    bloco.receita.vpd = document.getElementById(`vpd-${i}`)?.value || bloco.receita.vpd;
     bloco.receita.ppfd = document.getElementById(`ppfd-${i}`)?.value || bloco.receita.ppfd;
     bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
   });
