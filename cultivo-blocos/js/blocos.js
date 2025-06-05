@@ -272,7 +272,7 @@ async function carregarCultivoExistente(id) {
 
 function gerarFormularioExpandido(bloco, i) {
   return `
-    <form oninput="atualizarCampo(${i}, event)">
+    <div oninput="window.atualizarCampo(${i}, event)">
       <label class="block mb-1">Etapa:
         <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
           <option value="">Selecione</option>
@@ -284,25 +284,26 @@ function gerarFormularioExpandido(bloco, i) {
           <option value="flush" ${bloco.etapa === "flush" ? "selected" : ""}>flush</option>
         </select>
       </label>
-    <label class="block mb-1">Fase:
-      <input id="fase-${i}" class="w-full border rounded px-2 py-1" value="${bloco.fase || ""}" />
-    </label>
-    <label class="block mb-1">Estratégia:
-      <input id="estrategia-${i}" class="w-full border rounded px-2 py-1" value="${bloco.estrategia || ""}" />
-    </label>
-    <label class="block mb-1">EC Entrada: <input id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada}" /></label>
-    <label class="block mb-1">pH Entrada: <input id="ph-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ph_entrada}" /></label>
-    <label class="block mb-1">Nutrientes: <input id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes}" /></label>
-    <label class="block mb-1">Receita: <input id="receita-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.receita}" /></label>
-    <label class="block mb-1">EC Saída: <input id="ec_saida-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_saida}" /></label>
-    <label class="block mb-1">Runoff (%): <input id="runoff-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.runoff}" /></label>
-    <label class="block mb-1">Dryback (%): <input id="dryback-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.dryback}" /></label>
-    <label class="block mb-1">Temperatura (°C): <input id="temp-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.temperatura}" /></label>
-    <label class="block mb-1">Umidade Relativa (%): <input id="ur-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ur}" /></label>
-    <label class="block mb-1">VPD (kPa): <input id="vpd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.vpd}" /></label>
-    <label class="block mb-1">PPFD (µmol/m²/s): <input id="ppfd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ppfd}" /></label>
-    <label class="block">Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1">${bloco.notas || ""}</textarea></label>
-    <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
+      <label class="block mb-1">Fase:
+        <input id="fase-${i}" class="w-full border rounded px-2 py-1" value="${bloco.fase || ""}" />
+      </label>
+      <label class="block mb-1">Estratégia:
+        <input id="estrategia-${i}" class="w-full border rounded px-2 py-1" value="${bloco.estrategia || ""}" />
+      </label>
+      <label class="block mb-1">EC Entrada: <input id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada}" /></label>
+      <label class="block mb-1">pH Entrada: <input id="ph-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ph_entrada}" /></label>
+      <label class="block mb-1">Nutrientes: <input id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes}" /></label>
+      <label class="block mb-1">Receita: <input id="receita-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.receita}" /></label>
+      <label class="block mb-1">EC Saída: <input id="ec_saida-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_saida}" /></label>
+      <label class="block mb-1">Runoff (%): <input id="runoff-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.runoff}" /></label>
+      <label class="block mb-1">Dryback (%): <input id="dryback-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.dryback}" /></label>
+      <label class="block mb-1">Temperatura (°C): <input id="temp-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.temperatura}" /></label>
+      <label class="block mb-1">Umidade Relativa (%): <input id="ur-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ur}" /></label>
+      <label class="block mb-1">VPD (kPa): <input id="vpd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.vpd}" /></label>
+      <label class="block mb-1">PPFD (µmol/m²/s): <input id="ppfd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ppfd}" /></label>
+      <label class="block">Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1">${bloco.notas || ""}</textarea></label>
+      <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
+    </div>
   `;
 }
 // função global atualizarCampo
