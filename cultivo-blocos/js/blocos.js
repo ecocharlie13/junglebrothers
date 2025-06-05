@@ -120,6 +120,7 @@ function atualizarColheitaEDiaAtual() {
 }
 
 function renderizarBlocos() {
+  atualizarDados();
   blocosContainer.innerHTML = "";
   const hoje = new Date();
   const contagemPorTipo = {};
