@@ -94,12 +94,30 @@ function atualizarColheitaEDiaAtual() {
   const processar = blocos.find((b) => b.nome === "PROCESSAR");
   colheitaInfo.textContent = processar ? `🌾 Colheita em ${formatarData(processar.inicio)}` : "";
 
-  const ativo = blocos.find((b) => new Date(b.inicio) <= hoje && new Date(b.fim) >= hoje);
+  const ativo = blocos.find((b) => {
+    const ini = new Date(b.inicio);
+    const fim = new Date(b.fim);
+    return ini <= hoje && fim >= hoje;
+  });
+
   if (ativo) {
-    const dataInicio = new Date(ativo.inicio);
-    const diffMs = hoje - dataInicio;
-    const diaAtual = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-    diaInfo.textContent = `📆 ${ativo.nome} dia ${diaAtual}`;
+    const faseAtual = ativo.nome;
+    let diaTotal = 0;
+
+    for (const bloco of blocos) {
+      if (bloco.nome !== faseAtual) continue;
+      const ini = new Date(bloco.inicio);
+      const fim = new Date(bloco.fim);
+
+      if (hoje > fim) {
+        diaTotal += 7;
+      } else if (hoje >= ini && hoje <= fim) {
+        diaTotal += Math.floor((hoje - ini) / (1000 * 60 * 60 * 24)) + 1;
+        break;
+      }
+    }
+
+    diaInfo.textContent = `📅 ${faseAtual} dia ${diaTotal}`;
   } else {
     diaInfo.textContent = "";
   }
