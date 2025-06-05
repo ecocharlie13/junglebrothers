@@ -1,4 +1,4 @@
-// blocos.js. 330 linhas bom
+// blocos.js
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -164,46 +164,33 @@ function renderizarBlocos() {
         <label class="block mb-1">Etapa:
           <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
             <option value="">Selecione</option>
-            <option value="germinacao">germinação</option>
-            <option value="vega">vega</option>
-            <option value="inicio de flora">início de flora</option>
-            <option value="meio de flora">meio de flora</option>
-            <option value="fim de flora">fim de flora</option>
-            <option value="flush">flush</option>
+            <option value="germinacao" ${bloco.etapa === "germinacao" ? "selected" : ""}>germinação</option>
+            <option value="vega" ${bloco.etapa === "vega" ? "selected" : ""}>vega</option>
+            <option value="inicio de flora" ${bloco.etapa === "inicio de flora" ? "selected" : ""}>início de flora</option>
+            <option value="meio de flora" ${bloco.etapa === "meio de flora" ? "selected" : ""}>meio de flora</option>
+            <option value="fim de flora" ${bloco.etapa === "fim de flora" ? "selected" : ""}>fim de flora</option>
+            <option value="flush" ${bloco.etapa === "flush" ? "selected" : ""}>flush</option>
           </select>
         </label>
         <label class="block mb-1">Fase:
           <select id="fase-${i}" class="w-full border rounded px-2 py-1">
             <option value="">Selecione</option>
-            <option value="propagacao">propagação</option>
-            <option value="vegetacao">vegetação</option>
-            <option value="estiramento">estiramento</option>
-            <option value="engorda">engorda</option>
-            <option value="finalizacao">finalização</option>
+            <option value="propagacao" ${bloco.fase === "propagacao" ? "selected" : ""}>propagação</option>
+            <option value="vegetacao" ${bloco.fase === "vegetacao" ? "selected" : ""}>vegetação</option>
+            <option value="estiramento" ${bloco.fase === "estiramento" ? "selected" : ""}>estiramento</option>
+            <option value="engorda" ${bloco.fase === "engorda" ? "selected" : ""}>engorda</option>
+            <option value="finalizacao" ${bloco.fase === "finalizacao" ? "selected" : ""}>finalização</option>
           </select>
         </label>
         <label class="block mb-1">Estratégia:
           <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
             <option value="">Selecione</option>
-            <option value="clonagem">clonagem</option>
-            <option value="vegetativo">vegetativo</option>
-            <option value="generativo">generativo</option>
-            <option value="misto">misto (veg/gen)</option>
+            <option value="clonagem" ${bloco.estrategia === "clonagem" ? "selected" : ""}>clonagem</option>
+            <option value="vegetativo" ${bloco.estrategia === "vegetativo" ? "selected" : ""}>vegetativo</option>
+            <option value="generativo" ${bloco.estrategia === "generativo" ? "selected" : ""}>generativo</option>
+            <option value="misto" ${bloco.estrategia === "misto" ? "selected" : ""}>misto (veg/gen)</option>
           </select>
         </label>
-        <label class="block">EC Entrada (mS/cm): <input type="number" id="ec-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_entrada || ""}" /></label>
-        <label class="block">pH Entrada: <input type="number" id="ph-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ph_entrada || ""}" /></label>
-        <label class="block">Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes || ""}" /></label>
-        <label class="block">Receita: <textarea id="receita-${i}" class="w-full border rounded px-2 py-1">${bloco.receita.receita || ""}</textarea></label>
-        <label class="block">EC Saída (mS/cm): <input type="number" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ec_saida || ""}" /></label>
-        <label class="block">Runoff (%): <input type="number" id="runoff-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.runoff || ""}" /></label>
-        <label class="block">Dryback (%): <input type="number" id="dryback-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.dryback || ""}" /></label>
-        <label class="block">Temperatura (°C): <input type="number" id="temp-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.temperatura || ""}" /></label>
-        <label class="block">Umidade Relativa (%): <input type="number" id="ur-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ur || ""}" /></label>
-        <label class="block">VPD (kPa): <input type="number" id="vpd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.vpd || ""}" /></label>
-        <label class="block">PPFD (µmol/m²/s): <input type="number" id="ppfd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ppfd || ""}" /></label>
-        <label class="block">Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1">${bloco.notas || ""}</textarea></label>
-        <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
       `;
     }
 
@@ -231,6 +218,7 @@ function renderizarBlocos() {
         fim.setDate(fim.getDate() + 6);
         bloco.inicio = ini.toISOString().split("T")[0];
         bloco.fim = fim.toISOString().split("T")[0];
+        bloco.expandido = false; // força todos a iniciarem fechados
       });
       renderizarBlocos();
     },
@@ -244,22 +232,6 @@ window.removerBloco = function (index) {
   }
 };
 
-inputDataInicio.addEventListener("change", () => {
-  if (!inputDataInicio.value) return;
-  const base = new Date(inputDataInicio.value);
-  if (isNaN(base)) return;
-
-  blocos.forEach((bloco, i) => {
-    const ini = new Date(base);
-    ini.setDate(ini.getDate() + i * 7);
-    const fim = new Date(ini);
-    fim.setDate(fim.getDate() + 6);
-    bloco.inicio = ini.toISOString().split("T")[0];
-    bloco.fim = fim.toISOString().split("T")[0];
-  });
-  renderizarBlocos();
-});
-
 document.getElementById("btn-salvar")?.addEventListener("click", salvarCultivo);
 
 function atualizarDados() {
@@ -267,19 +239,6 @@ function atualizarDados() {
     bloco.etapa = document.getElementById(`etapa-${i}`)?.value || "";
     bloco.fase = document.getElementById(`fase-${i}`)?.value || "";
     bloco.estrategia = document.getElementById(`estrategia-${i}`)?.value || "";
-
-    bloco.receita.ec_entrada = document.getElementById(`ec-${i}`)?.value || "";
-    bloco.receita.ph_entrada = document.getElementById(`ph-${i}`)?.value || "";
-    bloco.receita.nutrientes = document.getElementById(`nutrientes-${i}`)?.value || "";
-    bloco.receita.receita = document.getElementById(`receita-${i}`)?.value || "";
-    bloco.receita.ec_saida = document.getElementById(`ec_saida-${i}`)?.value || "";
-    bloco.receita.runoff = document.getElementById(`runoff-${i}`)?.value || "";
-    bloco.receita.dryback = document.getElementById(`dryback-${i}`)?.value || "";
-    bloco.receita.temperatura = document.getElementById(`temp-${i}`)?.value || "";
-    bloco.receita.ur = document.getElementById(`ur-${i}`)?.value || "";
-    bloco.receita.vpd = document.getElementById(`vpd-${i}`)?.value || "";
-    bloco.receita.ppfd = document.getElementById(`ppfd-${i}`)?.value || "";
-    bloco.notas = document.getElementById(`notas-${i}`)?.value || "";
   });
 }
 
@@ -302,7 +261,9 @@ async function salvarCultivo() {
       await updateDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
       alert("Cultivo atualizado com sucesso!");
     } else {
-      await addDoc(collection(db, "cultivos_blocos"), cultivo);
+      const docRef = await addDoc(collection(db, "cultivos_blocos"), cultivo);
+      cultivoId = docRef.id;
+      window.history.replaceState(null, null, `?id=${cultivoId}`);
       alert("Cultivo salvo com sucesso!");
     }
   } catch (e) {
@@ -318,7 +279,7 @@ async function carregarCultivoExistente(id) {
       const dados = docSnap.data();
       inputDataInicio.value = dados.data_inicio;
       inputNome.value = dados.nome;
-      blocos = dados.blocos || [];
+      blocos = (dados.blocos || []).map(b => ({ ...b, expandido: false }));
       renderizarBlocos();
     }
   } catch (e) {
