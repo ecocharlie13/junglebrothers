@@ -10,13 +10,14 @@
 
   <!-- Header dinâmico -->
   <div id="header-placeholder"></div>
-  <script>
+  <script type="module">
+    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
+
     fetch("/cultivo-blocos/components/header.html")
       .then(res => res.text())
       .then(html => {
         document.getElementById("header-placeholder").innerHTML = html;
 
-        // Ativa o menu hamburguer após o header ser carregado
         const menuBtn = document.getElementById("menu-button");
         const menuDropdown = document.getElementById("menu-dropdown");
 
@@ -32,15 +33,19 @@
             }
           });
         }
-      });
-  </script>
 
-  <!-- Proteção por login Google -->
-  <script type="module">
-    import { verificarLogin } from "/cultivoapp/js/auth.js";
-    verificarLogin(() => {
-      document.getElementById("conteudo-principal").style.display = "block";
-    });
+        verificarLogin(user => {
+          const userPic = document.getElementById("user-pic");
+          const userName = document.getElementById("user-name");
+          const logoutBtn = document.getElementById("logout");
+
+          if (userPic) userPic.src = user.photoURL;
+          if (userName) userName.textContent = user.displayName || user.email;
+          if (logoutBtn) logoutBtn.addEventListener("click", sair);
+
+          document.getElementById("conteudo-principal").style.display = "block";
+        });
+      });
   </script>
 
   <!-- Conteúdo principal protegido -->
