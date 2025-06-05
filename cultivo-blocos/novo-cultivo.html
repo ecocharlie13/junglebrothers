@@ -7,9 +7,22 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
+
+  <!-- Header dinâmico -->
   <div id="header-placeholder"></div>
 
-  <div class="p-6 max-w-7xl mx-auto">
+  <script type="module">
+    import { verificarLogin, sair } from "./js/header-logic.js";
+
+    fetch("./components/header.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("header-placeholder").innerHTML = html;
+        verificarLogin(sair); // Exibe header após autenticação
+      });
+  </script>
+
+  <div class="p-6 max-w-6xl mx-auto">
     <h1 class="text-2xl font-bold text-center mb-4">🧬 Blueprint do Cultivo</h1>
 
     <div class="mb-4">
@@ -22,35 +35,25 @@
       <input id="data-inicio" type="date" class="px-3 py-2 border rounded w-full max-w-xs" />
     </div>
 
-    <div class="mb-4 flex gap-2 flex-wrap">
-      <button onclick="adicionarBloco('CLONAR')" class="bg-purple-600 text-white px-4 py-2 rounded">+ CLONAR</button>
-      <button onclick="adicionarBloco('VEGETAR')" class="bg-green-600 text-white px-4 py-2 rounded">+ VEGETAR</button>
-      <button onclick="adicionarBloco('FLORAR')" class="bg-orange-500 text-white px-4 py-2 rounded">+ FLORAR</button>
-      <button onclick="adicionarBloco('FLUSH')" class="bg-blue-500 text-white px-4 py-2 rounded">+ FLUSH</button>
-      <button onclick="adicionarBloco('PROCESSAR')" class="bg-red-500 text-white px-4 py-2 rounded">+ PROCESSAR</button>
+    <!-- Blocos -->
+    <div id="blocos-container" class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-6"></div>
+
+    <!-- Botões para adicionar blocos -->
+    <div class="flex flex-wrap gap-2 mb-6 justify-center">
+      <button class="w-32 bg-purple-600 text-white py-2 rounded" onclick="adicionarBloco('CLONAR')">+ CLONAR</button>
+      <button class="w-32 bg-green-600 text-white py-2 rounded" onclick="adicionarBloco('VEGETAR')">+ VEGETAR</button>
+      <button class="w-32 bg-orange-500 text-white py-2 rounded" onclick="adicionarBloco('FLORAR')">+ FLORAR</button>
+      <button class="w-32 bg-blue-500 text-white py-2 rounded" onclick="adicionarBloco('FLUSH')">+ FLUSH</button>
+      <button class="w-32 bg-red-500 text-white py-2 rounded" onclick="adicionarBloco('PROCESSAR')">+ PROCESSAR</button>
     </div>
 
-    <div id="blocos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6"></div>
+    <p id="colheita-info" class="text-center text-lg font-semibold text-green-700"></p>
+    <p id="dia-info" class="text-center text-base text-gray-700 mb-4"></p>
 
     <div class="text-center">
-      <button id="btn-salvar" class="bg-black text-white px-6 py-3 rounded font-bold">Salvar</button>
+      <button id="btn-salvar" class="w-40 bg-black text-white py-3 rounded font-semibold">Salvar</button>
     </div>
   </div>
-
-  <script type="module">
-    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
-
-    fetch("/cultivo-blocos/components/header.html")
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById("header-placeholder").innerHTML = html;
-
-        verificarLogin(user => {
-          document.getElementById("conteudo-principal")?.classList.remove("hidden");
-          document.getElementById("logout")?.addEventListener("click", sair);
-        });
-      });
-  </script>
 
   <script type="module" src="./js/blocos.js"></script>
 </body>
