@@ -1,4 +1,4 @@
-// blocos.js
+// blocos.js atualiz 3
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -269,7 +269,9 @@ function atualizarDados() {
 }
 
 async function salvarCultivo() {
+  // ⚠️ Salva os dados do DOM nos objetos blocos antes de montar o cultivo
   atualizarDados();
+
   if (!inputDataInicio.value || !inputNome.value) {
     alert("Preencha o nome do cultivo e a data de início.");
     return;
@@ -279,7 +281,7 @@ async function salvarCultivo() {
     nome: inputNome.value,
     data_inicio: inputDataInicio.value,
     criado_em: Timestamp.now(),
-    blocos,
+    blocos: JSON.parse(JSON.stringify(blocos)), // 🔒 cópia profunda pra garantir persistência do estado
   };
 
   try {
