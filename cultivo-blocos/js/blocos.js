@@ -33,53 +33,55 @@ const colheitaInfo = document.getElementById("colheita-info");
 const diaInfo = document.getElementById("dia-info");
 
 // 🔹 Inicialização e carregamento do cultivo (se houver)
-const params = new URLSearchParams(window.location.search);
-if (params.has("id")) {
-  cultivoId = params.get("id");
-  carregarCultivoExistente(cultivoId);
-}
-
-// 🔹 Funções utilitárias
-function calcularInicio(ordem) {
-  const dataInicial = new Date(inputDataInicio.value);
-  dataInicial.setDate(dataInicial.getDate() + ordem * 7);
-  return dataInicial;
-}
-
-function formatarData(dataStr) {
-  if (!dataStr) return "--";
-  const meses = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const [ano, mes, dia] = dataStr.split("-");
-  return `${dia}-${meses[parseInt(mes) - 1]}-${ano}`;
-}
-
-function atualizarColheitaEDiaAtual() {
-  const hoje = new Date();
-  const processar = blocos.find(b => b.nome === "PROCESSAR");
-  colheitaInfo.textContent = processar ? `🌾 Colheita em ${formatarData(processar.inicio)}` : "";
-
-  const ativo = blocos.find(b => {
-    const ini = new Date(b.inicio);
-    const fim = new Date(b.fim);
-    return ini <= hoje && fim >= hoje;
-  });
-
-  if (ativo) {
-    const faseAtual = ativo.nome;
-    let diaTotal = 0;
-    for (const bloco of blocos) {
-      if (bloco.nome !== faseAtual) continue;
-      const ini = new Date(bloco.inicio);
-      const fim = new Date(bloco.fim);
-      if (hoje > fim) diaTotal += 7;
-      else if (hoje >= ini && hoje <= fim)
-        diaTotal += Math.floor((hoje - ini) / (1000 * 60 * 60 * 24)) + 1;
-    }
-    diaInfo.textContent = `📅 ${faseAtual} dia ${diaTotal}`;
-  } else {
-    diaInfo.textContent = "";
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("id")) {
+    cultivoId = params.get("id");
+    carregarCultivoExistente(cultivoId);
   }
-}
+
+  // 🔹 Funções utilitárias
+  function calcularInicio(ordem) {
+    const dataInicial = new Date(inputDataInicio.value);
+    dataInicial.setDate(dataInicial.getDate() + ordem * 7);
+    return dataInicial;
+  }
+
+  function formatarData(dataStr) {
+    if (!dataStr) return "--";
+    const meses = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const [ano, mes, dia] = dataStr.split("-");
+    return `${dia}-${meses[parseInt(mes) - 1]}-${ano}`;
+  }
+
+  function atualizarColheitaEDiaAtual() {
+    const hoje = new Date();
+    const processar = blocos.find(b => b.nome === "PROCESSAR");
+    colheitaInfo.textContent = processar ? `🌾 Colheita em ${formatarData(processar.inicio)}` : "";
+
+    const ativo = blocos.find(b => {
+      const ini = new Date(b.inicio);
+      const fim = new Date(b.fim);
+      return ini <= hoje && fim >= hoje;
+    });
+
+    if (ativo) {
+      const faseAtual = ativo.nome;
+      let diaTotal = 0;
+      for (const bloco of blocos) {
+        if (bloco.nome !== faseAtual) continue;
+        const ini = new Date(bloco.inicio);
+        const fim = new Date(bloco.fim);
+        if (hoje > fim) diaTotal += 7;
+        else if (hoje >= ini && hoje <= fim)
+          diaTotal += Math.floor((hoje - ini) / (1000 * 60 * 60 * 24)) + 1;
+      }
+      diaInfo.textContent = `📅 ${faseAtual} dia ${diaTotal}`;
+    } else {
+      diaInfo.textContent = "";
+    }
+  }
+});
 
 // 🔹 Renderização dos blocos
 function renderizarBlocos() {
