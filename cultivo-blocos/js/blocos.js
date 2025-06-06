@@ -42,6 +42,9 @@ const DOM = {
   btnSalvar: document.getElementById("btn-salvar"),
   colheitaInfo: document.getElementById("colheita-info"),
   diaInfo: document.getElementById("dia-info"),
+  form: document.getElementById("cultivo-form"),
+  nomeError: document.getElementById("nome-cultivo-error"),
+  dataError: document.getElementById("data-inicio-error"),
 };
 
 // Inicialização
@@ -75,9 +78,10 @@ function calcularInicio(ordem, dataInicial) {
 // Funções de blocos
 window.adicionarBloco = function (tipo) {
   if (!DOM.inputDataInicio.value) {
-    alert("Selecione a data de início primeiro.");
+    DOM.dataError.classList.remove("hidden");
     return;
   }
+  DOM.dataError.classList.add("hidden");
 
   const ordem = blocos.length;
   const inicio = calcularInicio(ordem, DOM.inputDataInicio.value);
@@ -258,7 +262,17 @@ function atualizarColheitaEDiaAtual() {
 
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
-    const getValue = (id) => document.getElementById(id)?.value || bloco[id.split("-")[0]] || "";
+    const getValue = (id) => {
+      const element = document.getElementById(id);
+      if (element) {
+        if (id.startsWith("receita-")) {
+          return element.value || `A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}`;
+        }
+        return element.value || bloco[id.split("-")[0]] || "";
+      }
+      return bloco[id.split("-")[0]] || "";
+    };
+
     bloco.etapa = getValue(`etapa-${i}`);
     bloco.fase = getValue(`fase-${i}`);
     bloco.estrategia = getValue(`estrategia-${i}`);
@@ -285,15 +299,27 @@ function atualizarDados() {
 }
 
 // Funções de persistência
-async function salvarCultivo() {
+async function salvarCultivo(e) {
+  e.preventDefault();
   atualizarDados();
-  if (!DOM.inputDataInicio.value || !DOM.inputNome.value) {
-    alert("Preencha o nome do cultivo e a data de início.");
-    return;
+
+  let isValid = true;
+  DOM.nomeError.classList.add("hidden");
+  DOM.dataError.classList.add("hidden");
+
+  if (!DOM.inputNome.value.trim()) {
+    DOM.nomeError.classList.remove("hidden");
+    isValid = false;
+  }
+  if (!DOM.inputDataInicio.value) {
+    DOM.dataError.classList.remove("hidden");
+    isValid = false;
   }
 
+  if (!isValid) return;
+
   const cultivo = {
-    nome: DOM.inputNome.value,
+    nome: DOM.inputNome.value.trim(),
     data_inicio: DOM.inputDataInicio.value,
     criado_em: Timestamp.now(),
     blocos,
@@ -302,14 +328,28 @@ async function salvarCultivo() {
   try {
     if (cultivoId) {
       await updateDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
-      alert("Cultivo atualizado com sucesso!");
+      DOM.nomeError.textContent = "Cultivo atualizado com sucesso!";
+      DOM.nomeError.classList.remove("text-red-500", "hidden");
+      DOM.nomeError.classList.add("text-green-500");
     } else {
       await addDoc(collection(db, "cultivos_blocos"), cultivo);
-      alert("Cultivo salvo com sucesso!");
+      DOM.nomeError.textContent = "Cultivo salvo com sucesso!";
+      DOM.nomeError.classList.remove("text-red-500", "hidden");
+      DOM.nomeError.classList.add("text-green-500");
     }
+    setTimeout(() => {
+      DOM.nomeError.classList.add("hidden");
+      DOM.nomeError.classList.remove("text-green-500");
+      DOM.nomeError.textContent = "Nome do cultivo é obrigatório.";
+    }, 3000);
   } catch (e) {
     console.error("Erro ao salvar:", e);
-    alert("Erro ao salvar Cultivo.");
+    DOM.nomeError.textContent = "Erro ao salvar cultivo.";
+    DOM.nomeError.classList.remove("hidden");
+    setTimeout(() => {
+      DOM.nomeError.classList.add("hidden");
+      DOM.nomeError.textContent = "Nome do cultivo é obrigatório.";
+    }, 3000);
   }
 }
 
@@ -325,8 +365,14 @@ async function carregarCultivoExistente(id) {
     }
   } catch (e) {
     console.error("Erro ao carregar cultivo:", e);
+    DOM.nomeError.textContent = "Erro ao carregar cultivo.";
+    DOM.nomeError.classList.remove("hidden");
+    setTimeout(() => {
+      DOM.nomeError.classList.add("hidden");
+      DOM.nomeError.textContent = "Nome do cultivo é obrigatório.";
+    }, 3000);
   }
 }
 
 // Inicialização de eventos
-DOM.btnSalvar?.addEventListener("click", salvarCultivo);
+DOM.form?.addEventListener("submit", salvarCultivo);
