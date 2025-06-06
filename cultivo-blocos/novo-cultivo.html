@@ -1,120 +1,84 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Novo Cultivo - Jungle Brothers</title>
-  <link rel="icon" href="/cultivo-blocos/favicon.ico" type="image/x-icon">
-  <script type="module" src="/cultivoapp/js/auth.js"></script>
-  <script type="module" src="/cultivoapp/js/auth-guard.js"></script>
-  <script type="module" src="/cultivo-blocos/js/firebase-init.js"></script>
-  <script type="module" src="/cultivo-blocos/js/header-logic.js"></script>
-  <script type="module" src="/cultivo-blocos/js/blocos.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🧬 Blueprint do Cultivo</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 font-sans">
-  <header class="bg-white shadow">
-    <div class="container mx-auto px-4 py-2 flex justify-between items-center">
-      <h1 class="text-xl font-bold">Jungle Brothers</h1>
-      <div class="flex items-center space-x-4">
-        <img id="user-pic" src="" alt="Foto do usuário" class="w-10 h-10 rounded-full">
-        <span id="user-name" class="text-sm"></span>
-        <button id="menu-button" class="text-gray-600 hover:text-gray-800 focus:outline-none" aria-label="Abrir menu">
-          ☰
-        </button>
-        <div id="menu-dropdown" class="hidden absolute right-0 mt-12 w-48 bg-white border rounded shadow-lg">
-          <button id="logout" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sair</button>
-        </div>
-      </div>
+<body class="bg-gray-100 min-h-screen">
+  <div id="header-placeholder"></div>
+
+  <script type="module">
+    import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
+
+    fetch("/cultivo-blocos/components/header.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("header-placeholder").innerHTML = html;
+
+        const menuBtn = document.getElementById("menu-button");
+        const menuDropdown = document.getElementById("menu-dropdown");
+
+        if (menuBtn && menuDropdown) {
+          menuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menuDropdown.classList.toggle("hidden");
+          });
+
+          document.addEventListener("click", (e) => {
+            if (!menuDropdown.contains(e.target) && e.target !== menuBtn) {
+              menuDropdown.classList.add("hidden");
+            }
+          });
+        }
+
+        verificarLogin(user => {
+          const userPic = document.getElementById("user-pic");
+          const userName = document.getElementById("user-name");
+          const logoutBtn = document.getElementById("logout");
+
+          if (userPic) userPic.src = user.photoURL;
+          if (userName) userName.textContent = user.displayName || user.email;
+          if (logoutBtn) logoutBtn.addEventListener("click", sair);
+
+          document.getElementById("conteudo-principal").style.display = "block";
+        });
+      });
+  </script>
+
+  <div id="conteudo-principal" class="p-6 max-w-7xl mx-auto" style="display: none;">
+    <p id="colheita-info" class="text-center text-lg font-semibold text-green-700"></p>
+    <p id="dia-info" class="text-center text-base text-gray-700 mb-4"></p>
+
+    <div class="mb-4">
+      <label for="nome-cultivo" class="block font-semibold mb-1">Nome do cultivo:</label>
+      <input id="nome-cultivo" type="text" class="px-3 py-2 border rounded w-full max-w-lg" />
     </div>
-  </header>
 
-  <main class="container mx-auto px-4 py-6 max-w-3xl">
-    <h2 class="text-2xl font-semibold mb-4">Novo Cultivo</h2>
-    <form id="cultivo-form" class="space-y-4">
-      <div>
-        <label for="nome-cultivo" class="block text-sm font-medium text-gray-700">Nome do cultivo:</label>
-        <input
-          type="text"
-          id="nome-cultivo"
-          class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-          aria-describedby="nome-cultivo-help"
-        >
-        <p id="nome-cultivo-help" class="text-sm text-gray-500">Digite um nome único para identificar o cultivo.</p>
-        <p id="nome-cultivo-error" class="text-sm text-red-500 hidden">Nome do cultivo é obrigatório.</p>
-      </div>
+    <div class="mb-4">
+      <label for="data-inicio" class="block font-semibold mb-1">Data de início:</label>
+      <input id="data-inicio" type="date" class="px-3 py-2 border rounded w-full max-w-xs" />
+    </div>
 
-      <div>
-        <label for="data-inicio" class="block text-sm font-medium text-gray-700">Data de início:</label>
-        <input
-          type="date"
-          id="data-inicio"
-          class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        >
-        <p id="data-inicio-error" class="text-sm text-red-500 hidden">Data de início é obrigatória.</p>
-      </div>
+    <!-- Blocos -->
+    <div id="blocos-container" class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-6"></div>
 
-      <div class="flex justify-between items-center">
-        <div id="colheita-info" class="text-sm text-gray-600"></div>
-        <div id="dia-info" class="text-sm text-gray-600"></div>
-      </div>
+    <!-- Botões de adicionar blocos -->
+    <div class="flex flex-wrap gap-2 mb-6 justify-center">
+      <button class="w-32 bg-purple-600 text-white py-2 rounded" onclick="adicionarBloco('CLONAR')">+ CLONAR</button>
+      <button class="w-32 bg-green-600 text-white py-2 rounded" onclick="adicionarBloco('VEGETAR')">+ VEGETAR</button>
+      <button class="w-32 bg-orange-500 text-white py-2 rounded" onclick="adicionarBloco('FLORAR')">+ FLORAR</button>
+      <button class="w-32 bg-blue-500 text-white py-2 rounded" onclick="adicionarBloco('FLUSH')">+ FLUSH</button>
+      <button class="w-32 bg-red-500 text-white py-2 rounded" onclick="adicionarBloco('PROCESSAR')">+ PROCESSAR</button>
+    </div>
 
-      <div class="flex space-x-2">
-        <button
-          type="button"
-          onclick="adicionarBloco('CLONAR')"
-          class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          aria-label="Adicionar bloco de clonagem"
-        >
-          + CLONAR
-        </button>
-        <button
-          type="button"
-          onclick="adicionarBloco('VEGETAR')"
-          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-          aria-label="Adicionar bloco de vegetação"
-        >
-          + VEGETAR
-        </button>
-        <button
-          type="button"
-          onclick="adicionarBloco('FLORAR')"
-          class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          aria-label="Adicionar bloco de floração"
-        >
-          + FLORAR
-        </button>
-        <button
-          type="button"
-          onclick="adicionarBloco('FLUSH')"
-          class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label="Adicionar bloco de flush"
-        >
-          + FLUSH
-        </button>
-        <button
-          type="button"
-          onclick="adicionarBloco('PROCESSAR')"
-          class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-          aria-label="Adicionar bloco de processamento"
-        >
-          + PROCESSAR
-        </button>
-      </div>
+    <!-- Botão salvar -->
+    <div class="text-center">
+      <button id="btn-salvar" class="w-40 bg-black text-white py-3 rounded font-semibold">Salvar</button>
+    </div>
+  </div>
 
-      <div id="blocos-container" class="space-y-4" role="region" aria-live="polite"></div>
-
-      <button
-        type="submit"
-        id="btn-salvar"
-        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        aria-label="Salvar cultivo"
-      >
-        Salvar
-      </button>
-    </form>
-  </main>
+  <script type="module" src="./js/blocos.js"></script>
 </body>
 </html>
