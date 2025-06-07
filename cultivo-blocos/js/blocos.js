@@ -97,7 +97,8 @@ function renderizarBlocos() {
 // se for FLUSH, número total acumulado até aqui
 let semanaNumero;
 if (tipo === "FLUSH") {
-  semanaNumero = i + 1;
+  const semanasFlorar = blocos.slice(0, i).filter(b => b.nome === "FLORAR").length;
+  semanaNumero = semanasFlorar + 1;
 } else {
   contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
   semanaNumero = contagemPorTipo[tipo];
