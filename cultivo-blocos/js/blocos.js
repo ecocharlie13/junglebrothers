@@ -67,7 +67,6 @@ function atualizarColheitaEDiaAtual() {
     const fim = new Date(b.fim);
     return ini <= hoje && fim >= hoje;
   });
-
   if (ativo) {
     const faseAtual = ativo.nome;
     let diaTotal = 0;
@@ -84,7 +83,7 @@ function atualizarColheitaEDiaAtual() {
     diaInfo.textContent = "";
   }
 }
-
+  
 // 🔹 Renderiza todos os blocos
 function renderizarBlocos() {
   atualizarDados(); // garante que os campos editados sejam preservados
