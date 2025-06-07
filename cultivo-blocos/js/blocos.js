@@ -184,30 +184,32 @@ if (tipo === "FLUSH") {
     blocosContainer.appendChild(wrapper);
   });
 
-  atualizarColheitaEDiaAtual();
+    atualizarColheitaEDiaAtual();
 
-  Sortable.create(blocosContainer, {
-    animation: 150,
-    onEnd: () => {
-      const novos = [];
-      const divs = blocosContainer.querySelectorAll("[data-index]");
-      divs.forEach(div => {
-        const index = parseInt(div.getAttribute("data-index"));
-        novos.push(blocos[index]);
-      });
-      blocos = novos;
-      // Recalcula datas após reordenar
-      blocos.forEach((bloco, i) => {
-        const ini = new Date(inputDataInicio.value);
-        ini.setDate(ini.getDate() + i * 7);
-        const fim = new Date(ini);
-        fim.setDate(fim.getDate() + 6);
-        bloco.inicio = ini.toISOString().split("T")[0];
-        bloco.fim = fim.toISOString().split("T")[0];
-      });
-      renderizarBlocos();
-    }
-  });
+  if (modoEdicao) {
+    Sortable.create(blocosContainer, {
+      animation: 150,
+      onEnd: () => {
+        const novos = [];
+        const divs = blocosContainer.querySelectorAll("[data-index]");
+        divs.forEach(div => {
+          const index = parseInt(div.getAttribute("data-index"));
+          novos.push(blocos[index]);
+        });
+        blocos = novos;
+        // Recalcula datas após reordenar
+        blocos.forEach((bloco, i) => {
+          const ini = new Date(inputDataInicio.value);
+          ini.setDate(ini.getDate() + i * 7);
+          const fim = new Date(ini);
+          fim.setDate(fim.getDate() + 6);
+          bloco.inicio = ini.toISOString().split("T")[0];
+          bloco.fim = fim.toISOString().split("T")[0];
+        });
+        renderizarBlocos();
+      }
+    });
+  }
 }
 
 // 🔹 Atualiza dados dos inputs para o array
@@ -309,6 +311,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 🔹 Botão salvar
 btnSalvar?.addEventListener("click", salvarCultivo);
+
+// 🔹 Botão modo edição
+let modoEdicao = false;
+const btnEditar = document.createElement("button");
+btnEditar.textContent = "✏️ Editar";
+btnEditar.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 z-50";
+btnEditar.addEventListener("click", () => {
+  modoEdicao = !modoEdicao;
+  btnEditar.textContent = modoEdicao ? "✅ Visualizar" : "✏️ Editar";
+  renderizarBlocos();
+});
+document.body.appendChild(btnEditar);
 
 // 🔹 Torna a função removerBloco acessível globalmente
 window.removerBloco = function(index) {
