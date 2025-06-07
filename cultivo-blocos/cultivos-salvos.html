@@ -128,8 +128,15 @@
 
         lista.appendChild(card);
         card.querySelector(".selecionar-checkbox").addEventListener("change", e => {
-          if (e.target.checked) selecionados.add(id);
-          else selecionados.delete(id);
+          if (e.target.checked) {
+            selecionados.add(id);
+          } else {
+            selecionados.delete(id);
+          }
+
+          // Mostrar ou esconder os botões
+          const acoes = document.getElementById("acoes-cultivo");
+          acoes.style.display = selecionados.size > 0 ? "flex" : "none";
         });
       });
     }
