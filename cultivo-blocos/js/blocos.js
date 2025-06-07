@@ -93,8 +93,15 @@ function renderizarBlocos() {
 
   blocos.forEach((bloco, i) => {
     const tipo = bloco.nome;
-    contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
-    const semanaNumero = contagemPorTipo[tipo];
+
+// se for FLUSH, número total acumulado até aqui
+let semanaNumero;
+if (tipo === "FLUSH") {
+  semanaNumero = i + 1;
+} else {
+  contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
+  semanaNumero = contagemPorTipo[tipo];
+}
 
     const wrapper = document.createElement("div");
     wrapper.className = `w-full bg-white shadow border rounded overflow-hidden relative mb-4`;
