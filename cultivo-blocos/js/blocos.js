@@ -137,32 +137,23 @@ function renderizarBlocos() {
       corpo.innerHTML = `
         <label>Etapa:
           <select id="etapa-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="PROPAGAR">PROPAGAR</option>
-            <option value="VEGETAR">VEGETAR</option>
-            <option value="INÍCIO DE FLORA">INÍCIO DE FLORA</option>
-            <option value="MEIO DE FLORA">MEIO DE FLORA</option>
-            <option value="FIM DE FLORA">FIM DE FLORA</option>
-            <option value="FLUSH">FLUSH</option>
+            ${["", "PROPAGAR", "VEGETAR", "INÍCIO DE FLORA", "MEIO DE FLORA", "FIM DE FLORA", "FLUSH"]
+              .map(opt => `<option value="${opt}" ${opt === bloco.etapa ? "selected" : ""}>${opt || "Selecione"}</option>`)
+              .join("")}
           </select>
         </label>
         <label>Fase:
           <select id="fase-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="PROPAGAR">PROPAGAR</option>
-            <option value="VEGETAR">VEGETAR</option>
-            <option value="ESTIRAMENTO">ESTIRAMENTO</option>
-            <option value="VOLUME">VOLUME</option>
-            <option value="ACABAMENTO">ACABAMENTO</option>
+            ${["", "PROPAGAR", "VEGETAR", "ESTIRAMENTO", "VOLUME", "ACABAMENTO"]
+              .map(opt => `<option value="${opt}" ${opt === bloco.fase ? "selected" : ""}>${opt || "Selecione"}</option>`)
+              .join("")}
           </select>
         </label>
         <label>Estratégia:
           <select id="estrategia-${i}" class="w-full border rounded px-2 py-1">
-            <option value="">Selecione</option>
-            <option value="PROPAGAR">PROPAGAR</option>
-            <option value="VEGETATIVO">VEGETATIVO</option>
-            <option value="GENERATIVO">GENERATIVO</option>
-            <option value="MISTO (VEG/GEN)">MISTO (VEG/GEN)</option>
+            ${["", "PROPAGAR", "VEGETATIVO", "GENERATIVO", "MISTO (VEG/GEN)"]
+              .map(opt => `<option value="${opt}" ${opt === bloco.estrategia ? "selected" : ""}>${opt || "Selecione"}</option>`)
+              .join("")}
           </select>
         </label>
         <label>Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.nutrientes || ""}" /></label>
