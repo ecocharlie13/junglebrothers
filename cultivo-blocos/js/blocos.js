@@ -189,7 +189,25 @@ function renderizarBlocos() {
 
   Sortable.create(blocosContainer, {
     animation: 150,
-    onEnd: () => renderizarBlocos(),
+    onEnd: () => {
+      const novos = [];
+      const divs = blocosContainer.querySelectorAll("[data-index]");
+      divs.forEach(div => {
+        const index = parseInt(div.getAttribute("data-index"));
+        novos.push(blocos[index]);
+      });
+      blocos = novos;
+      // Recalcula datas após reordenar
+      blocos.forEach((bloco, i) => {
+        const ini = new Date(inputDataInicio.value);
+        ini.setDate(ini.getDate() + i * 7);
+        const fim = new Date(ini);
+        fim.setDate(fim.getDate() + 6);
+        bloco.inicio = ini.toISOString().split("T")[0];
+        bloco.fim = fim.toISOString().split("T")[0];
+      });
+      renderizarBlocos();
+    }
   });
 }
 
