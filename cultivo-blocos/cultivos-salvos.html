@@ -7,9 +7,25 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-
   <!-- Header dinâmico -->
   <div id="header-placeholder"></div>
+
+  <!-- Conteúdo principal -->
+  <main id="conteudo-principal" class="max-w-7xl mx-auto px-4 py-8 hidden">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-3xl font-bold">🌱 Cultivos Salvos</h1>
+      <a href="novo-cultivo.html" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">+ Novo Cultivo</a>
+    </div>
+
+    <div id="lista-cultivos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+    <div class="flex justify-center gap-4 mt-10">
+      <button id="btn-duplicar" class="w-40 bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700">🔁 Duplicar</button>
+      <button id="btn-apagar" class="w-40 bg-red-600 text-white py-2 rounded font-semibold hover:bg-red-700">🗑️ Apagar</button>
+    </div>
+  </main>
+
+  <!-- Scripts -->
   <script type="module">
     import { verificarLogin, sair } from "/cultivoapp/js/auth.js";
 
@@ -17,30 +33,26 @@
       .then(res => res.text())
       .then(html => {
         document.getElementById("header-placeholder").innerHTML = html;
-
-        // Ativa menu hambúrguer
         const menuBtn = document.getElementById("menu-button");
         const menuDropdown = document.getElementById("menu-dropdown");
 
         if (menuBtn && menuDropdown) {
-          menuBtn.addEventListener("click", (e) => {
+          menuBtn.addEventListener("click", e => {
             e.stopPropagation();
             menuDropdown.classList.toggle("hidden");
           });
 
-          document.addEventListener("click", (e) => {
+          document.addEventListener("click", e => {
             if (!menuDropdown.contains(e.target) && e.target !== menuBtn) {
               menuDropdown.classList.add("hidden");
             }
           });
         }
 
-        // Autenticação
         verificarLogin(user => {
           const userPic = document.getElementById("user-pic");
           const userName = document.getElementById("user-name");
           const logoutBtn = document.getElementById("logout");
-
           if (userPic) userPic.src = user.photoURL;
           if (userName) userName.textContent = user.displayName || user.email;
           if (logoutBtn) logoutBtn.addEventListener("click", sair);
@@ -48,7 +60,6 @@
       });
   </script>
 
-  <!-- Proteção com login -->
   <script type="module">
     import { verificarLogin } from "/cultivoapp/js/auth.js";
     verificarLogin(() => {
@@ -56,24 +67,10 @@
     });
   </script>
 
-  <!-- Conteúdo principal -->
-  <div id="conteudo-principal" class="p-6" style="display: none;">
-    <h1 class="text-3xl font-bold text-center mb-6">Cultivos Salvos</h1>
-
-    <div id="lista-cultivos" class="space-y-4 max-w-3xl mx-auto"></div>
-
-    <div class="flex justify-center gap-4 mt-8">
-      <button id="btn-duplicar" class="w-32 bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700">🔁 Duplicar</button>
-      <button id="btn-apagar" class="w-32 bg-red-600 text-white py-2 rounded font-semibold hover:bg-red-700">🗑️ Apagar</button>
-    </div>
-  </div>
-
-  <!-- Script principal -->
   <script type="module">
     import { db } from "./js/firebase-init.js";
     import {
-      getDocs, collection, deleteDoc, doc,
-      addDoc, getDoc, Timestamp
+      getDocs, collection, deleteDoc, doc, addDoc, getDoc, Timestamp
     } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
     const lista = document.getElementById("lista-cultivos");
@@ -81,22 +78,20 @@
     const btnApagar = document.getElementById("btn-apagar");
     const selecionados = new Set();
 
-    function getCor(tipo) {
-      return {
-        CLONAR: "bg-purple-600",
-        VEGETAR: "bg-green-600",
-        FLORAR: "bg-orange-500",
-        FLUSH: "bg-blue-500",
-        PROCESSAR: "bg-red-500"
-      }[tipo] || "bg-gray-400";
-    }
+    const getCor = tipo => ({
+      CLONAR: "bg-purple-600",
+      VEGETAR: "bg-green-600",
+      FLORAR: "bg-orange-500",
+      FLUSH: "bg-blue-500",
+      PROCESSAR: "bg-red-500"
+    }[tipo] || "bg-gray-400");
 
     async function carregarCultivos() {
       const snap = await getDocs(collection(db, "cultivos_blocos"));
       lista.innerHTML = "";
 
       if (snap.empty) {
-        lista.innerHTML = "<p class='text-center text-gray-500'>Nenhum cultivo encontrado.</p>";
+        lista.innerHTML = "<p class='text-center text-gray-500 col-span-3'>Nenhum cultivo encontrado.</p>";
         return;
       }
 
@@ -116,23 +111,23 @@
         }).join("");
 
         const card = document.createElement("div");
-        card.className = "bg-white p-4 rounded shadow flex justify-between items-center";
-
+        card.className = "bg-white rounded shadow-md p-4 flex flex-col gap-2 hover:shadow-lg transition";
         card.innerHTML = `
-          <div class="flex items-center gap-4">
-            <input type="checkbox" class="selecionar-checkbox" data-id="${id}">
+          <div class="flex justify-between items-start">
             <div>
-              <h2 class="text-xl font-semibold">${cultivo.nome || "(Sem nome)"}</h2>
+              <h2 class="text-lg font-semibold">${cultivo.nome || "(Sem nome)"}</h2>
               <p class="text-sm text-gray-600">Início: ${cultivo.data_inicio || "?"} • ${blocos.length} semana(s)</p>
-              <div class="flex mt-2 gap-[2px]">${barraProgresso}</div>
+              <div class="flex gap-[2px] mt-1">${barraProgresso}</div>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <input type="checkbox" class="selecionar-checkbox" data-id="${id}" />
+              <a href="novo-cultivo.html?id=${id}" class="text-blue-600 text-sm hover:underline">🔍 Abrir</a>
             </div>
           </div>
-          <a href="novo-cultivo.html?id=${id}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">🔍 Abrir</a>
         `;
 
         lista.appendChild(card);
-
-        card.querySelector(".selecionar-checkbox").addEventListener("change", (e) => {
+        card.querySelector(".selecionar-checkbox").addEventListener("change", e => {
           if (e.target.checked) selecionados.add(id);
           else selecionados.delete(id);
         });
@@ -142,10 +137,8 @@
     btnDuplicar.addEventListener("click", async () => {
       if (selecionados.size === 0) return alert("Nenhum cultivo selecionado.");
       if (!confirm("Deseja duplicar os cultivos selecionados?")) return;
-
       for (const id of selecionados) {
-        const ref = doc(db, "cultivos_blocos", id);
-        const snap = await getDoc(ref);
+        const snap = await getDoc(doc(db, "cultivos_blocos", id));
         if (snap.exists()) {
           const data = snap.data();
           await addDoc(collection(db, "cultivos_blocos"), {
@@ -161,10 +154,7 @@
     btnApagar.addEventListener("click", async () => {
       if (selecionados.size === 0) return alert("Nenhum cultivo selecionado.");
       if (!confirm("Deseja apagar os cultivos selecionados? Esta ação não pode ser desfeita.")) return;
-
-      for (const id of selecionados) {
-        await deleteDoc(doc(db, "cultivos_blocos", id));
-      }
+      for (const id of selecionados) await deleteDoc(doc(db, "cultivos_blocos", id));
       await carregarCultivos();
     });
 
