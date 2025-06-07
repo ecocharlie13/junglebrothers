@@ -175,7 +175,7 @@ if (tipo === "FLUSH") {
         <label>VPD: <input type="text" id="vpd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.vpd || ""}" /></label>
         <label>PPFD: <input type="text" id="ppfd-${i}" class="w-full border rounded px-2 py-1" value="${bloco.receita.ppfd || ""}" /></label>
         <label>Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1">${bloco.notas || ""}</textarea></label>
-        <button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>
+        ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
       `;
     }
 
