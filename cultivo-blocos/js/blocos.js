@@ -309,3 +309,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 🔹 Botão salvar
 btnSalvar?.addEventListener("click", salvarCultivo);
+
+// 🔹 Torna a função removerBloco acessível globalmente
+window.removerBloco = function(index) {
+  blocos.splice(index, 1);
+  renderizarBlocos();
+};
