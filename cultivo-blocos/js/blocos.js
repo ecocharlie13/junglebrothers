@@ -91,11 +91,15 @@ function renderizarBlocos() {
   const hoje = new Date();
   const contagemPorTipo = {};
 
-  // Mostra ou oculta os botões de adicionar
-    // Mostra ou oculta os botões de adicionar
+  // Mostra ou oculta os botões de adicionar e salvar
   const botoesAdicionar = document.getElementById("botoes-adicionar");
   if (botoesAdicionar) {
     botoesAdicionar.style.display = modoEdicao ? "flex" : "none";
+  }
+
+  const btnSalvarWrapper = document.getElementById("btn-salvar-wrapper");
+  if (btnSalvarWrapper) {
+    btnSalvarWrapper.style.display = modoEdicao ? "block" : "none";
   }
 
   blocos.forEach((bloco, i) => {
