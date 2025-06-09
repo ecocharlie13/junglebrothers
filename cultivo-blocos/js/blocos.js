@@ -1,4 +1,4 @@
-// 🔹 Imports
+// IMPORTS
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -10,44 +10,58 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 import Sortable from "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/modular/sortable.esm.js";
 
-// 🔹 Variáveis globais
+// VARIÁVEIS GLOBAIS
 let blocos = [];
 let cultivoId = null;
+let modoEdicao = false;
 
 const cores = {
   CLONAR: "bg-purple-600",
   VEGETAR: "bg-green-600",
   FLORAR: "bg-orange-500",
   FLUSH: "bg-blue-500",
-  PROCESSAR: "bg-red-500",
+  TAREFA: "bg-red-500",
 };
 
-// 🔹 Referências DOM
+// REFERÊNCIAS DOM
 const blocosContainer = document.getElementById("blocos-container");
 const inputDataInicio = document.getElementById("data-inicio");
 const inputNome = document.getElementById("nome-cultivo");
 const btnSalvar = document.getElementById("btn-salvar");
 const colheitaInfo = document.getElementById("colheita-info");
 const diaInfo = document.getElementById("dia-info");
+const acoesControle = document.getElementById("acoes-controle");
 
-// 🔹 Sincroniza datas ao editar data-inicio
+// ALTERAÇÃO: BOTÃO VISUALIZAR/EDITAR
+const btnEditar = document.createElement("button");
+btnEditar.textContent = "✏️ Editar";
+btnEditar.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 z-50 md:bottom-6 md:right-6";
+btnEditar.addEventListener("click", () => {
+  modoEdicao = !modoEdicao;
+  btnEditar.textContent = modoEdicao ? "✅ Visualizar" : "✏️ Editar";
+  acoesControle.style.display = modoEdicao ? "block" : "none";
+  renderizarBlocos();
+});
+document.body.appendChild(btnEditar);
+
+// SINCRONIZAÇÃO DE DATAS
 inputDataInicio.addEventListener("change", () => {
-  blocos.forEach((bloco, i) => {
+  sincronizarDatas();
+  renderizarBlocos();
+});
+
+function sincronizarDatas() {
+  let indice = 0;
+  blocos.forEach((bloco) => {
+    if (bloco.nome === "TAREFA") return;
     const ini = new Date(inputDataInicio.value);
-    ini.setDate(ini.getDate() + i * 7);
+    ini.setDate(ini.getDate() + indice * 7);
     const fim = new Date(ini);
     fim.setDate(fim.getDate() + 6);
     bloco.inicio = ini.toISOString().split("T")[0];
     bloco.fim = fim.toISOString().split("T")[0];
+    indice++;
   });
-  renderizarBlocos();
-});
-
-// 🔹 Utilitários
-function calcularInicio(ordem) {
-  const dataInicial = new Date(inputDataInicio.value);
-  dataInicial.setDate(dataInicial.getDate() + ordem * 7);
-  return dataInicial;
 }
 
 function formatarData(dataStr) {
@@ -59,10 +73,12 @@ function formatarData(dataStr) {
 
 function atualizarColheitaEDiaAtual() {
   const hoje = new Date();
-  const processar = blocos.find(b => b.nome === "PROCESSAR");
-  colheitaInfo.textContent = processar ? `🌾 Colheita em ${formatarData(processar.inicio)}` : "";
+  const blocosValidos = blocos.filter(b => b.nome !== "TAREFA");
 
-  const ativo = blocos.find(b => {
+  const ultimo = blocosValidos.at(-1);
+  colheitaInfo.textContent = ultimo ? `🌾 Colheita em ${formatarData(ultimo.fim)}` : "";
+
+  const ativo = blocosValidos.find(b => {
     const ini = new Date(b.inicio);
     const fim = new Date(b.fim);
     return ini <= hoje && fim >= hoje;
@@ -70,7 +86,7 @@ function atualizarColheitaEDiaAtual() {
   if (ativo) {
     const faseAtual = ativo.nome;
     let diaTotal = 0;
-    for (const bloco of blocos) {
+    for (const bloco of blocosValidos) {
       if (bloco.nome !== faseAtual) continue;
       const ini = new Date(bloco.inicio);
       const fim = new Date(bloco.fim);
@@ -83,26 +99,22 @@ function atualizarColheitaEDiaAtual() {
     diaInfo.textContent = "";
   }
 }
-  
-// 🔹 Renderiza todos os blocos
+
 function renderizarBlocos() {
-  atualizarDados(); // garante que os campos editados sejam preservados
+  atualizarDados();
   blocosContainer.innerHTML = "";
   const hoje = new Date();
   const contagemPorTipo = {};
 
+  let indiceReal = 0;
   blocos.forEach((bloco, i) => {
     const tipo = bloco.nome;
+    let semanaNumero = 1;
 
-// se for FLUSH, número total acumulado até aqui
-let semanaNumero;
-if (tipo === "FLUSH") {
-  const semanasFlorar = blocos.slice(0, i).filter(b => b.nome === "FLORAR").length;
-  semanaNumero = semanasFlorar + 1;
-} else {
-  contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
-  semanaNumero = contagemPorTipo[tipo];
-}
+    if (tipo !== "TAREFA") {
+      contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
+      semanaNumero = contagemPorTipo[tipo];
+    }
 
     const wrapper = document.createElement("div");
     wrapper.className = `w-full bg-white shadow border rounded overflow-hidden relative mb-4`;
@@ -111,7 +123,7 @@ if (tipo === "FLUSH") {
     let estiloExtra = "";
     const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
     const fim = bloco.fim ? new Date(bloco.fim) : null;
-    if (inicio && fim) {
+    if (inicio && fim && tipo !== "TAREFA") {
       if (fim < hoje) estiloExtra = "opacity-40";
       else if (inicio <= hoje && fim >= hoje) estiloExtra = "ring-4 ring-yellow-400";
     }
@@ -126,57 +138,9 @@ if (tipo === "FLUSH") {
 
     const corpo = document.createElement("div");
     corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
-
-    if (!bloco.expandido) {
-      if (bloco.nome === "PROCESSAR") {
-        corpo.innerHTML = `
-          <div><strong>${bloco.nome}</strong></div>
-          <div>Notas: ${bloco.notas || "-"}</div>
-        `;
-      } else {
-        corpo.innerHTML = `
-          <div><strong>${bloco.nome}</strong></div>
-          <div>Etapa: ${bloco.etapa || "-"}</div>
-          <div>Fase: ${bloco.fase || "-"}</div>
-          <div>Estratégia: ${bloco.estrategia || "-"}</div>
-        `;
-      }
-    } else {
-      corpo.innerHTML = `
-  <label>Etapa:
-    <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-      ${["", "PROPAGAR", "VEGETAR", "INÍCIO DE FLORA", "MEIO DE FLORA", "FIM DE FLORA", "FLUSH"]
-        .map(opt => `<option value="${opt}" ${opt === bloco.etapa ? "selected" : ""}>${opt || "Selecione"}</option>`)
-        .join("")}
-    </select>
-  </label>
-  <label>Fase:
-    <select id="fase-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-      ${["", "PROPAGAR", "VEGETAR", "ESTIRAMENTO", "VOLUME", "ACABAMENTO"]
-        .map(opt => `<option value="${opt}" ${opt === bloco.fase ? "selected" : ""}>${opt || "Selecione"}</option>`)
-        .join("")}
-    </select>
-  </label>
-  <label>Estratégia:
-    <select id="estrategia-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-      ${["", "PROPAGAR", "VEGETATIVO", "GENERATIVO", "MISTO (VEG/GEN)"]
-        .map(opt => `<option value="${opt}" ${opt === bloco.estrategia ? "selected" : ""}>${opt || "Selecione"}</option>`)
-        .join("")}
-    </select>
-  </label>
-  <label>Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.nutrientes || ""}" /></label>
-  <label>Receita (g/L): <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}" /></label>
-  <label>EC Entrada: <input type="text" id="ec-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_entrada || ""}" /></label>
-  <label>EC Saída: <input type="text" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_saida || ""}" /></label>
-  <label>Runoff (%): <input type="text" id="runoff-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.runoff || ""}" /></label>
-  <label>Dryback (%): <input type="text" id="dryback-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.dryback || ""}" /></label>
-  <label>Temperatura: <input type="text" id="temp-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.temperatura || ""}" /></label>
-  <label>UR: <input type="text" id="ur-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ur || ""}" /></label>
-  <label>VPD: <input type="text" id="vpd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.vpd || ""}" /></label>
-  <label>PPFD: <input type="text" id="ppfd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ppfd || ""}" /></label>
-  <label>Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea></label>
-  ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
-`;
+    corpo.innerHTML = bloco.expandido ? `<textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>` : `<div>Notas: ${bloco.notas || "-"}</div>`;
+    if (modoEdicao && bloco.expandido) {
+      corpo.innerHTML += `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>`;
     }
 
     wrapper.appendChild(header);
@@ -184,7 +148,7 @@ if (tipo === "FLUSH") {
     blocosContainer.appendChild(wrapper);
   });
 
-    atualizarColheitaEDiaAtual();
+  atualizarColheitaEDiaAtual();
 
   if (modoEdicao) {
     Sortable.create(blocosContainer, {
@@ -197,70 +161,39 @@ if (tipo === "FLUSH") {
           novos.push(blocos[index]);
         });
         blocos = novos;
-        // Recalcula datas após reordenar
-        blocos.forEach((bloco, i) => {
-          const ini = new Date(inputDataInicio.value);
-          ini.setDate(ini.getDate() + i * 7);
-          const fim = new Date(ini);
-          fim.setDate(fim.getDate() + 6);
-          bloco.inicio = ini.toISOString().split("T")[0];
-          bloco.fim = fim.toISOString().split("T")[0];
-        });
+        sincronizarDatas();
         renderizarBlocos();
       }
     });
   }
 }
 
-// 🔹 Atualiza dados dos inputs para o array
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
-    const get = id => document.getElementById(`${id}-${i}`)?.value;
-    bloco.etapa = get("etapa") || bloco.etapa;
-    bloco.fase = get("fase") || bloco.fase;
-    bloco.estrategia = get("estrategia") || bloco.estrategia;
-    bloco.receita.nutrientes = get("nutrientes") || bloco.receita.nutrientes;
-
-    const r = get("receita") || "";
-    const matches = r.match(/A:\s*([\d.,]+)\s*\/\s*B:\s*([\d.,]+)\s*\/\s*C:\s*([\d.,]+)/);
-    if (matches) [bloco.receita.A, bloco.receita.B, bloco.receita.C] = [matches[1], matches[2], matches[3]];
-
-    bloco.receita.ec_entrada = get("ec") || bloco.receita.ec_entrada;
-    bloco.receita.ec_saida = get("ec_saida") || bloco.receita.ec_saida;
-    bloco.receita.runoff = get("runoff") || bloco.receita.runoff;
-    bloco.receita.dryback = get("dryback") || bloco.receita.dryback;
-    bloco.receita.temperatura = get("temp") || bloco.receita.temperatura;
-    bloco.receita.ur = get("ur") || bloco.receita.ur;
-    bloco.receita.vpd = get("vpd") || bloco.receita.vpd;
-    bloco.receita.ppfd = get("ppfd") || bloco.receita.ppfd;
-    bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
+    if (bloco.nome === "TAREFA") {
+      bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
+    }
   });
 }
 
-// 🔹 Adicionar novo bloco
-window.adicionarBloco = function(tipo) {
+window.adicionarBloco = function (tipo) {
   if (!inputDataInicio.value) return alert("Selecione a data de início.");
   const ordem = blocos.length;
-  const inicio = calcularInicio(ordem);
-  const fim = new Date(inicio); fim.setDate(fim.getDate() + 6);
+  const inicio = tipo === "TAREFA" ? "" : calcularInicio(blocos.filter(b => b.nome !== "TAREFA").length);
+  const fim = tipo === "TAREFA" ? "" : new Date(inicio);
+  if (fim) fim.setDate(fim.getDate() + 6);
+
   blocos.push({
     nome: tipo,
-    etapa: "",
-    fase: "",
-    estrategia: "",
-    ordem,
-    inicio: inicio.toISOString().split("T")[0],
-    fim: fim.toISOString().split("T")[0],
-    receita: { ec_entrada: "", ec_saida: "", nutrientes: "", A: "", B: "", C: "", runoff: "", dryback: "", temperatura: "", ur: "", vpd: "", ppfd: "" },
+    inicio: inicio ? inicio.toISOString().split("T")[0] : "",
+    fim: fim ? fim.toISOString().split("T")[0] : "",
     notas: "",
-    tarefas: [],
     cor: cores[tipo],
     expandido: false,
   });
   renderizarBlocos();
 };
 
-// 🔹 Salvar cultivo no Firestore
 async function salvarCultivo() {
   atualizarDados();
   if (!inputDataInicio.value || !inputNome.value) return alert("Preencha nome e data.");
@@ -284,7 +217,6 @@ async function salvarCultivo() {
   }
 }
 
-// 🔹 Carregar cultivo existente
 async function carregarCultivoExistente(id) {
   try {
     const snap = await getDoc(doc(db, "cultivos_blocos", id));
@@ -300,32 +232,18 @@ async function carregarCultivoExistente(id) {
   }
 }
 
-// 🔹 Inicializar se já existir ID na URL
 document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
   if (params.has("id")) {
     cultivoId = params.get("id");
     carregarCultivoExistente(cultivoId);
   }
+  acoesControle.style.display = "none";
 });
 
-// 🔹 Botão salvar
 btnSalvar?.addEventListener("click", salvarCultivo);
 
-// 🔹 Botão modo edição
-let modoEdicao = false;
-const btnEditar = document.createElement("button");
-btnEditar.textContent = "✏️ Editar";
-btnEditar.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 z-50";
-btnEditar.addEventListener("click", () => {
-  modoEdicao = !modoEdicao;
-  btnEditar.textContent = modoEdicao ? "✅ Visualizar" : "✏️ Editar";
-  renderizarBlocos();
-});
-document.body.appendChild(btnEditar);
-
-// 🔹 Torna a função removerBloco acessível globalmente
-window.removerBloco = function(index) {
+window.removerBloco = function (index) {
   blocos.splice(index, 1);
   renderizarBlocos();
 };
