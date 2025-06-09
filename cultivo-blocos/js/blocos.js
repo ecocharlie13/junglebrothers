@@ -150,14 +150,38 @@ if (tipo === "FLUSH") {
           <div>Notas: ${bloco.notas || "-"}</div>
         `;
       } else {
+        const estrategia = bloco.estrategia || "-";
+        const vpd = bloco.receita.vpd || "-";
+        const temp = bloco.receita.temperatura || "-";
+        const ur = bloco.receita.ur || "-";
+        const ppfd = bloco.receita.ppfd || "-";
+        const ecEntrada = bloco.receita.ec_entrada || "-";
+        const receita = bloco.receita.A || bloco.receita.B || bloco.receita.C
+          ? `A:${bloco.receita.A || "-"} / B:${bloco.receita.B || "-"} / C:${bloco.receita.C || "-"}`
+          : "-";
+        const runoff = bloco.receita.runoff || "-";
+        const dryback = bloco.receita.dryback || "-";
+        const notas = bloco.notas || "-";
+
         corpo.innerHTML = `
           <div><strong>${bloco.nome}</strong></div>
-          <div>Etapa: ${bloco.etapa || "-"}</div>
-          <div>Fase: ${bloco.fase || "-"}</div>
-          <div>Estratégia: ${bloco.estrategia || "-"}</div>
+          <div>${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</div>
+          <div><strong>Estratégia:</strong> ${estrategia}</div>
+          <div class="grid grid-cols-2 gap-x-4 mt-2 text-sm">
+            <div>VPD: ${vpd}</div>
+            <div>EC Entrada: ${ecEntrada}</div>
+            <div>Temp: ${temp}</div>
+            <div>Receita: ${receita}</div>
+            <div>UR: ${ur}</div>
+            <div>Runoff: ${runoff}</div>
+            <div>PPFD: ${ppfd}</div>
+            <div>Dryback: ${dryback}</div>
+          </div>
+          <div class="mt-2"><strong>Notas:</strong> ${notas}</div>
         `;
       }
     } else {
+      // ... (segue o bloco expandido normalmente)
       corpo.innerHTML = `
   <label>Etapa:
     <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
