@@ -14,6 +14,7 @@ import Sortable from "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/modular/sor
 let blocos = [];
 let cultivoId = null;
 let modoEdicao = false;
+let sortableInstance = null;
 
 const cores = {
   CLONAR: "bg-purple-600",
@@ -201,30 +202,36 @@ if (tipo === "FLUSH") {
 
     atualizarColheitaEDiaAtual();
 
-  if (modoEdicao) {
-    Sortable.create(blocosContainer, {
-      animation: 150,
-      onEnd: () => {
-        const novos = [];
-        const divs = blocosContainer.querySelectorAll("[data-index]");
-        divs.forEach(div => {
-          const index = parseInt(div.getAttribute("data-index"));
-          novos.push(blocos[index]);
-        });
-        blocos = novos;
-        // Recalcula datas após reordenar
-        blocos.forEach((bloco, i) => {
-          const ini = new Date(inputDataInicio.value);
-          ini.setDate(ini.getDate() + i * 7);
-          const fim = new Date(ini);
-          fim.setDate(fim.getDate() + 6);
-          bloco.inicio = ini.toISOString().split("T")[0];
-          bloco.fim = fim.toISOString().split("T")[0];
-        });
-        renderizarBlocos();
-      }
-    });
-  }
+  // Remove o Sortable anterior se já existir
+if (sortableInstance) {
+  sortableInstance.destroy();
+  sortableInstance = null;
+}
+
+if (modoEdicao) {
+  sortableInstance = Sortable.create(blocosContainer, {
+    animation: 150,
+    onEnd: () => {
+      const novos = [];
+      const divs = blocosContainer.querySelectorAll("[data-index]");
+      divs.forEach(div => {
+        const index = parseInt(div.getAttribute("data-index"));
+        novos.push(blocos[index]);
+      });
+      blocos = novos;
+      // Recalcula datas após reordenar
+      blocos.forEach((bloco, i) => {
+        const ini = new Date(inputDataInicio.value);
+        ini.setDate(ini.getDate() + i * 7);
+        const fim = new Date(ini);
+        fim.setDate(fim.getDate() + 6);
+        bloco.inicio = ini.toISOString().split("T")[0];
+        bloco.fim = fim.toISOString().split("T")[0];
+      });
+      renderizarBlocos();
+    }
+  });
+}
 }
 
 // 🔹 Atualiza dados dos inputs para o array
