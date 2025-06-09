@@ -91,8 +91,17 @@ function renderizarBlocos() {
   const hoje = new Date();
   const contagemPorTipo = {};
 
+  // Mostra ou oculta os botões de adicionar
+  const botoesAdicionar = document.getElementById("botoes-adicionar");
+  if (botoesAdicionar) {
+    botoesAdicionar.style.display = modoEdicao ? "flex" : "none";
+  }
+
   blocos.forEach((bloco, i) => {
     const tipo = bloco.nome;
+
+    // ... restante da renderização dos blocos
+    
 
 // se for FLUSH, número total acumulado até aqui
 let semanaNumero;
