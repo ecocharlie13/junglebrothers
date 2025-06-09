@@ -1,4 +1,4 @@
-// IMPORTS
+// 🔹 Imports
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -10,7 +10,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 import Sortable from "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/modular/sortable.esm.js";
 
-// VARIÁVEIS GLOBAIS
+// 🔹 Variáveis globais
 let blocos = [];
 let cultivoId = null;
 let modoEdicao = false;
@@ -23,7 +23,7 @@ const cores = {
   TAREFA: "bg-red-500",
 };
 
-// REFERÊNCIAS DOM
+// 🔹 Referências DOM
 const blocosContainer = document.getElementById("blocos-container");
 const inputDataInicio = document.getElementById("data-inicio");
 const inputNome = document.getElementById("nome-cultivo");
@@ -32,36 +32,16 @@ const colheitaInfo = document.getElementById("colheita-info");
 const diaInfo = document.getElementById("dia-info");
 const acoesControle = document.getElementById("acoes-controle");
 
-// ALTERAÇÃO: BOTÃO VISUALIZAR/EDITAR
-const btnEditar = document.createElement("button");
-btnEditar.textContent = "✏️ Editar";
-btnEditar.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 z-50 md:bottom-6 md:right-6";
-btnEditar.addEventListener("click", () => {
-  modoEdicao = !modoEdicao;
-  btnEditar.textContent = modoEdicao ? "✅ Visualizar" : "✏️ Editar";
-  acoesControle.style.display = modoEdicao ? "block" : "none";
-  renderizarBlocos();
-});
-document.body.appendChild(btnEditar);
-
-// SINCRONIZAÇÃO DE DATAS
-inputDataInicio.addEventListener("change", () => {
-  sincronizarDatas();
+// 🔹 Sincroniza datas ao editar data-inicio
+inputDataInicio?.addEventListener("change", () => {
+  recalcularDatas();
   renderizarBlocos();
 });
 
-function sincronizarDatas() {
-  let indice = 0;
-  blocos.forEach((bloco) => {
-    if (bloco.nome === "TAREFA") return;
-    const ini = new Date(inputDataInicio.value);
-    ini.setDate(ini.getDate() + indice * 7);
-    const fim = new Date(ini);
-    fim.setDate(fim.getDate() + 6);
-    bloco.inicio = ini.toISOString().split("T")[0];
-    bloco.fim = fim.toISOString().split("T")[0];
-    indice++;
-  });
+function calcularInicio(ordem) {
+  const dataInicial = new Date(inputDataInicio.value);
+  dataInicial.setDate(dataInicial.getDate() + ordem * 7);
+  return dataInicial;
 }
 
 function formatarData(dataStr) {
@@ -73,20 +53,20 @@ function formatarData(dataStr) {
 
 function atualizarColheitaEDiaAtual() {
   const hoje = new Date();
-  const blocosValidos = blocos.filter(b => b.nome !== "TAREFA");
-
-  const ultimo = blocosValidos.at(-1);
+  const ultimosValidos = blocos.filter(b => b.nome !== "TAREFA");
+  const ultimo = ultimosValidos.at(-1);
   colheitaInfo.textContent = ultimo ? `🌾 Colheita em ${formatarData(ultimo.fim)}` : "";
 
-  const ativo = blocosValidos.find(b => {
+  const ativo = blocos.find(b => {
     const ini = new Date(b.inicio);
     const fim = new Date(b.fim);
     return ini <= hoje && fim >= hoje;
   });
+
   if (ativo) {
     const faseAtual = ativo.nome;
     let diaTotal = 0;
-    for (const bloco of blocosValidos) {
+    for (const bloco of blocos) {
       if (bloco.nome !== faseAtual) continue;
       const ini = new Date(bloco.inicio);
       const fim = new Date(bloco.fim);
@@ -94,9 +74,24 @@ function atualizarColheitaEDiaAtual() {
       else if (hoje >= ini && hoje <= fim)
         diaTotal += Math.floor((hoje - ini) / (1000 * 60 * 60 * 24)) + 1;
     }
-    diaInfo.textContent = `📅 ${faseAtual} dia ${diaTotal}`;
+    diaInfo.textContent = `\uD83D\uDCC5 ${faseAtual} dia ${diaTotal}`;
   } else {
     diaInfo.textContent = "";
+  }
+}
+
+function recalcularDatas() {
+  let indice = 0;
+  for (let i = 0; i < blocos.length; i++) {
+    const b = blocos[i];
+    if (b.nome === "TAREFA") continue;
+    const ini = new Date(inputDataInicio.value);
+    ini.setDate(ini.getDate() + indice * 7);
+    const fim = new Date(ini);
+    fim.setDate(fim.getDate() + 6);
+    b.inicio = ini.toISOString().split("T")[0];
+    b.fim = fim.toISOString().split("T")[0];
+    indice++;
   }
 }
 
@@ -106,12 +101,13 @@ function renderizarBlocos() {
   const hoje = new Date();
   const contagemPorTipo = {};
 
-  let indiceReal = 0;
   blocos.forEach((bloco, i) => {
     const tipo = bloco.nome;
-    let semanaNumero = 1;
-
-    if (tipo !== "TAREFA") {
+    let semanaNumero;
+    if (tipo === "FLUSH") {
+      const semanasFlorar = blocos.slice(0, i).filter(b => b.nome === "FLORAR").length;
+      semanaNumero = semanasFlorar + 1;
+    } else {
       contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
       semanaNumero = contagemPorTipo[tipo];
     }
@@ -123,7 +119,7 @@ function renderizarBlocos() {
     let estiloExtra = "";
     const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
     const fim = bloco.fim ? new Date(bloco.fim) : null;
-    if (inicio && fim && tipo !== "TAREFA") {
+    if (inicio && fim) {
       if (fim < hoje) estiloExtra = "opacity-40";
       else if (inicio <= hoje && fim >= hoje) estiloExtra = "ring-4 ring-yellow-400";
     }
@@ -138,9 +134,19 @@ function renderizarBlocos() {
 
     const corpo = document.createElement("div");
     corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
-    corpo.innerHTML = bloco.expandido ? `<textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>` : `<div>Notas: ${bloco.notas || "-"}</div>`;
-    if (modoEdicao && bloco.expandido) {
-      corpo.innerHTML += `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>`;
+
+    if (!bloco.expandido) {
+      corpo.innerHTML = `
+        <div><strong>${bloco.nome}</strong></div>
+        <div>Notas: ${bloco.notas || "-"}</div>
+      `;
+    } else {
+      corpo.innerHTML = `
+        <label>Notas:
+          <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
+        </label>
+        ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
+      `;
     }
 
     wrapper.appendChild(header);
@@ -161,36 +167,41 @@ function renderizarBlocos() {
           novos.push(blocos[index]);
         });
         blocos = novos;
-        sincronizarDatas();
+        recalcularDatas();
         renderizarBlocos();
       }
     });
   }
+
+  // Mostrar ou ocultar controles
+  if (acoesControle) acoesControle.style.display = modoEdicao ? "block" : "none";
 }
 
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
-    if (bloco.nome === "TAREFA") {
-      bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
-    }
+    if (!modoEdicao) return;
+    bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
   });
 }
 
-window.adicionarBloco = function (tipo) {
+window.adicionarBloco = function(tipo) {
   if (!inputDataInicio.value) return alert("Selecione a data de início.");
   const ordem = blocos.length;
-  const inicio = tipo === "TAREFA" ? "" : calcularInicio(blocos.filter(b => b.nome !== "TAREFA").length);
-  const fim = tipo === "TAREFA" ? "" : new Date(inicio);
-  if (fim) fim.setDate(fim.getDate() + 6);
-
   blocos.push({
     nome: tipo,
-    inicio: inicio ? inicio.toISOString().split("T")[0] : "",
-    fim: fim ? fim.toISOString().split("T")[0] : "",
+    etapa: "",
+    fase: "",
+    estrategia: "",
+    ordem,
+    inicio: "",
+    fim: "",
+    receita: {},
     notas: "",
+    tarefas: [],
     cor: cores[tipo],
     expandido: false,
   });
+  recalcularDatas();
   renderizarBlocos();
 };
 
@@ -238,12 +249,23 @@ document.addEventListener("DOMContentLoaded", () => {
     cultivoId = params.get("id");
     carregarCultivoExistente(cultivoId);
   }
-  acoesControle.style.display = "none";
 });
 
 btnSalvar?.addEventListener("click", salvarCultivo);
 
-window.removerBloco = function (index) {
+// 🔹 Botão modo edição
+const btnEditar = document.createElement("button");
+btnEditar.textContent = "✏️ Editar";
+btnEditar.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 z-50";
+btnEditar.addEventListener("click", () => {
+  modoEdicao = !modoEdicao;
+  btnEditar.textContent = modoEdicao ? "✅ Visualizar" : "✏️ Editar";
+  renderizarBlocos();
+});
+document.body.appendChild(btnEditar);
+
+// 🔹 Torna a função removerBloco acessível globalmente
+window.removerBloco = function(index) {
   blocos.splice(index, 1);
   renderizarBlocos();
 };
