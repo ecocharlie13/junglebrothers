@@ -490,10 +490,20 @@ function renderizarBlocos() {
     corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
 
     if (!bloco.expandido) {
-      corpo.innerHTML = `
-        <div><strong>${bloco.nome}</strong></div>
-        <div>Notas: ${bloco.notas || "-"}</div>
-      `;
+      if (bloco.nome === "TAREFA") {
+        corpo.innerHTML = `
+          <div><strong>${bloco.nome}</strong></div>
+          <div>Notas: ${bloco.notas || "-"}</div>
+        `;
+    } else {
+    corpo.innerHTML = `
+      <div><strong>${bloco.nome}</strong></div>
+      <div>Etapa: ${bloco.etapa || "-"}</div>
+      <div>Fase: ${bloco.fase || "-"}</div>
+      <div>Estratégia: ${bloco.estrategia || "-"}</div>
+    `;
+  }
+}
     } else {
       corpo.innerHTML = `
         <label>Notas:
