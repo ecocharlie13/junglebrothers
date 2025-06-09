@@ -92,12 +92,11 @@ function renderizarBlocos() {
   const contagemPorTipo = {};
 
   // Mostra ou oculta os botões de adicionar
-  setTimeout(() => {
+    // Mostra ou oculta os botões de adicionar
   const botoesAdicionar = document.getElementById("botoes-adicionar");
   if (botoesAdicionar) {
     botoesAdicionar.style.display = modoEdicao ? "flex" : "none";
   }
-}, 0);
 
   blocos.forEach((bloco, i) => {
     const tipo = bloco.nome;
