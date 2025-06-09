@@ -13,6 +13,7 @@ import Sortable from "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/modular/sor
 // 🔹 Variáveis globais
 let blocos = [];
 let cultivoId = null;
+let modoEdicao = false;
 
 const cores = {
   CLONAR: "bg-purple-600",
@@ -327,7 +328,6 @@ document.addEventListener("DOMContentLoaded", () => {
 btnSalvar?.addEventListener("click", salvarCultivo);
 
 // 🔹 Botão modo edição
-let modoEdicao = false;
 const btnEditar = document.createElement("button");
 btnEditar.textContent = "✏️ Editar";
 btnEditar.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 z-50";
