@@ -32,7 +32,6 @@ const diaInfo = document.getElementById("dia-info");
 const acoesControle = document.getElementById("acoes-controle");
 
 // 🔹 Botão modo edição
-let modoEdicao = false;
 const btnEditar = document.createElement("button");
 btnEditar.textContent = "✏️ Editar";
 btnEditar.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 z-50";
@@ -336,7 +335,6 @@ document.addEventListener("DOMContentLoaded", () => {
 btnSalvar?.addEventListener("click", salvarCultivo);
 
 // 🔹 Botão modo edição
-let modoEdicao = false;
 const btnEditar = document.createElement("button");
 btnEditar.textContent = "✏️ Editar";
 btnEditar.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 z-50";
