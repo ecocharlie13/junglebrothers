@@ -19,7 +19,7 @@ const cores = {
   VEGETAR: "bg-green-600",
   FLORAR: "bg-orange-500",
   FLUSH: "bg-blue-500",
-  PROCESSAR: "bg-red-500",
+  TAREFA: "bg-red-500",
 };
 
 // 🔹 Referências DOM
@@ -59,8 +59,8 @@ function formatarData(dataStr) {
 
 function atualizarColheitaEDiaAtual() {
   const hoje = new Date();
-  const processar = blocos.find(b => b.nome === "PROCESSAR");
-  colheitaInfo.textContent = processar ? `🌾 Colheita em ${formatarData(processar.inicio)}` : "";
+  const tarefa = blocos.find(b => b.nome === "TAREFA");
+  colheitaInfo.textContent = tarefa ? `🌾 Colheita em ${formatarData(tarefa.inicio)}` : "";
 
   const ativo = blocos.find(b => {
     const ini = new Date(b.inicio);
@@ -128,7 +128,7 @@ if (tipo === "FLUSH") {
     corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
 
     if (!bloco.expandido) {
-      if (bloco.nome === "PROCESSAR") {
+      if (bloco.nome === "TAREFA") {
         corpo.innerHTML = `
           <div><strong>${bloco.nome}</strong></div>
           <div>Notas: ${bloco.notas || "-"}</div>
