@@ -145,7 +145,7 @@ if (tipo === "FLUSH") {
 
     if (!bloco.expandido) {
       if (bloco.nome === "TAREFA") {
-        const tarefas = bloco.tarefas || [];
+        const tarefas = [...(bloco.tarefas || [])].sort((a, b) => (a.data || "") > (b.data || "") ? 1 : -1);
         let tarefasHtml = "";
         if (modoEdicao) {
           tarefasHtml = tarefas.map((tarefa, idx) => `
