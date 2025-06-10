@@ -146,11 +146,11 @@ if (tipo === "FLUSH") {
     if (!bloco.expandido) {
       if (bloco.nome === "TAREFA") {
         const tarefasHtml = (bloco.tarefas || [])
-          .slice(0, 3) // limita a 3 tarefas
+          .slice(0, 3)
           .map((tarefa, idx) => `
             <div class="flex items-center gap-2 mb-1">
-              <input type="checkbox" id="check-${i}-${idx}" ${tarefa.concluida ? "checked" : ""} ${modoEdicao ? "" : "disabled"}>
-              <span class="flex-1 ${tarefa.concluida ? 'line-through text-gray-400' : ''}">${tarefa.descricao || "(sem descrição)"}</span>
+              <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} ${modoEdicao ? "" : "disabled"} onchange="atualizarConclusao(this)">
+              <span class="flex-1 ${tarefa.concluida ? "line-through text-gray-400" : ""}">${tarefa.descricao || "(sem descrição)"}</span>
               <span class="text-sm text-gray-500">${tarefa.data || ""}</span>
             </div>
           `).join("");
@@ -163,7 +163,6 @@ if (tipo === "FLUSH") {
           </div>
           <div class="mt-2"><strong>Notas:</strong> ${bloco.notas || "-"}</div>
         `;
-
     corpo.innerHTML = `
       <div><strong>${bloco.nome}</strong></div>
       <div class="mt-2">
@@ -412,4 +411,12 @@ window.adicionarTarefa = function(index) {
     concluida: false
   });
   renderizarBlocos();
+};
+// 🔹 Atualizar status de conclusão da tarefa
+window.atualizarConclusao = function(checkbox) {
+  const i = parseInt(checkbox.dataset.i);
+  const idx = parseInt(checkbox.dataset.idx);
+  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
+    blocos[i].tarefas[idx].concluida = checkbox.checked;
+  }
 };
