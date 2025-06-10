@@ -158,6 +158,17 @@ if (tipo === "FLUSH") {
             </div>
           `).join("");
         } else {
+          tarefasHtml = tarefas.map(tarefa => `
+            <div class="flex justify-between text-sm border-b py-1">
+              <div>
+                <span class="${tarefa.concluida ? 'line-through text-gray-400' : ''}">${tarefa.descricao || "(sem descrição)"}</span>
+              </div>
+              <div>
+                <span class="text-xs text-gray-500">${tarefa.data || ""}</span>
+              </div>
+            </div>
+          `).join("");
+        } else {
           tarefasHtml = tarefas
             .slice(0, 3)
             .map((tarefa, idx) => `
