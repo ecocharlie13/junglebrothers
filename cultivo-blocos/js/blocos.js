@@ -145,13 +145,24 @@ if (tipo === "FLUSH") {
 
     if (!bloco.expandido) {
       if (bloco.nome === "TAREFA") {
-        const tarefasHtml = (bloco.tarefas || []).map((tarefa, idx) => `
-          <div class="flex items-center gap-2 mb-1">
-            <input type="checkbox" id="check-${i}-${idx}" ${tarefa.concluida ? "checked" : ""} ${modoEdicao ? "" : "disabled"}>
-            <input type="text" id="desc-${i}-${idx}" value="${tarefa.descricao}" placeholder="Descrição" class="flex-1 px-2 py-1 border rounded" ${modoEdicao ? "" : "disabled"}>
-            <input type="date" id="data-${i}-${idx}" value="${tarefa.data || ""}" class="px-2 py-1 border rounded" ${modoEdicao ? "" : "disabled"}>
+        const tarefasHtml = (bloco.tarefas || [])
+          .slice(0, 3) // limita a 3 tarefas
+          .map((tarefa, idx) => `
+            <div class="flex items-center gap-2 mb-1">
+              <input type="checkbox" id="check-${i}-${idx}" ${tarefa.concluida ? "checked" : ""} ${modoEdicao ? "" : "disabled"}>
+              <span class="flex-1 ${tarefa.concluida ? 'line-through text-gray-400' : ''}">${tarefa.descricao || "(sem descrição)"}</span>
+              <span class="text-sm text-gray-500">${tarefa.data || ""}</span>
+            </div>
+          `).join("");
+
+        corpo.innerHTML = `
+          <div><strong>${bloco.nome}</strong></div>
+          <div class="mt-2">
+            ${tarefasHtml || "<div class='text-gray-400 italic'>Sem tarefas</div>"}
+            ${modoEdicao ? `<button class="mt-2 px-2 py-1 bg-green-600 text-white rounded" onclick="adicionarTarefa(${i})">+ Tarefa</button>` : ""}
           </div>
-        `).join("");
+          <div class="mt-2"><strong>Notas:</strong> ${bloco.notas || "-"}</div>
+        `;
 
     corpo.innerHTML = `
       <div><strong>${bloco.nome}</strong></div>
