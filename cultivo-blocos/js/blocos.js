@@ -1,4 +1,4 @@
-// 🔹 Imports
+  // 🔹 Imports
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -147,7 +147,6 @@ if (tipo === "FLUSH") {
       if (bloco.nome === "TAREFA") {
         const tarefas = bloco.tarefas || [];
         let tarefasHtml = "";
-
         if (modoEdicao) {
           tarefasHtml = tarefas.map((tarefa, idx) => `
             <div class="flex items-center gap-2 mb-1">
@@ -158,14 +157,12 @@ if (tipo === "FLUSH") {
             </div>
           `).join("");
         } else {
-          tarefasHtml = tarefas.map(tarefa => `
-            <div class="flex justify-between text-sm border-b py-1">
-              <div>
-                <span class="${tarefa.concluida ? 'line-through text-gray-400' : ''}">${tarefa.descricao || "(sem descrição)"}</span>
+          tarefasHtml = tarefas.map((tarefa) => `
+            <div class="flex items-center justify-between mb-1 text-sm">
+              <div class="flex-1 truncate ${tarefa.concluida ? 'line-through text-gray-500' : ''}">
+                ${tarefa.descricao || "-"}
               </div>
-              <div>
-                <span class="text-xs text-gray-500">${tarefa.data || ""}</span>
-              </div>
+              <div class="text-xs text-gray-600">${tarefa.data || "-"}</div>
             </div>
           `).join("");
         }
