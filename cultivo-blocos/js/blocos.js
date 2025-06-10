@@ -425,3 +425,10 @@ window.atualizarConclusao = function(checkbox) {
     blocos[i].tarefas[idx].concluida = checkbox.checked;
   }
 };
+// 🔹 Remover tarefa de um bloco TAREFA
+window.removerTarefa = function(i, idx) {
+  if (blocos[i]?.tarefas) {
+    blocos[i].tarefas.splice(idx, 1); // remove a tarefa da lista
+    renderizarBlocos(); // re-renderiza os blocos para refletir a mudança
+  }
+};
