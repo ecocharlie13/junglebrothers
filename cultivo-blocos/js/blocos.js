@@ -145,10 +145,25 @@ if (tipo === "FLUSH") {
 
     if (!bloco.expandido) {
       if (bloco.nome === "TAREFA") {
-        corpo.innerHTML = `
-          <div><strong>${bloco.nome}</strong></div>
-          <div>Notas: ${bloco.notas || "-"}</div>
-        `;
+        const tarefasHtml = (bloco.tarefas || []).map((tarefa, idx) => `
+          <div class="flex items-center gap-2 mb-1">
+            <input type="checkbox" id="check-${i}-${idx}" ${tarefa.concluida ? "checked" : ""} ${modoEdicao ? "" : "disabled"}>
+            <input type="text" id="desc-${i}-${idx}" value="${tarefa.descricao}" placeholder="Descrição" class="flex-1 px-2 py-1 border rounded" ${modoEdicao ? "" : "disabled"}>
+            <input type="date" id="data-${i}-${idx}" value="${tarefa.data || ""}" class="px-2 py-1 border rounded" ${modoEdicao ? "" : "disabled"}>
+          </div>
+        `).join("");
+
+    corpo.innerHTML = `
+      <div><strong>${bloco.nome}</strong></div>
+      <div class="mt-2">
+        ${tarefasHtml}
+        ${modoEdicao ? `<button class="mt-2 px-2 py-1 bg-green-600 text-white rounded" onclick="adicionarTarefa(${i})">+ Tarefa</button>` : ""}
+      </div>
+      <label class="block mt-4">
+        Notas:
+        <textarea id="notas-${i}" class="w-full border rounded px-2 py-1 mt-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
+      </label>
+    `;
       } else {
         const estrategia = bloco.estrategia || "-";
         const vpd = bloco.receita.vpd || "-";
@@ -372,5 +387,18 @@ document.body.appendChild(btnEditar);
 // 🔹 Torna a função removerBloco acessível globalmente
 window.removerBloco = function(index) {
   blocos.splice(index, 1);
+  renderizarBlocos();
+};
+    
+// 🔹 Adicionar nova tarefa ao bloco TAREFA
+window.adicionarTarefa = function(index) {
+  if (!blocos[index].tarefas) {
+    blocos[index].tarefas = [];
+  }
+  blocos[index].tarefas.push({
+    descricao: "",
+    data: "",
+    concluida: false
+  });
   renderizarBlocos();
 };
