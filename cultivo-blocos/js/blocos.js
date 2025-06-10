@@ -145,10 +145,11 @@ if (tipo === "FLUSH") {
 
     if (!bloco.expandido) {
       if (bloco.nome === "TAREFA") {
+        const tarefas = bloco.tarefas || [];
         let tarefasHtml = "";
 
         if (modoEdicao) {
-          tarefasHtml = (bloco.tarefas || []).map((tarefa, idx) => `
+          tarefasHtml = tarefas.map((tarefa, idx) => `
             <div class="flex items-center gap-2 mb-1">
               <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} onchange="atualizarConclusao(this)">
               <input type="text" value="${tarefa.descricao || ""}" placeholder="Descrição" class="flex-1 px-2 py-1 border rounded" oninput="atualizarDescricao(${i}, ${idx}, this.value)">
@@ -157,11 +158,11 @@ if (tipo === "FLUSH") {
             </div>
           `).join("");
         } else {
-          tarefasHtml = (bloco.tarefas || [])
+          tarefasHtml = tarefas
             .slice(0, 3)
             .map((tarefa, idx) => `
               <div class="flex items-center gap-2 mb-1">
-                <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} disabled>
+                <input type="checkbox" ${tarefa.concluida ? "checked" : ""} disabled>
                 <span class="flex-1 ${tarefa.concluida ? "line-through text-gray-400" : ""}">${tarefa.descricao || "(sem descrição)"}</span>
                 <span class="text-sm text-gray-500">${tarefa.data || ""}</span>
               </div>
