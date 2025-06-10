@@ -158,13 +158,14 @@ if (tipo === "FLUSH") {
               >
 
               <div class="relative">
-                <button type="button"
-                  class="px-2 py-1 border rounded bg-white hover:bg-gray-100"
-                  onclick="document.getElementById('data-${i}-${idx}').showPicker()"
-                  title="Escolher data"
-                >
+                <!-- Botão visível -->
+                <button type="button" onclick="document.getElementById('data-${i}-${idx}').showPicker()"
+                  class="p-1 rounded border text-xs bg-white hover:bg-gray-100"
+                  ${modoEdicao ? "" : "disabled"}>
                   📅
                 </button>
+
+                <!-- Input de data invisível -->
                 <input type="date"
                   id="data-${i}-${idx}"
                   value="${tarefa.data || ""}"
