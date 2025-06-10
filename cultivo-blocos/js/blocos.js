@@ -168,16 +168,6 @@ if (tipo === "FLUSH") {
               </div>
             </div>
           `).join("");
-        } else {
-          tarefasHtml = tarefas
-            .slice(0, 3)
-            .map((tarefa, idx) => `
-              <div class="flex items-center gap-2 mb-1">
-                <input type="checkbox" ${tarefa.concluida ? "checked" : ""} disabled>
-                <span class="flex-1 ${tarefa.concluida ? "line-through text-gray-400" : ""}">${tarefa.descricao || "(sem descrição)"}</span>
-                <span class="text-sm text-gray-500">${tarefa.data || ""}</span>
-              </div>
-            `).join("");
         }
 
         corpo.innerHTML = `
@@ -192,6 +182,7 @@ if (tipo === "FLUSH") {
           </label>
         `;
       } else {
+    // segue o bloco não-TAREFA normalmente...
         const estrategia = bloco.estrategia || "-";
         const vpd = bloco.receita.vpd || "-";
         const temp = bloco.receita.temperatura || "-";
