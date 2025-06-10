@@ -151,9 +151,30 @@ if (tipo === "FLUSH") {
           tarefasHtml = tarefas.map((tarefa, idx) => `
             <div class="flex items-center gap-2 mb-1">
               <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} onchange="atualizarConclusao(this)">
-              <input type="text" value="${tarefa.descricao || ""}" placeholder="Descrição" class="flex-1 px-2 py-1 border rounded" oninput="atualizarDescricao(${i}, ${idx}, this.value)">
-              <input type="date" value="${tarefa.data || ""}" class="px-2 py-1 border rounded" onchange="atualizarDataTarefa(${i}, ${idx}, this.value)">
-              <button onclick="removerTarefa(${i}, ${idx})" class="text-red-500 font-bold">✕</button>
+  
+              <input type="text" value="${tarefa.descricao || ""}" placeholder="Descrição"
+                class="flex-1 px-2 py-1 border rounded"
+                oninput="atualizarDescricao(${i}, ${idx}, this.value)"
+              >
+
+              <div class="relative">
+                <button type="button"
+                  class="px-2 py-1 border rounded bg-white hover:bg-gray-100"
+                  onclick="document.getElementById('data-${i}-${idx}').showPicker()"
+                  ${modoEdicao ? "" : "disabled"}
+                  title="Escolher data"
+                >
+                  📅
+                </button>
+                <input type="date"
+                  id="data-${i}-${idx}"
+                  value="${tarefa.data || ""}"
+                  class="absolute top-0 left-0 opacity-0 w-0 h-0"
+                  tabindex="-1"
+                  aria-hidden="true"
+                  onchange="atualizarDataTarefa(${i}, ${idx}, this.value)"
+                />
+              </div>
             </div>
           `).join("");
         } else {
