@@ -432,3 +432,15 @@ window.removerTarefa = function(i, idx) {
     renderizarBlocos(); // re-renderiza os blocos para refletir a mudança
   }
 };
+// 🔹 Atualizar descrição da tarefa
+window.atualizarDescricao = function(i, idx, valor) {
+  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
+    blocos[i].tarefas[idx].descricao = valor;
+  }
+};
+// 🔹 Atualizar data da tarefa
+window.atualizarDataTarefa = function(i, idx, valor) {
+  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
+    blocos[i].tarefas[idx].data = valor;
+  }
+};
