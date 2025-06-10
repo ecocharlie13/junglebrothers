@@ -157,23 +157,22 @@ if (tipo === "FLUSH") {
                 oninput="atualizarDescricao(${i}, ${idx}, this.value)"
               >
 
-              <div class="relative">
-                <!-- Botão visível -->
-                <button type="button" onclick="document.getElementById('data-${i}-${idx}').showPicker()"
-                  class="p-1 rounded border text-xs bg-white hover:bg-gray-100"
-                  ${modoEdicao ? "" : "disabled"}>
-                  📅
-                </button>
-
-                <!-- Input de data invisível -->
-                <input type="date"
-                  id="data-${i}-${idx}"
-                  value="${tarefa.data || ""}"
-                  class="absolute top-0 left-0 opacity-0 w-0 h-0"
-                  tabindex="-1"
-                  aria-hidden="true"
-                  onchange="atualizarDataTarefa(${i}, ${idx}, this.value)"
-                />
+              <div class="flex items-center gap-1">
+                <div class="relative">
+                  <button type="button" onclick="document.getElementById('data-${i}-${idx}').showPicker()"
+                    class="p-1 rounded border text-xs bg-white hover:bg-gray-100">
+                    📅
+                  </button>
+                  <input type="date"
+                    id="data-${i}-${idx}"
+                    value="${tarefa.data || ""}"
+                    class="absolute top-0 left-0 opacity-0 w-0 h-0"
+                    tabindex="-1"
+                    aria-hidden="true"
+                    onchange="atualizarDataTarefa(${i}, ${idx}, this.value)"
+                  />
+                </div>
+                <button onclick="removerTarefa(${i}, ${idx})" class="text-red-500 text-sm hover:text-red-700">❌</button>
               </div>
             </div>
           `).join("");
