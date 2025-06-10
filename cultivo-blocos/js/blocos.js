@@ -151,7 +151,7 @@ if (tipo === "FLUSH") {
           tarefasHtml = tarefas.map((tarefa, idx) => `
             <div class="flex items-center gap-2 mb-1">
               <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} onchange="atualizarConclusao(this)">
-  
+
               <input type="text" value="${tarefa.descricao || ""}" placeholder="Descrição"
                 class="flex-1 px-2 py-1 border rounded"
                 oninput="atualizarDescricao(${i}, ${idx}, this.value)"
@@ -161,7 +161,6 @@ if (tipo === "FLUSH") {
                 <button type="button"
                   class="px-2 py-1 border rounded bg-white hover:bg-gray-100"
                   onclick="document.getElementById('data-${i}-${idx}').showPicker()"
-                  ${modoEdicao ? "" : "disabled"}
                   title="Escolher data"
                 >
                   📅
