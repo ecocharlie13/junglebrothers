@@ -145,15 +145,28 @@ if (tipo === "FLUSH") {
 
     if (!bloco.expandido) {
       if (bloco.nome === "TAREFA") {
-        const tarefasHtml = (bloco.tarefas || [])
-          .slice(0, 3)
-          .map((tarefa, idx) => `
+        let tarefasHtml = "";
+
+        if (modoEdicao) {
+          tarefasHtml = (bloco.tarefas || []).map((tarefa, idx) => `
             <div class="flex items-center gap-2 mb-1">
-              <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} ${modoEdicao ? "" : "disabled"} onchange="atualizarConclusao(this)">
-              <span class="flex-1 ${tarefa.concluida ? "line-through text-gray-400" : ""}">${tarefa.descricao || "(sem descrição)"}</span>
-              <span class="text-sm text-gray-500">${tarefa.data || ""}</span>
+              <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} onchange="atualizarConclusao(this)">
+              <input type="text" value="${tarefa.descricao || ""}" placeholder="Descrição" class="flex-1 px-2 py-1 border rounded" oninput="atualizarDescricao(${i}, ${idx}, this.value)">
+              <input type="date" value="${tarefa.data || ""}" class="px-2 py-1 border rounded" onchange="atualizarDataTarefa(${i}, ${idx}, this.value)">
+              <button onclick="removerTarefa(${i}, ${idx})" class="text-red-500 font-bold">✕</button>
             </div>
           `).join("");
+        } else {
+          tarefasHtml = (bloco.tarefas || [])
+            .slice(0, 3)
+            .map((tarefa, idx) => `
+              <div class="flex items-center gap-2 mb-1">
+                <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} disabled>
+                <span class="flex-1 ${tarefa.concluida ? "line-through text-gray-400" : ""}">${tarefa.descricao || "(sem descrição)"}</span>
+                <span class="text-sm text-gray-500">${tarefa.data || ""}</span>
+              </div>
+            `).join("");
+        }
 
         corpo.innerHTML = `
           <div><strong>${bloco.nome}</strong></div>
@@ -161,19 +174,11 @@ if (tipo === "FLUSH") {
             ${tarefasHtml || "<div class='text-gray-400 italic'>Sem tarefas</div>"}
             ${modoEdicao ? `<button class="mt-2 px-2 py-1 bg-green-600 text-white rounded" onclick="adicionarTarefa(${i})">+ Tarefa</button>` : ""}
           </div>
-          <div class="mt-2"><strong>Notas:</strong> ${bloco.notas || "-"}</div>
+          <label class="block mt-4">
+            Notas:
+            <textarea id="notas-${i}" class="w-full border rounded px-2 py-1 mt-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
+          </label>
         `;
-    corpo.innerHTML = `
-      <div><strong>${bloco.nome}</strong></div>
-      <div class="mt-2">
-        ${tarefasHtml}
-        ${modoEdicao ? `<button class="mt-2 px-2 py-1 bg-green-600 text-white rounded" onclick="adicionarTarefa(${i})">+ Tarefa</button>` : ""}
-      </div>
-      <label class="block mt-4">
-        Notas:
-        <textarea id="notas-${i}" class="w-full border rounded px-2 py-1 mt-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
-      </label>
-    `;
       } else {
         const estrategia = bloco.estrategia || "-";
         const vpd = bloco.receita.vpd || "-";
