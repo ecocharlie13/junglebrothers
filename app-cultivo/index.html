@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App de Cultivo de Cannabis</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script> <!-- Usando CDN temporariamente -->
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
     <h1 class="text-3xl font-bold mb-4">App de Cultivo de Cannabis</h1>
@@ -50,11 +50,9 @@
         const plantNameInput = document.getElementById('plantName');
         const addPlantBtn = document.getElementById('addPlantBtn');
 
-        // Verifica resultado de redirecionamento
         getRedirectResult(auth)
             .then((result) => {
                 if (result) {
-                    // Usuário logado via redirecionamento
                     onAuthStateChanged(auth, (user) => {
                         if (user) {
                             loginBtn.classList.add('hidden');
