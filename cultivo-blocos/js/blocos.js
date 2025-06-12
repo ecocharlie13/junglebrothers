@@ -290,7 +290,8 @@ window.adicionarBloco = function(tipo) {
   const ordem = blocos.length;
   const inicio = calcularInicio(ordem);
   const fim = new Date(inicio); fim.setDate(fim.getDate() + 6);
-  blocos.push({
+
+  const blocoBase = {
     nome: tipo,
     etapa: "",
     fase: "",
@@ -303,9 +304,20 @@ window.adicionarBloco = function(tipo) {
     tarefas: [],
     cor: cores[tipo],
     expandido: false,
-  });
+  };
+
+  // ajuste específico para EVENTO
+  if (tipo === "EVENTO") {
+    blocoBase.duracao = 0;
+    blocoBase.texto_evento = "";
+    blocoBase.inicio = null;
+    blocoBase.fim = null;
+  }
+
+  blocos.push(blocoBase);
   renderizarBlocos();
 };
+
 
 // 🔹 Salvar cultivo no Firestore
 async function salvarCultivo() {
