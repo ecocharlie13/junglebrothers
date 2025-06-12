@@ -84,7 +84,15 @@
         });
 
         logoutBtn.addEventListener('click', () => {
-            signOut(auth).catch((error) => console.error('Erro no logout:', error));
+            signOut(auth)
+                .then(() => {
+                    // Recarrega a página após logout
+                    window.location.reload();
+                })
+                .catch((error) => {
+                    console.error('Erro no logout:', error);
+                    errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
+                });
         });
 
         addPlantBtn.addEventListener('click', () => {
