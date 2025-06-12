@@ -1,0 +1,34 @@
+<!-- header.html -->
+<header class="bg-blue-500 text-white p-4 flex items-center justify-between">
+    <div class="flex items-center">
+        <img src="/logo.png" alt="Logo" class="h-10 mr-2">
+        <h1 class="text-2xl font-bold">App de Cultivo de Cannabis</h1>
+    </div>
+    <div class="md:hidden">
+        <button id="menuToggle" class="focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+        </button>
+    </div>
+    <div id="menu" class="hidden md:flex md:space-x-4">
+        <a href="#" class="hover:underline">Início</a>
+        <a href="#" class="hover:underline">Novo Cultivo</a>
+        <a href="#" class="hover:underline">Abrir Cultivo</a>
+        <img src="https://via.placeholder.com/30" alt="Foto do Perfil" class="h-6 rounded-full">
+        <a href="#" id="logoutLink" class="hover:underline">Sair</a>
+    </div>
+</header>
+<script>
+    const menuToggle = document.getElementById('menuToggle');
+    const menu = document.getElementById('menu');
+
+    menuToggle.addEventListener('click', () => {
+        menu.classList.toggle('hidden');
+    });
+</script>
+<style>
+    @media (min-width: 768px) {
+        #menu { display: flex; }
+    }
+</style>
