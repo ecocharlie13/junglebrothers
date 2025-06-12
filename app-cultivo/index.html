@@ -9,7 +9,7 @@
 </head>
 <body class="bg-gray-100">
     <!-- Incluir o header -->
-    <iframe src="./header.html" frameborder="0" style="width: 100%; border: none; margin: 0; padding: 0;"></iframe>
+    <iframe src="./header/header.html" frameborder="0" style="width: 100%; border: none; margin: 0; padding: 0;"></iframe>
 
     <!-- Conteúdo principal -->
     <div class="flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
@@ -38,7 +38,8 @@
         const errorLog = document.getElementById('errorLog');
         const loginBtn = document.getElementById('loginBtn');
         const blankPage = document.getElementById('blankPage');
-        const logoutLink = document.querySelector('iframe').contentWindow.document.getElementById('logoutLink'); // Acessa o link Sair no header
+        const iframe = document.querySelector('iframe');
+        const logoutLink = iframe.contentWindow ? iframe.contentWindow.document.getElementById('logoutLink') : null;
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
