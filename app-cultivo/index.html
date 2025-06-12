@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
-    <div id="header"></div> <!-- Placeholder para o header -->
+    <div id="header"></div>
 
     <div class="flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
         <button id="loginBtn" class="bg-blue-500 text-white px-4 py-2 rounded hidden">Login com Google</button>
@@ -19,22 +19,9 @@
     </div>
 
     <script type="module">
-        // Carregar o header dinamicamente
-        fetch('./header/header.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('header').innerHTML = html;
-
-                // Inicializar o menu hamburguer
-                const menuToggle = document.getElementById('menuToggle');
-                const menu = document.getElementById('menu');
-                if (menuToggle && menu) {
-                    menuToggle.addEventListener('click', () => {
-                        menu.classList.toggle('hidden');
-                    });
-                }
-            })
-            .catch(error => console.error('Erro ao carregar header:', error));
+        // Importar e criar o header da subpasta
+        import { createHeader } from './header/header.js';
+        document.getElementById('header').appendChild(createHeader());
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
@@ -53,25 +40,7 @@
         const errorLog = document.getElementById('errorLog');
         const loginBtn = document.getElementById('loginBtn');
         const blankPage = document.getElementById('blankPage');
-        let logoutLink;
-
-        // Aguarda o header carregar para pegar o logoutLink
-        setTimeout(() => {
-            logoutLink = document.getElementById('logoutLink');
-            if (logoutLink) {
-                logoutLink.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    signOut(auth)
-                        .then(() => {
-                            window.location.reload();
-                        })
-                        .catch((error) => {
-                            console.error('Erro no logout:', error);
-                            errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
-                        });
-                });
-            }
-        }, 1000); // Ajuste o tempo se necessário
+        const logoutLink = document.getElementById('logoutLink');
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -98,6 +67,20 @@
                     errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
                 });
         });
+
+        if (logoutLink) {
+            logoutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                signOut(auth)
+                    .then(() => {
+                        window.location.reload();
+                    })
+                    .catch((error) => {
+                        console.error('Erro no logout:', error);
+                        errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
+                    });
+            });
+        }
     </script>
 </body>
 </html>
