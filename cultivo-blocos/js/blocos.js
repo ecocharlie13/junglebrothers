@@ -34,16 +34,23 @@ const diaInfo = document.getElementById("dia-info");
 
 // 🔹 Sincroniza datas ao editar data-inicio
 inputDataInicio.addEventListener("change", () => {
-  blocos.forEach((bloco, i) => {
+  let acumuladorDias = 0;
+  blocos.forEach((bloco) => {
+    const dias = bloco.nome === "EVENTO" ? (bloco.periodo || 1) : 7;
+
     const ini = new Date(inputDataInicio.value);
-    ini.setDate(ini.getDate() + i * 7);
+    ini.setDate(ini.getDate() + acumuladorDias);
     const fim = new Date(ini);
-    fim.setDate(fim.getDate() + 6);
+    fim.setDate(fim.getDate() + dias - 1);
+
     bloco.inicio = ini.toISOString().split("T")[0];
     bloco.fim = fim.toISOString().split("T")[0];
+
+    acumuladorDias += dias;
   });
   renderizarBlocos();
 });
+
 
 // 🔹 Utilitários
 function calcularInicio(ordem) {
@@ -132,27 +139,30 @@ function renderizarBlocos() {
     // 🔹 BLOCO EVENTO (com expansão e edição)
     if (bloco.nome === "EVENTO") {
       header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
-      header.innerHTML = `<strong>EVENTO</strong><br><span class="text-sm">${bloco.data_evento || "Sem data definida"}</span>`;
+      header.innerHTML = `<strong>EVENTO</strong><br><span class="text-sm">${bloco.inicio || "Sem data definida"}</span>`;
 
       if (bloco.expandido) {
         corpo.className = "p-4 text-sm bg-gray-50 w-full";
         corpo.innerHTML = `
           <label>Título do Evento:
-            <input type="text" id="titulo-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.titulo_evento || ""}" />
+            <input type="text" id="titulo-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.titulo || ""}" />
           </label>
           <label>Data:
-            <input type="date" id="data-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.data_evento || ""}" />
+            <input type="date" id="inicio-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.inicio || ""}" />
+          </label>
+          <label>Duração (dias):
+            <input type="number" id="periodo-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.periodo || 1}" />
           </label>
           <label>Notas:
-            <textarea id="notas-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
+            <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
           </label>
           ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
         `;
       } else {
         corpo.className = "p-4 text-sm";
         corpo.innerHTML = `
-          <div><strong>${bloco.titulo_evento || "EVENTO"}</strong></div>
-          <div>🗓️ ${bloco.data_evento || "Sem data"}</div>
+          <div><strong>${bloco.titulo || "EVENTO"}</strong></div>
+          <div>🗓️ ${bloco.inicio || "Sem data"}</div>
           <div class="mt-2">${bloco.notas || ""}</div>
         `;
       }
@@ -226,14 +236,21 @@ function renderizarBlocos() {
         });
         blocos = novos;
 
-        blocos.forEach((bloco, i) => {
+        let acumuladorDias = 0;
+        blocos.forEach((bloco) => {
+          const dias = bloco.nome === "EVENTO" ? (bloco.periodo || 1) : 7;
+
           const ini = new Date(inputDataInicio.value);
-          ini.setDate(ini.getDate() + i * 7);
+          ini.setDate(ini.getDate() + acumuladorDias);
           const fim = new Date(ini);
-          fim.setDate(fim.getDate() + 6);
+          fim.setDate(fim.getDate() + dias - 1);
+
           bloco.inicio = ini.toISOString().split("T")[0];
           bloco.fim = fim.toISOString().split("T")[0];
+
+          acumuladorDias += dias;
         });
+
 
         renderizarBlocos();
       }
@@ -246,26 +263,37 @@ function renderizarBlocos() {
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
     const get = id => document.getElementById(`${id}-${i}`)?.value;
-    bloco.etapa = get("etapa") || bloco.etapa;
-    bloco.fase = get("fase") || bloco.fase;
-    bloco.estrategia = get("estrategia") || bloco.estrategia;
-    bloco.receita.nutrientes = get("nutrientes") || bloco.receita.nutrientes;
 
-    const r = get("receita") || "";
-    const matches = r.match(/A:\s*([\d.,]+)\s*\/\s*B:\s*([\d.,]+)\s*\/\s*C:\s*([\d.,]+)/);
-    if (matches) [bloco.receita.A, bloco.receita.B, bloco.receita.C] = [matches[1], matches[2], matches[3]];
+    if (bloco.nome === "EVENTO") {
+      bloco.titulo = get("titulo-evento") || bloco.titulo;
+      bloco.inicio = get("data-evento") || bloco.inicio;
+      const periodo = parseInt(get("periodo-evento"));
+      bloco.periodo = !isNaN(periodo) && periodo > 0 ? periodo : bloco.periodo || 1;
+      bloco.notas = document.getElementById(`notas-evento-${i}`)?.value || bloco.notas;
+    } else {
+      bloco.etapa = get("etapa") || bloco.etapa;
+      bloco.fase = get("fase") || bloco.fase;
+      bloco.estrategia = get("estrategia") || bloco.estrategia;
+      bloco.receita.nutrientes = get("nutrientes") || bloco.receita.nutrientes;
 
-    bloco.receita.ec_entrada = get("ec") || bloco.receita.ec_entrada;
-    bloco.receita.ec_saida = get("ec_saida") || bloco.receita.ec_saida;
-    bloco.receita.runoff = get("runoff") || bloco.receita.runoff;
-    bloco.receita.dryback = get("dryback") || bloco.receita.dryback;
-    bloco.receita.temperatura = get("temp") || bloco.receita.temperatura;
-    bloco.receita.ur = get("ur") || bloco.receita.ur;
-    bloco.receita.vpd = get("vpd") || bloco.receita.vpd;
-    bloco.receita.ppfd = get("ppfd") || bloco.receita.ppfd;
-    bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
+      const r = get("receita") || "";
+      const matches = r.match(/A:\s*([\d.,]+)\s*\/\s*B:\s*([\d.,]+)\s*\/\s*C:\s*([\d.,]+)/);
+      if (matches) [bloco.receita.A, bloco.receita.B, bloco.receita.C] = [matches[1], matches[2], matches[3]];
+
+      bloco.receita.ec_entrada = get("ec") || bloco.receita.ec_entrada;
+      bloco.receita.ec_saida = get("ec_saida") || bloco.receita.ec_saida;
+      bloco.receita.runoff = get("runoff") || bloco.receita.runoff;
+      bloco.receita.dryback = get("dryback") || bloco.receita.dryback;
+      bloco.receita.temperatura = get("temp") || bloco.receita.temperatura;
+      bloco.receita.ur = get("ur") || bloco.receita.ur;
+      bloco.receita.vpd = get("vpd") || bloco.receita.vpd;
+      bloco.receita.ppfd = get("ppfd") || bloco.receita.ppfd;
+      bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
+    }
   });
 }
+
+
 
 // 🔹 Adicionar novo bloco
 window.adicionarBloco = function(tipo) {
@@ -291,11 +319,12 @@ window.adicionarBloco = function(tipo) {
 
   // ajuste específico para EVENTO
   if (tipo === "EVENTO") {
-    blocoBase.duracao = 0;
-    blocoBase.texto_evento = "";
-    blocoBase.inicio = null;
-    blocoBase.fim = null;
+    blocoBase.periodo = 1;
+    blocoBase.titulo_evento = "";
+    blocoBase.inicio = ""; // será ajustado dinamicamente
+    blocoBase.fim = "";
   }
+
 
   blocos.push(blocoBase);
   renderizarBlocos();
