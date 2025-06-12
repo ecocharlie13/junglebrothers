@@ -24,7 +24,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -50,6 +50,28 @@
         const plantNameInput = document.getElementById('plantName');
         const addPlantBtn = document.getElementById('addPlantBtn');
 
+        // Verifica resultado de redirecionamento
+        getRedirectResult(auth)
+            .then((result) => {
+                if (result) {
+                    // Usuário logado via redirecionamento
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            loginBtn.classList.add('hidden');
+                            userInfo.classList.remove('hidden');
+                            appContent.classList.remove('hidden');
+                            userName.textContent = user.displayName;
+                            loadPlants(user.uid);
+                            errorLog.textContent = '';
+                        }
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error('Erro no redirecionamento:', error);
+                errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
+            });
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loginBtn.classList.add('hidden');
@@ -67,26 +89,12 @@
 
         loginBtn.addEventListener('click', () => {
             const provider = new GoogleAuthProvider();
-            let popup;
-            signInWithPopup(auth, provider)
-                .then((result) => {
-                    // Usuário logado com sucesso
-                })
-                .catch((error) => {
-                    if (popup && popup.closed) {
-                        errorLog.textContent = `Erro: Popup fechado pelo usuário`;
-                    } else {
-                        console.error('Erro no login:', error);
-                        errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
-                    }
-                });
-            popup = window.open('', '_blank', 'width=500,height=500');
+            signInWithRedirect(auth, provider);
         });
 
         logoutBtn.addEventListener('click', () => {
             signOut(auth)
                 .then(() => {
-                    // Recarrega a página após logout
                     window.location.reload();
                 })
                 .catch((error) => {
