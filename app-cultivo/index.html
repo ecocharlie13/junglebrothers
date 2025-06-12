@@ -1,86 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App de Cultivo de Cannabis</title>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CultivoApp</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-gray-100">
-    <div id="header"></div>
-
-    <div class="flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
-        <button id="loginBtn" class="bg-blue-500 text-white px-4 py-2 rounded hidden">Login com Google</button>
-        <div id="blankPage" class="flex-col items-center justify-center min-h-[calc(100vh-64px)] hidden">
-            <p class="text-2xl text-gray-700">Página em Branco após Login</p>
-        </div>
-        <div id="errorLog" class="mt-4 text-red-500"></div>
-    </div>
-
-    <script type="module">
-        // Importar e criar o header da subpasta
-        import { createHeader } from './header/header.js';
-        document.getElementById('header').appendChild(createHeader());
-
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
-            authDomain: "jungle-brothers-93e80.firebaseapp.com",
-            projectId: "jungle-brothers-93e80",
-            storageBucket: "jungle-brothers-93e80.firebasestorage.app",
-            messagingSenderId: "221354970870",
-            appId: "1:221354970870:web:a7f68c75480dc094bba6d7"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const errorLog = document.getElementById('errorLog');
-        const loginBtn = document.getElementById('loginBtn');
-        const blankPage = document.getElementById('blankPage');
-        const logoutLink = document.getElementById('logoutLink');
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                loginBtn.classList.add('hidden');
-                blankPage.classList.remove('hidden');
-                if (logoutLink) logoutLink.style.display = 'block';
-            } else {
-                loginBtn.classList.remove('hidden');
-                blankPage.classList.add('hidden');
-                if (logoutLink) logoutLink.style.display = 'none';
-            }
-        });
-
-        loginBtn.addEventListener('click', () => {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider)
-                .then((result) => {
-                    loginBtn.classList.add('hidden');
-                    blankPage.classList.remove('hidden');
-                    errorLog.textContent = '';
-                })
-                .catch((error) => {
-                    console.error('Erro no login:', error);
-                    errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
-                });
-        });
-
-        if (logoutLink) {
-            logoutLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                signOut(auth)
-                    .then(() => {
-                        window.location.reload();
-                    })
-                    .catch((error) => {
-                        console.error('Erro no logout:', error);
-                        errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
-                    });
-            });
-        }
-    </script>
+<body>
+  <header>
+    <h1>CultivoApp</h1>
+  </header>
+  <main>
+    <section id="home">
+      <h2>Bem-vindo ao CultivoApp</h2>
+      <p>Gerencie seus cultivos de forma simples.</p>
+    </section>
+  </main>
+  <script src="js/scripts.js"></script>
 </body>
 </html>
