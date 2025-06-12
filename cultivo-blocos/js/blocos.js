@@ -1,4 +1,4 @@
-  // 🔹 Imports
+// 🔹 Imports
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -21,185 +21,101 @@ const cores = {
   VEGETAR: "bg-green-600",
   FLORAR: "bg-orange-500",
   FLUSH: "bg-blue-500",
-  TAREFA: "bg-red-500",
+  EVENTO: "bg-red-500",
 };
 
 // 🔹 Referências DOM
 const blocosContainer = document.getElementById("blocos-container");
-const inputDataInicio = document.getElementById("data-inicio");
-const inputNome = document.getElementById("nome-cultivo");
-const btnSalvar = document.getElementById("btn-salvar");
-const colheitaInfo = document.getElementById("colheita-info");
-const diaInfo = document.getElementById("dia-info");
-
-// 🔹 Sincroniza datas ao editar data-inicio
-inputDataInicio.addEventListener("change", () => {
-  blocos.forEach((bloco, i) => {
-    const ini = new Date(inputDataInicio.value);
-    ini.setDate(ini.getDate() + i * 7);
-    const fim = new Date(ini);
-    fim.setDate(fim.getDate() + 6);
-    bloco.inicio = ini.toISOString().split("T")[0];
-    bloco.fim = fim.toISOString().split("T")[0];
-  });
-  renderizarBlocos();
-});
+const salvarBtn = document.getElementById("salvar");
+const cultivoInput = document.getElementById("nome-cultivo");
+const dataInput = document.getElementById("data-inicio");
+const alternarBtn = document.getElementById("alternar");
+const previsaoColheita = document.getElementById("previsao-colheita");
+const diaAtualLinha = document.getElementById("dia-atual");
 
 // 🔹 Utilitários
-function calcularInicio(ordem) {
-  const dataInicial = new Date(inputDataInicio.value);
-  dataInicial.setDate(dataInicial.getDate() + ordem * 7);
-  return dataInicial;
+function formatarData(dataStr) {
+  if (!dataStr) return "-";
+  const data = new Date(dataStr);
+  return data.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
 }
 
-function formatarData(dataStr) {
-  if (!dataStr) return "--";
-  const meses = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const [ano, mes, dia] = dataStr.split("-");
-  return `${dia}-${meses[parseInt(mes) - 1]}-${ano}`;
+function calcularDiasEntre(inicio, fim) {
+  const i = new Date(inicio);
+  const f = new Date(fim);
+  const diff = (f - i) / (1000 * 60 * 60 * 24);
+  return Math.round(diff);
+}
+
+function criarElemento(tag, classe = "", html = "") {
+  const el = document.createElement(tag);
+  if (classe) el.className = classe;
+  if (html) el.innerHTML = html;
+  return el;
 }
 
 function atualizarColheitaEDiaAtual() {
   const hoje = new Date();
-  const tarefa = blocos.find(b => b.nome === "TAREFA");
-  colheitaInfo.textContent = tarefa ? `🌾 Colheita em ${formatarData(tarefa.inicio)}` : "";
+  let colheita = null;
+  let acumulado = 0;
 
-  const ativo = blocos.find(b => {
-    const ini = new Date(b.inicio);
-    const fim = new Date(b.fim);
-    return ini <= hoje && fim >= hoje;
-  });
-  if (ativo) {
-    const faseAtual = ativo.nome;
-    let diaTotal = 0;
-    for (const bloco of blocos) {
-      if (bloco.nome !== faseAtual) continue;
-      const ini = new Date(bloco.inicio);
-      const fim = new Date(bloco.fim);
-      if (hoje > fim) diaTotal += 7;
-      else if (hoje >= ini && hoje <= fim)
-        diaTotal += Math.floor((hoje - ini) / (1000 * 60 * 60 * 24)) + 1;
+  for (const bloco of blocos) {
+    if (bloco.nome === "EVENTO") continue;
+
+    const inicio = new Date(bloco.inicio);
+    const fim = new Date(bloco.fim);
+    if (hoje >= inicio && hoje <= fim) {
+      const dia = calcularDiasEntre(inicio, hoje) + 1;
+      diaAtualLinha.textContent = `🌱 ${bloco.nome} dia ${dia}`;
     }
-    diaInfo.textContent = `📅 ${faseAtual} dia ${diaTotal}`;
-  } else {
-    diaInfo.textContent = "";
+
+    if (!colheita && bloco.nome === "PROCESSAR") {
+      colheita = bloco.inicio;
+    }
   }
+
+  previsaoColheita.textContent = colheita
+    ? `🌾 Colheita em ${formatarData(colheita)}`
+    : "🌾 Colheita: não definida";
 }
-  
-// 🔹 Renderiza todos os blocos
+
+// 🔹 Renderização
 function renderizarBlocos() {
-  atualizarDados(); // garante que os campos editados sejam preservados
   blocosContainer.innerHTML = "";
-  const hoje = new Date();
-  const contagemPorTipo = {};
-
-  // Mostra ou oculta os botões de adicionar e salvar
-  const botoesAdicionar = document.getElementById("botoes-adicionar");
-  if (botoesAdicionar) {
-    botoesAdicionar.style.display = modoEdicao ? "flex" : "none";
-  }
-
-  const btnSalvarWrapper = document.getElementById("btn-salvar-wrapper");
-  if (btnSalvarWrapper) {
-    btnSalvarWrapper.style.display = modoEdicao ? "block" : "none";
-  }
-
   blocos.forEach((bloco, i) => {
-    const tipo = bloco.nome;
+    const wrapper = criarElemento("div", "relative p-4 rounded shadow mb-4 " + (cores[bloco.nome] || "bg-gray-300"));
 
-    // ... restante da renderização dos blocos
-    
+    const header = criarElemento("div", "flex justify-between items-center cursor-pointer");
+    header.innerHTML = `
+      <strong class="text-white">Semana ${i + 1} – ${bloco.nome}</strong>
+      <button class="text-sm text-white underline" onclick="alternarVisualizacao(${i})">${bloco.expandido ? "Fechar" : "Expandir"}</button>
+    `;
 
-// se for FLUSH, número total acumulado até aqui
-let semanaNumero;
-if (tipo === "FLUSH") {
-  const semanasFlorar = blocos.slice(0, i).filter(b => b.nome === "FLORAR").length;
-  semanaNumero = semanasFlorar + 1;
-} else {
-  contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
-  semanaNumero = contagemPorTipo[tipo];
-}
-
-    const wrapper = document.createElement("div");
-    wrapper.className = `w-full bg-white shadow border rounded overflow-hidden relative mb-4`;
-    wrapper.setAttribute("data-index", i);
-
-    let estiloExtra = "";
-    const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
-    const fim = bloco.fim ? new Date(bloco.fim) : null;
-    if (inicio && fim) {
-      if (fim < hoje) estiloExtra = "opacity-40";
-      else if (inicio <= hoje && fim >= hoje) estiloExtra = "ring-4 ring-yellow-400";
-    }
-
-    const header = document.createElement("div");
-    header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
-    header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
-    header.addEventListener("click", () => {
-      bloco.expandido = !bloco.expandido;
-      renderizarBlocos();
-    });
-
-    const corpo = document.createElement("div");
-    corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
+    const corpo = criarElemento("div", "mt-2 bg-white p-3 rounded");
 
     if (!bloco.expandido) {
-      if (bloco.nome === "TAREFA") {
-        const tarefas = [...(bloco.tarefas || [])].sort((a, b) => (a.data || "") > (b.data || "") ? 1 : -1);
-        let tarefasHtml = "";
-        if (modoEdicao) {
-          tarefasHtml = tarefas.map((tarefa, idx) => `
-            <div class="flex items-center gap-2 mb-1">
-              <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} onchange="atualizarConclusao(this)">
-
-              <input type="text" value="${tarefa.descricao || ""}" placeholder="Descrição"
-                class="flex-1 px-2 py-1 border rounded"
-                oninput="atualizarDescricao(${i}, ${idx}, this.value)"
-              >
-
-              <div class="flex items-center gap-1">
-                <div class="relative">
-                  <button type="button" onclick="document.getElementById('data-${i}-${idx}').showPicker()"
-                    class="p-1 rounded border text-xs bg-white hover:bg-gray-100">
-                    📅
-                  </button>
-                  <input type="date"
-                    id="data-${i}-${idx}"
-                    value="${tarefa.data || ""}"
-                    class="absolute top-0 left-0 opacity-0 w-0 h-0"
-                    tabindex="-1"
-                    aria-hidden="true"
-                    onchange="atualizarDataTarefa(${i}, ${idx}, this.value)"
-                  />
-                </div>
-                <button onclick="removerTarefa(${i}, ${idx})" class="text-red-500 text-sm hover:text-red-700">❌</button>
-              </div>
-            </div>
-          `).join("");
-        } else {
-          tarefasHtml = tarefas.map((tarefa) => `
-            <div class="flex items-center justify-between mb-1 text-sm">
-              <div class="flex-1 truncate ${tarefa.concluida ? 'line-through text-gray-500' : ''}">
-                ${tarefa.descricao || "-"}
-              </div>
-              <div class="text-xs text-gray-600">${tarefa.data || "-"}</div>
-            </div>
-          `).join("");
-        }
+      if (bloco.nome === "EVENTO") {
+        const dataHtml = modoEdicao
+          ? `
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-700">📅</span>
+              <input type="date" id="evento-${i}" class="border px-2 py-1 rounded" value="${bloco.data || ""}" onchange="atualizarDataEvento(${i}, this.value)">
+            </div>`
+          : `<div class="text-sm text-gray-700">${bloco.data ? `📅 ${formatarData(bloco.data)}` : "Sem data"}</div>`;
 
         corpo.innerHTML = `
           <div><strong>${bloco.nome}</strong></div>
-          <div class="mt-2">
-            ${tarefasHtml || "<div class='text-gray-400 italic'>Sem tarefas</div>"}
-            ${modoEdicao ? `<button class="mt-2 px-2 py-1 bg-green-600 text-white rounded" onclick="adicionarTarefa(${i})">+ Tarefa</button>` : ""}
-          </div>
+          <div class="mt-2">${dataHtml}</div>
           <label class="block mt-4">
             Notas:
             <textarea id="notas-${i}" class="w-full border rounded px-2 py-1 mt-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
           </label>
         `;
       } else {
-    // segue o bloco não-TAREFA normalmente...
         const estrategia = bloco.estrategia || "-";
         const vpd = bloco.receita.vpd || "-";
         const temp = bloco.receita.temperatura || "-";
@@ -231,42 +147,30 @@ if (tipo === "FLUSH") {
         `;
       }
     } else {
-      // ... (segue o bloco expandido normalmente)
       corpo.innerHTML = `
-  <label>Etapa:
-    <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-      ${["", "PROPAGAR", "VEGETAR", "INÍCIO DE FLORA", "MEIO DE FLORA", "FIM DE FLORA", "FLUSH"]
-        .map(opt => `<option value="${opt}" ${opt === bloco.etapa ? "selected" : ""}>${opt || "Selecione"}</option>`)
-        .join("")}
-    </select>
-  </label>
-  <label>Fase:
-    <select id="fase-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-      ${["", "PROPAGAR", "VEGETAR", "ESTIRAMENTO", "VOLUME", "ACABAMENTO"]
-        .map(opt => `<option value="${opt}" ${opt === bloco.fase ? "selected" : ""}>${opt || "Selecione"}</option>`)
-        .join("")}
-    </select>
-  </label>
-  <label>Estratégia:
-    <select id="estrategia-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-      ${["", "PROPAGAR", "VEGETATIVO", "GENERATIVO", "MISTO (VEG/GEN)"]
-        .map(opt => `<option value="${opt}" ${opt === bloco.estrategia ? "selected" : ""}>${opt || "Selecione"}</option>`)
-        .join("")}
-    </select>
-  </label>
-  <label>Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.nutrientes || ""}" /></label>
-  <label>Receita (g/L): <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}" /></label>
-  <label>EC Entrada: <input type="text" id="ec-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_entrada || ""}" /></label>
-  <label>EC Saída: <input type="text" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_saida || ""}" /></label>
-  <label>Runoff (%): <input type="text" id="runoff-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.runoff || ""}" /></label>
-  <label>Dryback (%): <input type="text" id="dryback-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.dryback || ""}" /></label>
-  <label>Temperatura: <input type="text" id="temp-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.temperatura || ""}" /></label>
-  <label>UR: <input type="text" id="ur-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ur || ""}" /></label>
-  <label>VPD: <input type="text" id="vpd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.vpd || ""}" /></label>
-  <label>PPFD: <input type="text" id="ppfd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ppfd || ""}" /></label>
-  <label>Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea></label>
-  ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
-`;
+        <label>Etapa:
+          <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
+            ${["", "CLONAR", "VEGETAR", "FLORAR", "FLUSH", "PROCESSAR", "EVENTO"]
+              .map(opt => `<option value="${opt}" ${opt === bloco.nome ? "selected" : ""}>${opt || "Selecione"}</option>`)
+              .join("")}
+          </select>
+        </label>
+        <label>Início:
+          <input type="date" id="inicio-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.inicio || ""}">
+        </label>
+        <label>Fim:
+          <input type="date" id="fim-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.fim || ""}">
+        </label>
+        <label>Estratégia:
+          <input type="text" id="estrategia-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.estrategia || ""}">
+        </label>
+        <label>Receita:
+          <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="A:${bloco.receita.A || ""} / B:${bloco.receita.B || ""} / C:${bloco.receita.C || ""}">
+        </label>
+        <label>Notas:
+          <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
+        </label>
+      `;
     }
 
     wrapper.appendChild(header);
@@ -274,193 +178,92 @@ if (tipo === "FLUSH") {
     blocosContainer.appendChild(wrapper);
   });
 
-    atualizarColheitaEDiaAtual();
-
-  // Remove o Sortable anterior se já existir
-if (sortableInstance) {
-  sortableInstance.destroy();
-  sortableInstance = null;
+  atualizarColheitaEDiaAtual();
 }
 
-if (modoEdicao) {
-  sortableInstance = Sortable.create(blocosContainer, {
-    animation: 150,
-    onEnd: () => {
-      const novos = [];
-      const divs = blocosContainer.querySelectorAll("[data-index]");
-      divs.forEach(div => {
-        const index = parseInt(div.getAttribute("data-index"));
-        novos.push(blocos[index]);
-      });
-      blocos = novos;
-      // Recalcula datas após reordenar
-      blocos.forEach((bloco, i) => {
-        const ini = new Date(inputDataInicio.value);
-        ini.setDate(ini.getDate() + i * 7);
-        const fim = new Date(ini);
-        fim.setDate(fim.getDate() + 6);
-        bloco.inicio = ini.toISOString().split("T")[0];
-        bloco.fim = fim.toISOString().split("T")[0];
-      });
-      renderizarBlocos();
-    }
-  });
-}
-}
+// 🔹 Funções de interação
+window.alternarVisualizacao = (index) => {
+  blocos[index].expandido = !blocos[index].expandido;
+  renderizarBlocos();
+};
 
-// 🔹 Atualiza dados dos inputs para o array
-function atualizarDados() {
-  blocos.forEach((bloco, i) => {
-    const get = id => document.getElementById(`${id}-${i}`)?.value;
-    bloco.etapa = get("etapa") || bloco.etapa;
-    bloco.fase = get("fase") || bloco.fase;
-    bloco.estrategia = get("estrategia") || bloco.estrategia;
-    bloco.receita.nutrientes = get("nutrientes") || bloco.receita.nutrientes;
+window.atualizarDataEvento = (index, novaData) => {
+  blocos[index].data = novaData;
+};
 
-    const r = get("receita") || "";
-    const matches = r.match(/A:\s*([\d.,]+)\s*\/\s*B:\s*([\d.,]+)\s*\/\s*C:\s*([\d.,]+)/);
-    if (matches) [bloco.receita.A, bloco.receita.B, bloco.receita.C] = [matches[1], matches[2], matches[3]];
-
-    bloco.receita.ec_entrada = get("ec") || bloco.receita.ec_entrada;
-    bloco.receita.ec_saida = get("ec_saida") || bloco.receita.ec_saida;
-    bloco.receita.runoff = get("runoff") || bloco.receita.runoff;
-    bloco.receita.dryback = get("dryback") || bloco.receita.dryback;
-    bloco.receita.temperatura = get("temp") || bloco.receita.temperatura;
-    bloco.receita.ur = get("ur") || bloco.receita.ur;
-    bloco.receita.vpd = get("vpd") || bloco.receita.vpd;
-    bloco.receita.ppfd = get("ppfd") || bloco.receita.ppfd;
-    bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
-  });
-}
-
-// 🔹 Adicionar novo bloco
-window.adicionarBloco = function(tipo) {
-  if (!inputDataInicio.value) return alert("Selecione a data de início.");
-  const ordem = blocos.length;
-  const inicio = calcularInicio(ordem);
-  const fim = new Date(inicio); fim.setDate(fim.getDate() + 6);
+window.adicionarBloco = () => {
   blocos.push({
-    nome: tipo,
-    etapa: "",
-    fase: "",
+    nome: "CLONAR",
+    inicio: "",
+    fim: "",
     estrategia: "",
-    ordem,
-    inicio: inicio.toISOString().split("T")[0],
-    fim: fim.toISOString().split("T")[0],
-    receita: { ec_entrada: "", ec_saida: "", nutrientes: "", A: "", B: "", C: "", runoff: "", dryback: "", temperatura: "", ur: "", vpd: "", ppfd: "" },
+    receita: {},
     notas: "",
-    tarefas: [],
-    cor: cores[tipo],
-    expandido: false,
+    expandido: true,
   });
   renderizarBlocos();
 };
 
-// 🔹 Salvar cultivo no Firestore
-async function salvarCultivo() {
-  atualizarDados();
-  if (!inputDataInicio.value || !inputNome.value) return alert("Preencha nome e data.");
-  const cultivo = {
-    nome: inputNome.value,
-    data_inicio: inputDataInicio.value,
-    criado_em: Timestamp.now(),
+window.removerBloco = (index) => {
+  if (confirm("Remover este bloco?")) {
+    blocos.splice(index, 1);
+    renderizarBlocos();
+  }
+};
+
+alternarBtn.addEventListener("click", () => {
+  modoEdicao = !modoEdicao;
+  alternarBtn.textContent = modoEdicao ? "🔒 Visualizar" : "✏️ Editar";
+  renderizarBlocos();
+});
+
+salvarBtn.addEventListener("click", async () => {
+  const nome = cultivoInput.value.trim();
+  const data = dataInput.value;
+
+  if (!nome || !data) {
+    alert("Preencha nome e data de início.");
+    return;
+  }
+
+  const dados = {
+    nome,
+    data,
     blocos,
+    atualizado: Timestamp.now()
   };
+
   try {
     if (cultivoId) {
-      await updateDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
-      alert("Cultivo atualizado.");
+      await updateDoc(doc(db, "cultivos", cultivoId), dados);
     } else {
-      await addDoc(collection(db, "cultivos_blocos"), cultivo);
-      alert("Cultivo salvo.");
+      const docRef = await addDoc(collection(db, "cultivos"), dados);
+      cultivoId = docRef.id;
     }
+    alert("Cultivo salvo!");
   } catch (e) {
     console.error("Erro ao salvar:", e);
-    alert("Erro ao salvar.");
+    alert("Erro ao salvar cultivo.");
   }
-}
+});
 
-// 🔹 Carregar cultivo existente
-async function carregarCultivoExistente(id) {
+// 🔹 Inicialização
+(async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const id = urlParams.get("id");
+  if (!id) return;
+
   try {
-    const snap = await getDoc(doc(db, "cultivos_blocos", id));
+    const snap = await getDoc(doc(db, "cultivos", id));
     if (snap.exists()) {
       const dados = snap.data();
-      inputDataInicio.value = dados.data_inicio;
-      inputNome.value = dados.nome;
+      cultivoInput.value = dados.nome || "";
+      dataInput.value = dados.data || "";
       blocos = dados.blocos || [];
+      cultivoId = id;
       renderizarBlocos();
     }
   } catch (e) {
-    console.error("Erro ao carregar:", e);
+    console.error("Erro ao carregar cultivo:", e);
   }
-}
-
-// 🔹 Inicializar se já existir ID na URL
-document.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(window.location.search);
-  if (params.has("id")) {
-    cultivoId = params.get("id");
-    carregarCultivoExistente(cultivoId);
-  }
-});
-
-// 🔹 Botão salvar
-btnSalvar?.addEventListener("click", salvarCultivo);
-
-// 🔹 Botão modo edição
-const btnEditar = document.createElement("button");
-btnEditar.textContent = "✏️ Editar";
-btnEditar.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 z-50";
-btnEditar.addEventListener("click", () => {
-  modoEdicao = !modoEdicao;
-  btnEditar.textContent = modoEdicao ? "✅ Visualizar" : "✏️ Editar";
-  renderizarBlocos();
-});
-document.body.appendChild(btnEditar);
-
-// 🔹 Torna a função removerBloco acessível globalmente
-window.removerBloco = function(index) {
-  blocos.splice(index, 1);
-  renderizarBlocos();
-};
-    
-// 🔹 Adicionar nova tarefa ao bloco TAREFA
-window.adicionarTarefa = function(index) {
-  if (!blocos[index].tarefas) {
-    blocos[index].tarefas = [];
-  }
-  blocos[index].tarefas.push({
-    descricao: "",
-    data: "",
-    concluida: false
-  });
-  renderizarBlocos();
-};
-// 🔹 Atualizar status de conclusão da tarefa
-window.atualizarConclusao = function(checkbox) {
-  const i = parseInt(checkbox.dataset.i);
-  const idx = parseInt(checkbox.dataset.idx);
-  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
-    blocos[i].tarefas[idx].concluida = checkbox.checked;
-  }
-};
-// 🔹 Remover tarefa de um bloco TAREFA
-window.removerTarefa = function(i, idx) {
-  if (blocos[i]?.tarefas) {
-    blocos[i].tarefas.splice(idx, 1); // remove a tarefa da lista
-    renderizarBlocos(); // re-renderiza os blocos para refletir a mudança
-  }
-};
-// 🔹 Atualizar descrição da tarefa
-window.atualizarDescricao = function(i, idx, valor) {
-  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
-    blocos[i].tarefas[idx].descricao = valor;
-  }
-};
-// 🔹 Atualizar data da tarefa
-window.atualizarDataTarefa = function(i, idx, valor) {
-  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
-    blocos[i].tarefas[idx].data = valor;
-  }
-};
+})();
