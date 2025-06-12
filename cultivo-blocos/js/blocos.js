@@ -129,67 +129,78 @@ function renderizarBlocos() {
     const header = document.createElement("div");
     const corpo = document.createElement("div");
 
-    // 🔴 BLOCO TAREFA - sempre vazio, sem conteúdo
-    if (bloco.nome === "TAREFA") {
-      header.className = `${bloco.cor} h-8`; // linha vermelha
-      corpo.className = "bg-white h-24";     // corpo branco
-      corpo.innerHTML = "";
-    }
-    // 🔹 BLOCO EVENTO - exibe título simples
-    else if (bloco.nome === "EVENTO") {
-      header.className = `${bloco.cor} text-white px-4 py-2`;
-      header.innerHTML = `<strong>EVENTO</strong>`;
-      corpo.className = "bg-white h-16";
-      corpo.innerHTML = "";
+    // 🔹 BLOCO EVENTO (com expansão e edição)
+    if (bloco.nome === "EVENTO") {
+      header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
+      header.innerHTML = `<strong>EVENTO</strong><br><span class="text-sm">${bloco.data_evento || "Sem data definida"}</span>`;
+
+      if (bloco.expandido) {
+        corpo.className = "p-4 text-sm bg-gray-50 w-full";
+        corpo.innerHTML = `
+          <label>Título do Evento:
+            <input type="text" id="titulo-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.titulo_evento || ""}" />
+          </label>
+          <label>Data:
+            <input type="date" id="data-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.data_evento || ""}" />
+          </label>
+          <label>Notas:
+            <textarea id="notas-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
+          </label>
+          ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
+        `;
+      } else {
+        corpo.className = "p-4 text-sm";
+        corpo.innerHTML = `
+          <div><strong>${bloco.titulo_evento || "EVENTO"}</strong></div>
+          <div>🗓️ ${bloco.data_evento || "Sem data"}</div>
+          <div class="mt-2">${bloco.notas || ""}</div>
+        `;
+      }
     }
 
-    // BLOCO EXPANDIDO (exceto TAREFA)
+    // 🔹 BLOCO PADRÃO (expandido ou contraído)
     else {
       header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
       header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
       corpo.className = "p-4 text-sm bg-gray-50 w-full";
 
       corpo.innerHTML = `
-  <label>Etapa:
-    <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-      ${["", "PROPAGAR", "VEGETAR", "INÍCIO DE FLORA", "MEIO DE FLORA", "FIM DE FLORA", "FLUSH"]
-        .map(opt => `<option value="${opt}" ${opt === bloco.etapa ? "selected" : ""}>${opt || "Selecione"}</option>`)
-        .join("")}
-    </select>
-  </label>
-  <label>Fase:
-    <select id="fase-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-      ${["", "PROPAGAR", "VEGETAR", "ESTIRAMENTO", "VOLUME", "ACABAMENTO"]
-        .map(opt => `<option value="${opt}" ${opt === bloco.fase ? "selected" : ""}>${opt || "Selecione"}</option>`)
-        .join("")}
-    </select>
-  </label>
-  <label>Estratégia:
-    <select id="estrategia-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-      ${["", "PROPAGAR", "VEGETATIVO", "GENERATIVO", "MISTO (VEG/GEN)"]
-        .map(opt => `<option value="${opt}" ${opt === bloco.estrategia ? "selected" : ""}>${opt || "Selecione"}</option>`)
-        .join("")}
-    </select>
-  </label>
-  <label>Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.nutrientes || ""}" /></label>
-  <label>Receita (g/L): <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}" /></label>
-  <label>EC Entrada: <input type="text" id="ec-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_entrada || ""}" /></label>
-  <label>EC Saída: <input type="text" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_saida || ""}" /></label>
-  <label>Runoff (%): <input type="text" id="runoff-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.runoff || ""}" /></label>
-  <label>Dryback (%): <input type="text" id="dryback-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.dryback || ""}" /></label>
-  <label>Temperatura: <input type="text" id="temp-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.temperatura || ""}" /></label>
-  <label>UR: <input type="text" id="ur-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ur || ""}" /></label>
-  <label>VPD: <input type="text" id="vpd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.vpd || ""}" /></label>
-  <label>PPFD: <input type="text" id="ppfd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ppfd || ""}" /></label>
-  <label>Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea></label>
-  ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
-`;
+      <label>Etapa:
+        <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
+          ${["", "PROPAGAR", "VEGETAR", "INÍCIO DE FLORA", "MEIO DE FLORA", "FIM DE FLORA", "FLUSH"]
+            .map(opt => `<option value="${opt}" ${opt === bloco.etapa ? "selected" : ""}>${opt || "Selecione"}</option>`)
+            .join("")}
+        </select>
+      </label>
+      <label>Fase:
+        <select id="fase-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
+          ${["", "PROPAGAR", "VEGETAR", "ESTIRAMENTO", "VOLUME", "ACABAMENTO"]
+            .map(opt => `<option value="${opt}" ${opt === bloco.fase ? "selected" : ""}>${opt || "Selecione"}</option>`)
+            .join("")}
+        </select>
+      </label>
+      <label>Estratégia:
+        <select id="estrategia-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
+          ${["", "PROPAGAR", "VEGETATIVO", "GENERATIVO", "MISTO (VEG/GEN)"]
+            .map(opt => `<option value="${opt}" ${opt === bloco.estrategia ? "selected" : ""}>${opt || "Selecione"}</option>`)
+            .join("")}
+        </select>
+      </label>
+      <label>Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.nutrientes || ""}" /></label>
+      <label>Receita (g/L): <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}" /></label>
+      <label>EC Entrada: <input type="text" id="ec-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_entrada || ""}" /></label>
+      <label>EC Saída: <input type="text" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_saida || ""}" /></label>
+      <label>Runoff (%): <input type="text" id="runoff-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.runoff || ""}" /></label>
+      <label>Dryback (%): <input type="text" id="dryback-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.dryback || ""}" /></label>
+      <label>Temperatura: <input type="text" id="temp-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.temperatura || ""}" /></label>
+      <label>UR: <input type="text" id="ur-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ur || ""}" /></label>
+      <label>VPD: <input type="text" id="vpd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.vpd || ""}" /></label>
+      <label>PPFD: <input type="text" id="ppfd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ppfd || ""}" /></label>
+      <label>Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea></label>
+      ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
+      `;
     }
 
-    header.addEventListener("click", () => {
-      bloco.expandido = !bloco.expandido;
-      renderizarBlocos();
-    });
 
     wrapper.appendChild(header);
     wrapper.appendChild(corpo);
