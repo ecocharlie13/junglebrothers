@@ -7,17 +7,22 @@
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
-    <h1 class="text-3xl font-bold mb-4">App de Cultivo de Cannabis</h1>
-    <button id="loginBtn" class="bg-blue-500 text-white px-4 py-2 rounded">Login com Google</button>
-    <div id="blankPage" class="hidden flex-col items-center justify-center min-h-screen">
-        <p class="text-2xl">Página em Branco após Login</p>
+<body class="bg-gray-100">
+    <!-- Incluir o header -->
+    <iframe src="./header.html" frameborder="0" style="width: 100%; border: none; margin: 0; padding: 0;"></iframe>
+
+    <!-- Conteúdo principal -->
+    <div class="flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
+        <button id="loginBtn" class="bg-blue-500 text-white px-4 py-2 rounded hidden">Login com Google</button>
+        <div id="blankPage" class="flex-col items-center justify-center min-h-[calc(100vh-64px)] hidden">
+            <p class="text-2xl">Página em Branco após Login</p>
+        </div>
+        <div id="errorLog" class="mt-4 text-red-500"></div>
     </div>
-    <div id="errorLog" class="mt-4 text-red-500"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
@@ -33,15 +38,17 @@
         const errorLog = document.getElementById('errorLog');
         const loginBtn = document.getElementById('loginBtn');
         const blankPage = document.getElementById('blankPage');
+        const logoutLink = document.querySelector('iframe').contentWindow.document.getElementById('logoutLink'); // Acessa o link Sair no header
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loginBtn.classList.add('hidden');
                 blankPage.classList.remove('hidden');
-                errorLog.textContent = '';
+                if (logoutLink) logoutLink.style.display = 'block';
             } else {
                 loginBtn.classList.remove('hidden');
                 blankPage.classList.add('hidden');
+                if (logoutLink) logoutLink.style.display = 'none';
             }
         });
 
@@ -58,6 +65,20 @@
                     errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
                 });
         });
+
+        if (logoutLink) {
+            logoutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                signOut(auth)
+                    .then(() => {
+                        window.location.reload();
+                    })
+                    .catch((error) => {
+                        console.error('Erro no logout:', error);
+                        errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
+                    });
+            });
+        }
     </script>
 </body>
 </html>
