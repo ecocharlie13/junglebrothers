@@ -1,4 +1,4 @@
-// 🔹 Imports
+  // 🔹 Imports
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -22,84 +22,195 @@ const cores = {
   FLORAR: "bg-orange-500",
   FLUSH: "bg-blue-500",
   TAREFA: "bg-red-500",
-  EVENTO: "bg-red-500", // Novo tipo visualmente igual ao antigo "TAREFA"
 };
 
 // 🔹 Referências DOM
 const blocosContainer = document.getElementById("blocos-container");
-const btnSalvar = document.getElementById("salvar");
-const btnEditar = document.getElementById("editar");
-const tituloColheita = document.getElementById("titulo-colheita");
-const tituloDiaAtual = document.getElementById("titulo-dia-atual");
+const inputDataInicio = document.getElementById("data-inicio");
+const inputNome = document.getElementById("nome-cultivo");
+const btnSalvar = document.getElementById("btn-salvar");
+const colheitaInfo = document.getElementById("colheita-info");
+const diaInfo = document.getElementById("dia-info");
+
+// 🔹 Sincroniza datas ao editar data-inicio
+inputDataInicio.addEventListener("change", () => {
+  blocos.forEach((bloco, i) => {
+    const ini = new Date(inputDataInicio.value);
+    ini.setDate(ini.getDate() + i * 7);
+    const fim = new Date(ini);
+    fim.setDate(fim.getDate() + 6);
+    bloco.inicio = ini.toISOString().split("T")[0];
+    bloco.fim = fim.toISOString().split("T")[0];
+  });
+  renderizarBlocos();
+});
 
 // 🔹 Utilitários
+function calcularInicio(ordem) {
+  const dataInicial = new Date(inputDataInicio.value);
+  dataInicial.setDate(dataInicial.getDate() + ordem * 7);
+  return dataInicial;
+}
+
 function formatarData(dataStr) {
   if (!dataStr) return "--";
-  const [ano, mes, dia] = dataStr.split("-");
   const meses = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const [ano, mes, dia] = dataStr.split("-");
   return `${dia}-${meses[parseInt(mes) - 1]}-${ano}`;
 }
 
-function calcularDiasEntre(inicio, fim) {
-  const i = new Date(inicio);
-  const f = new Date(fim);
-  const diff = (f - i) / (1000 * 60 * 60 * 24);
-  return Math.round(diff);
-}
+function atualizarColheitaEDiaAtual() {
+  const hoje = new Date();
+  const tarefa = blocos.find(b => b.nome === "TAREFA");
+  colheitaInfo.textContent = tarefa ? `🌾 Colheita em ${formatarData(tarefa.inicio)}` : "";
 
-function criarElemento(tag, classe = "", html = "") {
-  const el = document.createElement(tag);
-  if (classe) el.className = classe;
-  if (html) el.innerHTML = html;
-  return el;
+  const ativo = blocos.find(b => {
+    const ini = new Date(b.inicio);
+    const fim = new Date(b.fim);
+    return ini <= hoje && fim >= hoje;
+  });
+  if (ativo) {
+    const faseAtual = ativo.nome;
+    let diaTotal = 0;
+    for (const bloco of blocos) {
+      if (bloco.nome !== faseAtual) continue;
+      const ini = new Date(bloco.inicio);
+      const fim = new Date(bloco.fim);
+      if (hoje > fim) diaTotal += 7;
+      else if (hoje >= ini && hoje <= fim)
+        diaTotal += Math.floor((hoje - ini) / (1000 * 60 * 60 * 24)) + 1;
+    }
+    diaInfo.textContent = `📅 ${faseAtual} dia ${diaTotal}`;
+  } else {
+    diaInfo.textContent = "";
+  }
 }
-
-// 🔹 Renderização dos blocos
+  
+// 🔹 Renderiza todos os blocos
 function renderizarBlocos() {
+  atualizarDados(); // garante que os campos editados sejam preservados
   blocosContainer.innerHTML = "";
+  const hoje = new Date();
+  const contagemPorTipo = {};
+
+  // Mostra ou oculta os botões de adicionar e salvar
+  const botoesAdicionar = document.getElementById("botoes-adicionar");
+  if (botoesAdicionar) {
+    botoesAdicionar.style.display = modoEdicao ? "flex" : "none";
+  }
+
+  const btnSalvarWrapper = document.getElementById("btn-salvar-wrapper");
+  if (btnSalvarWrapper) {
+    btnSalvarWrapper.style.display = modoEdicao ? "block" : "none";
+  }
 
   blocos.forEach((bloco, i) => {
-    const wrapper = criarElemento("div", "relative border rounded p-4 mb-4 shadow bg-white");
-    const header = criarElemento("div", `text-white px-4 py-2 rounded-t ${cores[bloco.tipo] || "bg-gray-400"}`);
-    const corpo = criarElemento("div", "mt-2");
+    const tipo = bloco.nome;
 
-    // 🔹 Título do bloco
-    const titulo = document.createElement("div");
-    titulo.innerHTML = `<strong>Semana ${i + 1} - ${bloco.nome}</strong>`;
-    header.appendChild(titulo);
+    // ... restante da renderização dos blocos
+    
 
-    // 🔹 Datas do bloco (condicional)
-    if (
-      bloco.tipo !== "EVENTO" &&
-      bloco.duracao > 0 &&
-      bloco.afetaCronograma !== false &&
-      bloco.inicio &&
-      bloco.fim
-    ) {
-      const datas = criarElemento("div", "text-xs text-gray-200", `${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}`);
-      header.appendChild(datas);
+// se for FLUSH, número total acumulado até aqui
+let semanaNumero;
+if (tipo === "FLUSH") {
+  const semanasFlorar = blocos.slice(0, i).filter(b => b.nome === "FLORAR").length;
+  semanaNumero = semanasFlorar + 1;
+} else {
+  contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
+  semanaNumero = contagemPorTipo[tipo];
+}
+
+    const wrapper = document.createElement("div");
+    wrapper.className = `w-full bg-white shadow border rounded overflow-hidden relative mb-4`;
+    wrapper.setAttribute("data-index", i);
+
+    let estiloExtra = "";
+    const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
+    const fim = bloco.fim ? new Date(bloco.fim) : null;
+    if (inicio && fim) {
+      if (fim < hoje) estiloExtra = "opacity-40";
+      else if (inicio <= hoje && fim >= hoje) estiloExtra = "ring-4 ring-yellow-400";
     }
 
-    // 🔹 Corpo do bloco
+    const header = document.createElement("div");
+    header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
+    header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
+    header.addEventListener("click", () => {
+      bloco.expandido = !bloco.expandido;
+      renderizarBlocos();
+    });
+
+    const corpo = document.createElement("div");
+    corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
+
     if (!bloco.expandido) {
-      if (bloco.tipo === "EVENTO") {
-        const nota = bloco.notas?.trim();
+      if (bloco.nome === "TAREFA") {
+        const tarefas = [...(bloco.tarefas || [])].sort((a, b) => (a.data || "") > (b.data || "") ? 1 : -1);
+        let tarefasHtml = "";
+        if (modoEdicao) {
+          tarefasHtml = tarefas.map((tarefa, idx) => `
+            <div class="flex items-center gap-2 mb-1">
+              <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} onchange="atualizarConclusao(this)">
+
+              <input type="text" value="${tarefa.descricao || ""}" placeholder="Descrição"
+                class="flex-1 px-2 py-1 border rounded"
+                oninput="atualizarDescricao(${i}, ${idx}, this.value)"
+              >
+
+              <div class="flex items-center gap-1">
+                <div class="relative">
+                  <button type="button" onclick="document.getElementById('data-${i}-${idx}').showPicker()"
+                    class="p-1 rounded border text-xs bg-white hover:bg-gray-100">
+                    📅
+                  </button>
+                  <input type="date"
+                    id="data-${i}-${idx}"
+                    value="${tarefa.data || ""}"
+                    class="absolute top-0 left-0 opacity-0 w-0 h-0"
+                    tabindex="-1"
+                    aria-hidden="true"
+                    onchange="atualizarDataTarefa(${i}, ${idx}, this.value)"
+                  />
+                </div>
+                <button onclick="removerTarefa(${i}, ${idx})" class="text-red-500 text-sm hover:text-red-700">❌</button>
+              </div>
+            </div>
+          `).join("");
+        } else {
+          tarefasHtml = tarefas.map((tarefa) => `
+            <div class="flex items-center justify-between mb-1 text-sm">
+              <div class="flex-1 truncate ${tarefa.concluida ? 'line-through text-gray-500' : ''}">
+                ${tarefa.descricao || "-"}
+              </div>
+              <div class="text-xs text-gray-600">${tarefa.data || "-"}</div>
+            </div>
+          `).join("");
+        }
+
         corpo.innerHTML = `
           <div><strong>${bloco.nome}</strong></div>
-          <div class="text-sm text-gray-600 mt-1">${nota ? nota.replace(/\n/g, "<br>") : "<em class='text-gray-400'>Sem notas</em>"}</div>
+          <div class="mt-2">
+            ${tarefasHtml || "<div class='text-gray-400 italic'>Sem tarefas</div>"}
+            ${modoEdicao ? `<button class="mt-2 px-2 py-1 bg-green-600 text-white rounded" onclick="adicionarTarefa(${i})">+ Tarefa</button>` : ""}
+          </div>
+          <label class="block mt-4">
+            Notas:
+            <textarea id="notas-${i}" class="w-full border rounded px-2 py-1 mt-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
+          </label>
         `;
       } else {
+    // segue o bloco não-TAREFA normalmente...
         const estrategia = bloco.estrategia || "-";
-        const vpd = bloco.receita?.vpd || "-";
-        const temp = bloco.receita?.temperatura || "-";
-        const ur = bloco.receita?.ur || "-";
-        const ppfd = bloco.receita?.ppfd || "-";
-        const ecEntrada = bloco.receita?.ec_entrada || "-";
-        const receita = bloco.receita?.A || bloco.receita?.B || bloco.receita?.C
+        const vpd = bloco.receita.vpd || "-";
+        const temp = bloco.receita.temperatura || "-";
+        const ur = bloco.receita.ur || "-";
+        const ppfd = bloco.receita.ppfd || "-";
+        const ecEntrada = bloco.receita.ec_entrada || "-";
+        const receita = bloco.receita.A || bloco.receita.B || bloco.receita.C
           ? `A:${bloco.receita.A || "-"} / B:${bloco.receita.B || "-"} / C:${bloco.receita.C || "-"}`
           : "-";
-        const runoff = bloco.receita?.runoff || "-";
-        const dryback = bloco.receita?.dryback || "-";
+        const runoff = bloco.receita.runoff || "-";
+        const dryback = bloco.receita.dryback || "-";
         const notas = bloco.notas || "-";
 
         corpo.innerHTML = `
@@ -119,51 +230,43 @@ function renderizarBlocos() {
           <div class="mt-2"><strong>Notas:</strong> ${notas}</div>
         `;
       }
-
     } else {
-      // 🔹 Bloco EXPANDIDO
-      if (bloco.tipo === "EVENTO") {
-        corpo.innerHTML = `
-          <label class="block font-semibold mb-1">Notas:</label>
-          <textarea id="notas-${i}" rows="6" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
-        `;
-      } else {
-        corpo.innerHTML = `
-          <label>Etapa:
-            <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-              ${["", "PROPAGAR", "VEGETAR", "INÍCIO DE FLORA", "MEIO DE FLORA", "FIM DE FLORA", "FLUSH"]
-                .map(opt => `<option value="${opt}" ${opt === bloco.etapa ? "selected" : ""}>${opt || "Selecione"}</option>`)
-                .join("")}
-            </select>
-          </label>
-          <label>Fase:
-            <select id="fase-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-              ${["", "PROPAGAR", "VEGETAR", "ESTIRAMENTO", "VOLUME", "ACABAMENTO"]
-                .map(opt => `<option value="${opt}" ${opt === bloco.fase ? "selected" : ""}>${opt || "Selecione"}</option>`)
-                .join("")}
-            </select>
-          </label>
-          <label>Estratégia:
-            <select id="estrategia-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-              ${["", "PROPAGAR", "VEGETATIVO", "GENERATIVO", "MISTO (VEG/GEN)"]
-                .map(opt => `<option value="${opt}" ${opt === bloco.estrategia ? "selected" : ""}>${opt || "Selecione"}</option>`)
-                .join("")}
-            </select>
-          </label>
-          <label>Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.nutrientes || ""}" /></label>
-          <label>Receita (g/L): <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}" /></label>
-          <label>EC Entrada: <input type="text" id="ec-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_entrada || ""}" /></label>
-          <label>EC Saída: <input type="text" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_saida || ""}" /></label>
-          <label>Runoff (%): <input type="text" id="runoff-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.runoff || ""}" /></label>
-          <label>Dryback (%): <input type="text" id="dryback-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.dryback || ""}" /></label>
-          <label>Temperatura: <input type="text" id="temp-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.temperatura || ""}" /></label>
-          <label>UR: <input type="text" id="ur-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ur || ""}" /></label>
-          <label>VPD: <input type="text" id="vpd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.vpd || ""}" /></label>
-          <label>PPFD: <input type="text" id="ppfd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ppfd || ""}" /></label>
-          <label>Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea></label>
-          ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
-        `;
-      }
+      // ... (segue o bloco expandido normalmente)
+      corpo.innerHTML = `
+  <label>Etapa:
+    <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
+      ${["", "PROPAGAR", "VEGETAR", "INÍCIO DE FLORA", "MEIO DE FLORA", "FIM DE FLORA", "FLUSH"]
+        .map(opt => `<option value="${opt}" ${opt === bloco.etapa ? "selected" : ""}>${opt || "Selecione"}</option>`)
+        .join("")}
+    </select>
+  </label>
+  <label>Fase:
+    <select id="fase-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
+      ${["", "PROPAGAR", "VEGETAR", "ESTIRAMENTO", "VOLUME", "ACABAMENTO"]
+        .map(opt => `<option value="${opt}" ${opt === bloco.fase ? "selected" : ""}>${opt || "Selecione"}</option>`)
+        .join("")}
+    </select>
+  </label>
+  <label>Estratégia:
+    <select id="estrategia-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
+      ${["", "PROPAGAR", "VEGETATIVO", "GENERATIVO", "MISTO (VEG/GEN)"]
+        .map(opt => `<option value="${opt}" ${opt === bloco.estrategia ? "selected" : ""}>${opt || "Selecione"}</option>`)
+        .join("")}
+    </select>
+  </label>
+  <label>Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.nutrientes || ""}" /></label>
+  <label>Receita (g/L): <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}" /></label>
+  <label>EC Entrada: <input type="text" id="ec-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_entrada || ""}" /></label>
+  <label>EC Saída: <input type="text" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_saida || ""}" /></label>
+  <label>Runoff (%): <input type="text" id="runoff-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.runoff || ""}" /></label>
+  <label>Dryback (%): <input type="text" id="dryback-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.dryback || ""}" /></label>
+  <label>Temperatura: <input type="text" id="temp-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.temperatura || ""}" /></label>
+  <label>UR: <input type="text" id="ur-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ur || ""}" /></label>
+  <label>VPD: <input type="text" id="vpd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.vpd || ""}" /></label>
+  <label>PPFD: <input type="text" id="ppfd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ppfd || ""}" /></label>
+  <label>Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea></label>
+  ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
+`;
     }
 
     wrapper.appendChild(header);
@@ -171,173 +274,193 @@ function renderizarBlocos() {
     blocosContainer.appendChild(wrapper);
   });
 
-  atualizarColheitaEDiaAtual();
+    atualizarColheitaEDiaAtual();
+
+  // Remove o Sortable anterior se já existir
+if (sortableInstance) {
+  sortableInstance.destroy();
+  sortableInstance = null;
 }
 
-// 🔹 Atualiza inputs sempre que houver mudança
-function atualizarCampo(i, campo, valor) {
-  if (!blocos[i]) return;
-  if (campo === "etapa") blocos[i].etapa = valor;
-  if (campo === "fase") blocos[i].fase = valor;
-  if (campo === "estrategia") blocos[i].estrategia = valor;
-  if (campo === "notas") blocos[i].notas = valor;
-  if (campo === "nutrientes") blocos[i].receita.nutrientes = valor;
-  if (campo === "receita") {
-    const [a, b, c] = valor.split("/").map(s => parseFloat(s.replace(/[^\d.]/g, "")) || 0);
-    blocos[i].receita.A = a;
-    blocos[i].receita.B = b;
-    blocos[i].receita.C = c;
-  }
-  if (campo === "ec") blocos[i].receita.ec_entrada = valor;
-  if (campo === "ec_saida") blocos[i].receita.ec_saida = valor;
-  if (campo === "runoff") blocos[i].receita.runoff = valor;
-  if (campo === "dryback") blocos[i].receita.dryback = valor;
-  if (campo === "temp") blocos[i].receita.temperatura = valor;
-  if (campo === "ur") blocos[i].receita.ur = valor;
-  if (campo === "vpd") blocos[i].receita.vpd = valor;
-  if (campo === "ppfd") blocos[i].receita.ppfd = valor;
+if (modoEdicao) {
+  sortableInstance = Sortable.create(blocosContainer, {
+    animation: 150,
+    onEnd: () => {
+      const novos = [];
+      const divs = blocosContainer.querySelectorAll("[data-index]");
+      divs.forEach(div => {
+        const index = parseInt(div.getAttribute("data-index"));
+        novos.push(blocos[index]);
+      });
+      blocos = novos;
+      // Recalcula datas após reordenar
+      blocos.forEach((bloco, i) => {
+        const ini = new Date(inputDataInicio.value);
+        ini.setDate(ini.getDate() + i * 7);
+        const fim = new Date(ini);
+        fim.setDate(fim.getDate() + 6);
+        bloco.inicio = ini.toISOString().split("T")[0];
+        bloco.fim = fim.toISOString().split("T")[0];
+      });
+      renderizarBlocos();
+    }
+  });
+}
 }
 
-// 🔹 Adiciona novo bloco
-function adicionarBloco(tipo = "PADRAO") {
-  const hoje = new Date().toISOString().slice(0, 10);
+// 🔹 Atualiza dados dos inputs para o array
+function atualizarDados() {
+  blocos.forEach((bloco, i) => {
+    const get = id => document.getElementById(`${id}-${i}`)?.value;
+    bloco.etapa = get("etapa") || bloco.etapa;
+    bloco.fase = get("fase") || bloco.fase;
+    bloco.estrategia = get("estrategia") || bloco.estrategia;
+    bloco.receita.nutrientes = get("nutrientes") || bloco.receita.nutrientes;
+
+    const r = get("receita") || "";
+    const matches = r.match(/A:\s*([\d.,]+)\s*\/\s*B:\s*([\d.,]+)\s*\/\s*C:\s*([\d.,]+)/);
+    if (matches) [bloco.receita.A, bloco.receita.B, bloco.receita.C] = [matches[1], matches[2], matches[3]];
+
+    bloco.receita.ec_entrada = get("ec") || bloco.receita.ec_entrada;
+    bloco.receita.ec_saida = get("ec_saida") || bloco.receita.ec_saida;
+    bloco.receita.runoff = get("runoff") || bloco.receita.runoff;
+    bloco.receita.dryback = get("dryback") || bloco.receita.dryback;
+    bloco.receita.temperatura = get("temp") || bloco.receita.temperatura;
+    bloco.receita.ur = get("ur") || bloco.receita.ur;
+    bloco.receita.vpd = get("vpd") || bloco.receita.vpd;
+    bloco.receita.ppfd = get("ppfd") || bloco.receita.ppfd;
+    bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
+  });
+}
+
+// 🔹 Adicionar novo bloco
+window.adicionarBloco = function(tipo) {
+  if (!inputDataInicio.value) return alert("Selecione a data de início.");
+  const ordem = blocos.length;
+  const inicio = calcularInicio(ordem);
+  const fim = new Date(inicio); fim.setDate(fim.getDate() + 6);
   blocos.push({
-    nome: `Semana ${blocos.length + 1}`,
-    tipo,
-    inicio: hoje,
-    fim: hoje,
+    nome: tipo,
     etapa: "",
     fase: "",
     estrategia: "",
+    ordem,
+    inicio: inicio.toISOString().split("T")[0],
+    fim: fim.toISOString().split("T")[0],
+    receita: { ec_entrada: "", ec_saida: "", nutrientes: "", A: "", B: "", C: "", runoff: "", dryback: "", temperatura: "", ur: "", vpd: "", ppfd: "" },
     notas: "",
-    receita: {
-      nutrientes: "",
-      A: 0,
-      B: 0,
-      C: 0,
-      ec_entrada: "",
-      ec_saida: "",
-      runoff: "",
-      dryback: "",
-      temperatura: "",
-      ur: "",
-      vpd: "",
-      ppfd: ""
-    }
+    tarefas: [],
+    cor: cores[tipo],
+    expandido: false,
   });
   renderizarBlocos();
-}
+};
 
-// 🔹 Remove bloco
-function removerBloco(i) {
-  if (!confirm("Tem certeza que deseja remover este bloco?")) return;
-  blocos.splice(i, 1);
-  renderizarBlocos();
-}
-
-// 🔹 Salvar no Firestore
+// 🔹 Salvar cultivo no Firestore
 async function salvarCultivo() {
-  if (!usuario) return alert("Usuário não autenticado.");
-  const nome = document.getElementById("nome-cultivo").value.trim();
-  const dataInicio = document.getElementById("data-inicio").value;
-  if (!nome || !dataInicio) return alert("Preencha o nome e a data de início.");
-
-  const docRef = cultivoId
-    ? doc(db, "cultivos", cultivoId)
-    : doc(collection(db, "cultivos"));
-
-  const payload = {
-    nome,
-    data_inicio: dataInicio,
-    blocos
+  atualizarDados();
+  if (!inputDataInicio.value || !inputNome.value) return alert("Preencha nome e data.");
+  const cultivo = {
+    nome: inputNome.value,
+    data_inicio: inputDataInicio.value,
+    criado_em: Timestamp.now(),
+    blocos,
   };
-
-  await setDoc(docRef, payload);
-  alert("Cultivo salvo!");
-  if (!cultivoId) {
-    window.location.href = `cultivos-salvos.html`;
+  try {
+    if (cultivoId) {
+      await updateDoc(doc(db, "cultivos_blocos", cultivoId), cultivo);
+      alert("Cultivo atualizado.");
+    } else {
+      await addDoc(collection(db, "cultivos_blocos"), cultivo);
+      alert("Cultivo salvo.");
+    }
+  } catch (e) {
+    console.error("Erro ao salvar:", e);
+    alert("Erro ao salvar.");
   }
 }
 
-// 🔹 Carregar dados do Firestore
-async function carregarCultivo(id) {
-  const docRef = doc(db, "cultivos", id);
-  const snap = await getDoc(docRef);
-  if (!snap.exists()) return;
-  const data = snap.data();
-  cultivoId = id;
-  document.getElementById("nome-cultivo").value = data.nome || "";
-  document.getElementById("data-inicio").value = data.data_inicio || "";
-  blocos = data.blocos || [];
-  renderizarBlocos();
-}
-
-// 🔹 Atualiza colheita prevista e dia atual
-function atualizarColheitaEDiaAtual() {
-  const dataHoje = new Date().toISOString().slice(0, 10);
-  let diasAcumulados = 0;
-  let colheita = "";
-  let faseAtual = "";
-  blocos.forEach((b) => {
-    if (!b.inicio || !b.fim || b.tipo === "TAREFA") return;
-    if (!b.afetaCronograma) return;
-    const inicio = new Date(b.inicio);
-    const fim = new Date(b.fim);
-    const duracao = Math.round((fim - inicio) / (1000 * 60 * 60 * 24)) + 1;
-    if (b.nome.toUpperCase().includes("PROCESSAR") && !colheita) {
-      colheita = b.inicio;
+// 🔹 Carregar cultivo existente
+async function carregarCultivoExistente(id) {
+  try {
+    const snap = await getDoc(doc(db, "cultivos_blocos", id));
+    if (snap.exists()) {
+      const dados = snap.data();
+      inputDataInicio.value = dados.data_inicio;
+      inputNome.value = dados.nome;
+      blocos = dados.blocos || [];
+      renderizarBlocos();
     }
-    if (dataHoje >= b.inicio && dataHoje <= b.fim) {
-      faseAtual = `${b.tipo || "?"} dia ${diasAcumulados + 1}`;
-    }
-    diasAcumulados += duracao;
-  });
-
-  document.getElementById("colheita").textContent = colheita
-    ? `🌾 Colheita em ${formatarData(colheita)}`
-    : "";
-  document.getElementById("dia-atual").textContent = faseAtual
-    ? `📆 ${faseAtual}`
-    : "";
+  } catch (e) {
+    console.error("Erro ao carregar:", e);
+  }
 }
 
-// 🔹 Formatar data para exibição
-function formatarData(iso) {
-  if (!iso) return "-";
-  const [ano, mes, dia] = iso.split("-");
-  const nomesMes = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-  return `${dia}-${nomesMes[parseInt(mes) - 1]}-${ano}`;
-}
+// 🔹 Inicializar se já existir ID na URL
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("id")) {
+    cultivoId = params.get("id");
+    carregarCultivoExistente(cultivoId);
+  }
+});
 
-// 🔹 Atualizações diretas de campos no array
-function atualizarCampo(i, campo, valor) {
-  blocos[i][campo] = valor;
-}
+// 🔹 Botão salvar
+btnSalvar?.addEventListener("click", salvarCultivo);
 
-function atualizarReceita(i, campo, valor) {
-  blocos[i].receita[campo] = valor;
-}
-
-// 🔹 Alternar modo edição
-document.getElementById("alternar-edicao").addEventListener("click", () => {
+// 🔹 Botão modo edição
+const btnEditar = document.createElement("button");
+btnEditar.textContent = "✏️ Editar";
+btnEditar.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 z-50";
+btnEditar.addEventListener("click", () => {
   modoEdicao = !modoEdicao;
-  document.getElementById("alternar-edicao").textContent = modoEdicao ? "👁 Visualizar" : "✏️ Editar";
+  btnEditar.textContent = modoEdicao ? "✅ Visualizar" : "✏️ Editar";
   renderizarBlocos();
 });
+document.body.appendChild(btnEditar);
 
-// 🔹 Inicializar
-verificarLogin(async (user) => {
-  usuario = user;
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const id = urlParams.get("id");
-  if (id) {
-    await carregarCultivo(id);
-  } else {
-    blocos = [];
-    renderizarBlocos();
+// 🔹 Torna a função removerBloco acessível globalmente
+window.removerBloco = function(index) {
+  blocos.splice(index, 1);
+  renderizarBlocos();
+};
+    
+// 🔹 Adicionar nova tarefa ao bloco TAREFA
+window.adicionarTarefa = function(index) {
+  if (!blocos[index].tarefas) {
+    blocos[index].tarefas = [];
   }
-
-  document.getElementById("salvar-cultivo").addEventListener("click", salvarCultivo);
-  document.getElementById("adicionar-bloco").addEventListener("click", adicionarBloco);
-});
+  blocos[index].tarefas.push({
+    descricao: "",
+    data: "",
+    concluida: false
+  });
+  renderizarBlocos();
+};
+// 🔹 Atualizar status de conclusão da tarefa
+window.atualizarConclusao = function(checkbox) {
+  const i = parseInt(checkbox.dataset.i);
+  const idx = parseInt(checkbox.dataset.idx);
+  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
+    blocos[i].tarefas[idx].concluida = checkbox.checked;
+  }
+};
+// 🔹 Remover tarefa de um bloco TAREFA
+window.removerTarefa = function(i, idx) {
+  if (blocos[i]?.tarefas) {
+    blocos[i].tarefas.splice(idx, 1); // remove a tarefa da lista
+    renderizarBlocos(); // re-renderiza os blocos para refletir a mudança
+  }
+};
+// 🔹 Atualizar descrição da tarefa
+window.atualizarDescricao = function(i, idx, valor) {
+  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
+    blocos[i].tarefas[idx].descricao = valor;
+  }
+};
+// 🔹 Atualizar data da tarefa
+window.atualizarDataTarefa = function(i, idx, valor) {
+  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
+    blocos[i].tarefas[idx].data = valor;
+  }
+};
