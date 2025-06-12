@@ -34,27 +34,21 @@
         const loginBtn = document.getElementById('loginBtn');
         const blankPage = document.getElementById('blankPage');
 
-        window.addEventListener('load', () => {
-            console.log('Página carregada, verificando autenticação...');
-            onAuthStateChanged(auth, (user) => {
-                console.log('Estado de autenticação:', user);
-                if (user) {
-                    loginBtn.classList.add('hidden');
-                    blankPage.classList.remove('hidden');
-                    errorLog.textContent = '';
-                } else {
-                    loginBtn.classList.remove('hidden');
-                    blankPage.classList.add('hidden');
-                }
-            });
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginBtn.classList.add('hidden');
+                blankPage.classList.remove('hidden');
+                errorLog.textContent = '';
+            } else {
+                loginBtn.classList.remove('hidden');
+                blankPage.classList.add('hidden');
+            }
         });
 
         loginBtn.addEventListener('click', () => {
-            console.log('Iniciando login com Google...');
             const provider = new GoogleAuthProvider();
             signInWithPopup(auth, provider)
                 .then((result) => {
-                    console.log('Login bem-sucedido:', result.user);
                     loginBtn.classList.add('hidden');
                     blankPage.classList.remove('hidden');
                     errorLog.textContent = '';
