@@ -1,1 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Cultivo Cannabis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <h1 class="text-3xl font-bold mb-4">App de Cultivo de Cannabis</h1>
+    <button id="loginBtn" class="bg-blue-500 text-white px-4 py-2 rounded">Login com Google</button>
+    <div id="userInfo" class="hidden mt-4">
+        <p>Bem-vindo, <span id="userName"></span>!</p>
+        <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded mt-2">Sair</button>
+    </div>
+    <div id="appContent" class="hidden mt-4">
+        <h2 class="text-2xl">Minhas Plantas</h2>
+        <ul id="plantList" class="mt-2"></ul>
+        <input id="plantName" class="border p-2 mt-2" placeholder="Nome da planta">
+        <button id="addPlantBtn" class="bg-green-500 text-white px-4 py-2 rounded mt-2">Adicionar Planta</button>
+    </div>
 
+    <script>
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            projectId: "SEU_PROJETO",
+            storageBucket: "SEU_PROJETO.appspot.com",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SEU_APP_ID"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userInfo = document.getElementById('userInfo');
+        const userName = document.getElementById('userName');
+        const appContent = document.getElementById('appContent');
+        const plantList = document.getElementById('plantList');
+        const plantNameInput = document.getElementById('plantName');
+        const addPlantBtn = document.getElementById('addPlantBtn');
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loginBtn.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                appContent.classList.remove('hidden');
+                userName.textContent = user.displayName;
+                loadPlants(user.uid);
+            } else {
+                loginBtn.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+                appContent.classList.add('hidden');
+            }
+        });
+
+        loginBtn.addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => console.error('Erro no login:', error));
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut().catch(error => console.error('Erro no logout:', error));
+        });
+
+        addPlantBtn.addEventListener('click', () => {
+            const user = auth.currentUser;
+            if (user && plantNameInput.value) {
+                db.collection('plants').add({
+                    userId: user.uid,
+                    name: plantNameInput.value,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    plantNameInput.value = '';
+                    loadPlants(user.uid);
+                }).catch(error => console.error('Erro ao adicionar planta:', error));
+            }
+        });
+
+        function loadPlants(userId) {
+            plantList.innerHTML = '';
+            db.collection('plants').where('userId', '==', userId).get()
+                .then(querySnapshot => {
+                    querySnapshot.forEach(doc => {
+                        const plant = doc.data();
+                        const li = document.createElement('li');
+                        li.textContent = plant.name;
+                        plantList.appendChild(li);
+                    });
+                }).catch(error => console.error('Erro ao carregar plantas:', error));
+        }
+    </script>
+</body>
+</html>
