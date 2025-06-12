@@ -6,7 +6,7 @@ function createHeader() {
     const logoTitle = document.createElement('div');
     logoTitle.className = 'flex items-center';
     const logo = document.createElement('img');
-    logo.src = '../header/logo-jungle.png'; // Ajuste o caminho conforme necessário
+    logo.src = './logo-jungle.png'; // Caminho relativo ao header.js na subpasta header/
     logo.alt = 'Logo Jungle Brothers';
     logo.className = 'h-12 mr-3';
     const title = document.createElement('h1');
@@ -67,5 +67,4 @@ function createHeader() {
     return header;
 }
 
-// Exportar a função para uso em outros arquivos
 export { createHeader };
