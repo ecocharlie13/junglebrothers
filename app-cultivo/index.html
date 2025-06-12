@@ -10,22 +10,14 @@
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
     <h1 class="text-3xl font-bold mb-4">App de Cultivo de Cannabis</h1>
     <button id="loginBtn" class="bg-blue-500 text-white px-4 py-2 rounded">Login com Google</button>
-    <div id="userInfo" class="hidden mt-4">
-        <p>Bem-vindo, <span id="userName"></span>!</p>
-        <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded mt-2">Sair</button>
-    </div>
-    <div id="appContent" class="hidden mt-4">
-        <h2 class="text-2xl">Minhas Plantas</h2>
-        <ul id="plantList" class="mt-2"></ul>
-        <input id="plantName" class="border p-2 mt-2" placeholder="Nome da planta">
-        <button id="addPlantBtn" class="bg-green-500 text-white px-4 py-2 rounded mt-2">Adicionar Planta</button>
+    <div id="blankPage" class="hidden flex-col items-center justify-center min-h-screen">
+        <p class="text-2xl">Página em Branco após Login</p>
     </div>
     <div id="errorLog" class="mt-4 text-red-500"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, getRedirectResult } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
@@ -38,29 +30,17 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
         const errorLog = document.getElementById('errorLog');
-
         const loginBtn = document.getElementById('loginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const userInfo = document.getElementById('userInfo');
-        const userName = document.getElementById('userName');
-        const appContent = document.getElementById('appContent');
-        const plantList = document.getElementById('plantList');
-        const plantNameInput = document.getElementById('plantName');
-        const addPlantBtn = document.getElementById('addPlantBtn');
+        const blankPage = document.getElementById('blankPage');
 
         // Verifica o resultado do redirecionamento ao carregar a página
         window.addEventListener('load', () => {
             getRedirectResult(auth)
                 .then((result) => {
                     if (result) {
-                        const user = result.user;
                         loginBtn.classList.add('hidden');
-                        userInfo.classList.remove('hidden');
-                        appContent.classList.remove('hidden');
-                        userName.textContent = user.displayName;
-                        loadPlants(user.uid);
+                        blankPage.classList.remove('hidden');
                         errorLog.textContent = '';
                     }
                 })
@@ -73,15 +53,11 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loginBtn.classList.add('hidden');
-                userInfo.classList.remove('hidden');
-                appContent.classList.remove('hidden');
-                userName.textContent = user.displayName;
-                loadPlants(user.uid);
+                blankPage.classList.remove('hidden');
                 errorLog.textContent = '';
             } else {
                 loginBtn.classList.remove('hidden');
-                userInfo.classList.add('hidden');
-                appContent.classList.add('hidden');
+                blankPage.classList.add('hidden');
             }
         });
 
@@ -89,46 +65,6 @@
             const provider = new GoogleAuthProvider();
             signInWithRedirect(auth, provider);
         });
-
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth)
-                .then(() => {
-                    window.location.reload();
-                })
-                .catch((error) => {
-                    console.error('Erro no logout:', error);
-                    errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
-                });
-        });
-
-        addPlantBtn.addEventListener('click', () => {
-            const user = auth.currentUser;
-            if (user && plantNameInput.value) {
-                addDoc(collection(db, 'cultivo_cannabis'), {
-                    userId: user.uid,
-                    name: plantNameInput.value,
-                    createdAt: serverTimestamp()
-                }).then(() => {
-                    plantNameInput.value = '';
-                    loadPlants(user.uid);
-                }).catch((error) => {
-                    console.error('Erro ao adicionar planta:', error);
-                    errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
-                });
-            }
-        });
-
-        async function loadPlants(userId) {
-            plantList.innerHTML = '';
-            const q = query(collection(db, 'cultivo_cannabis'), where('userId', '==', userId));
-            const querySnapshot = await getDocs(q);
-            querySnapshot.forEach((doc) => {
-                const plant = doc.data();
-                const li = document.createElement('li');
-                li.textContent = plant.name;
-                plantList.appendChild(li);
-            });
-        }
     </script>
 </body>
 </html>
