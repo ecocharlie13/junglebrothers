@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App de Cultivo de Cannabis</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link href="./output.css" rel="stylesheet"> <!-- CSS compilado localmente -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <link href="./output.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
     <h1 class="text-3xl font-bold mb-4">App de Cultivo de Cannabis</h1>
@@ -25,19 +22,26 @@
     </div>
     <div id="errorLog" class="mt-4 text-red-500"></div>
 
-    <script>
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
             authDomain: "jungle-brothers-93e80.firebaseapp.com",
             projectId: "jungle-brothers-93e80",
-            storageBucket: "jungle-brothers-93e80.appspot.com",
+            storageBucket: "jungle-brothers-93e80.firebasestorage.app",
             messagingSenderId: "221354970870",
-            appId: "1:221354970870:web:SEU_APP_ID_CORRETO"
+            appId: "1:221354970870:web:a7f68c75480dc094bba6d7"
         };
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
         const errorLog = document.getElementById('errorLog');
 
         const loginBtn = document.getElementById('loginBtn');
@@ -49,7 +53,7 @@
         const plantNameInput = document.getElementById('plantName');
         const addPlantBtn = document.getElementById('addPlantBtn');
 
-        auth.onAuthStateChanged(user => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 loginBtn.classList.add('hidden');
                 userInfo.classList.remove('hidden');
@@ -65,42 +69,44 @@
         });
 
         loginBtn.addEventListener('click', () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(error => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch((error) => {
                 console.error('Erro no login:', error);
                 errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
             });
         });
 
         logoutBtn.addEventListener('click', () => {
-            auth.signOut().catch(error => console.error('Erro no logout:', error));
+            signOut(auth).catch((error) => console.error('Erro no logout:', error));
         });
 
         addPlantBtn.addEventListener('click', () => {
             const user = auth.currentUser;
             if (user && plantNameInput.value) {
-                db.collection('plants').add({
+                addDoc(collection(db, 'plants'), {
                     userId: user.uid,
                     name: plantNameInput.value,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: serverTimestamp()
                 }).then(() => {
                     plantNameInput.value = '';
                     loadPlants(user.uid);
-                }).catch(error => console.error('Erro ao adicionar planta:', error));
+                }).catch((error) => {
+                    console.error('Erro ao adicionar planta:', error);
+                    errorLog.textContent = `Erro: ${error.code} - ${error.message}`;
+                });
             }
         });
 
-        function loadPlants(userId) {
+        async function loadPlants(userId) {
             plantList.innerHTML = '';
-            db.collection('plants').where('userId', '==', userId).get()
-                .then(querySnapshot => {
-                    querySnapshot.forEach(doc => {
-                        const plant = doc.data();
-                        const li = document.createElement('li');
-                        li.textContent = plant.name;
-                        plantList.appendChild(li);
-                    });
-                }).catch(error => console.error('Erro ao carregar plantas:', error));
+            const q = query(collection(db, 'plants'), where('userId', '==', userId));
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc) => {
+                const plant = doc.data();
+                const li = document.createElement('li');
+                li.textContent = plant.name;
+                plantList.appendChild(li);
+            });
         }
     </script>
 </body>
