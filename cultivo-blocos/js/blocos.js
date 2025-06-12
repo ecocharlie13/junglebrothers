@@ -135,42 +135,14 @@ function renderizarBlocos() {
       corpo.className = "bg-white h-24";     // corpo branco
       corpo.innerHTML = "";
     }
-    // BLOCO CONTRAÍDO
-    else if (!bloco.expandido) {
-      header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
-      header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
-      corpo.className = "p-4 text-sm";
-
-      const estrategia = bloco.estrategia || "-";
-      const vpd = bloco.receita.vpd || "-";
-      const temp = bloco.receita.temperatura || "-";
-      const ur = bloco.receita.ur || "-";
-      const ppfd = bloco.receita.ppfd || "-";
-      const ecEntrada = bloco.receita.ec_entrada || "-";
-      const receita = bloco.receita.A || bloco.receita.B || bloco.receita.C
-        ? `A:${bloco.receita.A || "-"} / B:${bloco.receita.B || "-"} / C:${bloco.receita.C || "-"}`
-        : "-";
-      const runoff = bloco.receita.runoff || "-";
-      const dryback = bloco.receita.dryback || "-";
-      const notas = bloco.notas || "-";
-
-      corpo.innerHTML = `
-        <div><strong>${bloco.nome}</strong></div>
-        <div>${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</div>
-        <div><strong>Estratégia:</strong> ${estrategia}</div>
-        <div class="grid grid-cols-2 gap-x-4 mt-2 text-sm">
-          <div>VPD: ${vpd}</div>
-          <div>EC Entrada: ${ecEntrada}</div>
-          <div>Temp: ${temp}</div>
-          <div>Receita: ${receita}</div>
-          <div>UR: ${ur}</div>
-          <div>Runoff: ${runoff}</div>
-          <div>PPFD: ${ppfd}</div>
-          <div>Dryback: ${dryback}</div>
-        </div>
-        <div class="mt-2"><strong>Notas:</strong> ${notas}</div>
-      `;
+    // 🔹 BLOCO EVENTO - exibe título simples
+    else if (bloco.nome === "EVENTO") {
+      header.className = `${bloco.cor} text-white px-4 py-2`;
+      header.innerHTML = `<strong>EVENTO</strong>`;
+      corpo.className = "bg-white h-16";
+      corpo.innerHTML = "";
     }
+
     // BLOCO EXPANDIDO (exceto TAREFA)
     else {
       header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
