@@ -34,13 +34,10 @@ const tituloDiaAtual = document.getElementById("titulo-dia-atual");
 
 // 🔹 Utilitários
 function formatarData(dataStr) {
-  if (!dataStr) return "-";
-  const data = new Date(dataStr);
-  return data.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  });
+  if (!dataStr) return "--";
+  const [ano, mes, dia] = dataStr.split("-");
+  const meses = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${dia}-${meses[parseInt(mes) - 1]}-${ano}`;
 }
 
 function calcularDiasEntre(inicio, fim) {
