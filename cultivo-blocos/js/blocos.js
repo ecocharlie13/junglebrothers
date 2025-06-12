@@ -86,14 +86,12 @@ function atualizarColheitaEDiaAtual() {
   }
 }
   
-// 🔹 Renderiza todos os blocos
 function renderizarBlocos() {
-  atualizarDados(); // garante que os campos editados sejam preservados
+  atualizarDados();
   blocosContainer.innerHTML = "";
   const hoje = new Date();
   const contagemPorTipo = {};
 
-  // Mostra ou oculta os botões de adicionar e salvar
   const botoesAdicionar = document.getElementById("botoes-adicionar");
   if (botoesAdicionar) {
     botoesAdicionar.style.display = modoEdicao ? "flex" : "none";
@@ -107,131 +105,78 @@ function renderizarBlocos() {
   blocos.forEach((bloco, i) => {
     const tipo = bloco.nome;
 
-    // ... restante da renderização dos blocos
-    
-
-// se for FLUSH, número total acumulado até aqui
-let semanaNumero;
-if (tipo === "FLUSH") {
-  const semanasFlorar = blocos.slice(0, i).filter(b => b.nome === "FLORAR").length;
-  semanaNumero = semanasFlorar + 1;
-} else {
-  contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
-  semanaNumero = contagemPorTipo[tipo];
-}
+    let semanaNumero;
+    if (tipo === "FLUSH") {
+      const semanasFlorar = blocos.slice(0, i).filter(b => b.nome === "FLORAR").length;
+      semanaNumero = semanasFlorar + 1;
+    } else {
+      contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
+      semanaNumero = contagemPorTipo[tipo];
+    }
 
     const wrapper = document.createElement("div");
     wrapper.className = `w-full bg-white shadow border rounded overflow-hidden relative mb-4`;
     wrapper.setAttribute("data-index", i);
 
-    let estiloExtra = "";
     const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
     const fim = bloco.fim ? new Date(bloco.fim) : null;
+    let estiloExtra = "";
     if (inicio && fim) {
       if (fim < hoje) estiloExtra = "opacity-40";
       else if (inicio <= hoje && fim >= hoje) estiloExtra = "ring-4 ring-yellow-400";
     }
 
     const header = document.createElement("div");
-    header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
-    header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
-    header.addEventListener("click", () => {
-      bloco.expandido = !bloco.expandido;
-      renderizarBlocos();
-    });
-
     const corpo = document.createElement("div");
-    corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
 
-    if (!bloco.expandido) {
-      if (bloco.nome === "TAREFA") {
-        const tarefas = [...(bloco.tarefas || [])].sort((a, b) => (a.data || "") > (b.data || "") ? 1 : -1);
-        let tarefasHtml = "";
-        if (modoEdicao) {
-          tarefasHtml = tarefas.map((tarefa, idx) => `
-            <div class="flex items-center gap-2 mb-1">
-              <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} onchange="atualizarConclusao(this)">
+    // 🔴 BLOCO TAREFA - sempre vazio, sem conteúdo
+    if (bloco.nome === "TAREFA") {
+      header.className = `${bloco.cor} h-8`; // linha vermelha
+      corpo.className = "bg-white h-24";     // corpo branco
+      corpo.innerHTML = "";
+    }
+    // BLOCO CONTRAÍDO
+    else if (!bloco.expandido) {
+      header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
+      header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
+      corpo.className = "p-4 text-sm";
 
-              <input type="text" value="${tarefa.descricao || ""}" placeholder="Descrição"
-                class="flex-1 px-2 py-1 border rounded"
-                oninput="atualizarDescricao(${i}, ${idx}, this.value)"
-              >
+      const estrategia = bloco.estrategia || "-";
+      const vpd = bloco.receita.vpd || "-";
+      const temp = bloco.receita.temperatura || "-";
+      const ur = bloco.receita.ur || "-";
+      const ppfd = bloco.receita.ppfd || "-";
+      const ecEntrada = bloco.receita.ec_entrada || "-";
+      const receita = bloco.receita.A || bloco.receita.B || bloco.receita.C
+        ? `A:${bloco.receita.A || "-"} / B:${bloco.receita.B || "-"} / C:${bloco.receita.C || "-"}`
+        : "-";
+      const runoff = bloco.receita.runoff || "-";
+      const dryback = bloco.receita.dryback || "-";
+      const notas = bloco.notas || "-";
 
-              <div class="flex items-center gap-1">
-                <div class="relative">
-                  <button type="button" onclick="document.getElementById('data-${i}-${idx}').showPicker()"
-                    class="p-1 rounded border text-xs bg-white hover:bg-gray-100">
-                    📅
-                  </button>
-                  <input type="date"
-                    id="data-${i}-${idx}"
-                    value="${tarefa.data || ""}"
-                    class="absolute top-0 left-0 opacity-0 w-0 h-0"
-                    tabindex="-1"
-                    aria-hidden="true"
-                    onchange="atualizarDataTarefa(${i}, ${idx}, this.value)"
-                  />
-                </div>
-                <button onclick="removerTarefa(${i}, ${idx})" class="text-red-500 text-sm hover:text-red-700">❌</button>
-              </div>
-            </div>
-          `).join("");
-        } else {
-          tarefasHtml = tarefas.map((tarefa) => `
-            <div class="flex items-center justify-between mb-1 text-sm">
-              <div class="flex-1 truncate ${tarefa.concluida ? 'line-through text-gray-500' : ''}">
-                ${tarefa.descricao || "-"}
-              </div>
-              <div class="text-xs text-gray-600">${tarefa.data || "-"}</div>
-            </div>
-          `).join("");
-        }
+      corpo.innerHTML = `
+        <div><strong>${bloco.nome}</strong></div>
+        <div>${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</div>
+        <div><strong>Estratégia:</strong> ${estrategia}</div>
+        <div class="grid grid-cols-2 gap-x-4 mt-2 text-sm">
+          <div>VPD: ${vpd}</div>
+          <div>EC Entrada: ${ecEntrada}</div>
+          <div>Temp: ${temp}</div>
+          <div>Receita: ${receita}</div>
+          <div>UR: ${ur}</div>
+          <div>Runoff: ${runoff}</div>
+          <div>PPFD: ${ppfd}</div>
+          <div>Dryback: ${dryback}</div>
+        </div>
+        <div class="mt-2"><strong>Notas:</strong> ${notas}</div>
+      `;
+    }
+    // BLOCO EXPANDIDO (exceto TAREFA)
+    else {
+      header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
+      header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
+      corpo.className = "p-4 text-sm bg-gray-50 w-full";
 
-        corpo.innerHTML = `
-          <div><strong>${bloco.nome}</strong></div>
-          <div class="mt-2">
-            ${tarefasHtml || "<div class='text-gray-400 italic'>Sem tarefas</div>"}
-            ${modoEdicao ? `<button class="mt-2 px-2 py-1 bg-green-600 text-white rounded" onclick="adicionarTarefa(${i})">+ Tarefa</button>` : ""}
-          </div>
-          <label class="block mt-4">
-            Notas:
-            <textarea id="notas-${i}" class="w-full border rounded px-2 py-1 mt-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
-          </label>
-        `;
-      } else {
-    // segue o bloco não-TAREFA normalmente...
-        const estrategia = bloco.estrategia || "-";
-        const vpd = bloco.receita.vpd || "-";
-        const temp = bloco.receita.temperatura || "-";
-        const ur = bloco.receita.ur || "-";
-        const ppfd = bloco.receita.ppfd || "-";
-        const ecEntrada = bloco.receita.ec_entrada || "-";
-        const receita = bloco.receita.A || bloco.receita.B || bloco.receita.C
-          ? `A:${bloco.receita.A || "-"} / B:${bloco.receita.B || "-"} / C:${bloco.receita.C || "-"}`
-          : "-";
-        const runoff = bloco.receita.runoff || "-";
-        const dryback = bloco.receita.dryback || "-";
-        const notas = bloco.notas || "-";
-
-        corpo.innerHTML = `
-          <div><strong>${bloco.nome}</strong></div>
-          <div>${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</div>
-          <div><strong>Estratégia:</strong> ${estrategia}</div>
-          <div class="grid grid-cols-2 gap-x-4 mt-2 text-sm">
-            <div>VPD: ${vpd}</div>
-            <div>EC Entrada: ${ecEntrada}</div>
-            <div>Temp: ${temp}</div>
-            <div>Receita: ${receita}</div>
-            <div>UR: ${ur}</div>
-            <div>Runoff: ${runoff}</div>
-            <div>PPFD: ${ppfd}</div>
-            <div>Dryback: ${dryback}</div>
-          </div>
-          <div class="mt-2"><strong>Notas:</strong> ${notas}</div>
-        `;
-      }
-    } else {
-      // ... (segue o bloco expandido normalmente)
       corpo.innerHTML = `
   <label>Etapa:
     <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
@@ -269,44 +214,50 @@ if (tipo === "FLUSH") {
 `;
     }
 
+    header.addEventListener("click", () => {
+      bloco.expandido = !bloco.expandido;
+      renderizarBlocos();
+    });
+
     wrapper.appendChild(header);
     wrapper.appendChild(corpo);
     blocosContainer.appendChild(wrapper);
   });
 
-    atualizarColheitaEDiaAtual();
+  atualizarColheitaEDiaAtual();
 
-  // Remove o Sortable anterior se já existir
-if (sortableInstance) {
-  sortableInstance.destroy();
-  sortableInstance = null;
+  if (sortableInstance) {
+    sortableInstance.destroy();
+    sortableInstance = null;
+  }
+
+  if (modoEdicao) {
+    sortableInstance = Sortable.create(blocosContainer, {
+      animation: 150,
+      onEnd: () => {
+        const novos = [];
+        const divs = blocosContainer.querySelectorAll("[data-index]");
+        divs.forEach(div => {
+          const index = parseInt(div.getAttribute("data-index"));
+          novos.push(blocos[index]);
+        });
+        blocos = novos;
+
+        blocos.forEach((bloco, i) => {
+          const ini = new Date(inputDataInicio.value);
+          ini.setDate(ini.getDate() + i * 7);
+          const fim = new Date(ini);
+          fim.setDate(fim.getDate() + 6);
+          bloco.inicio = ini.toISOString().split("T")[0];
+          bloco.fim = fim.toISOString().split("T")[0];
+        });
+
+        renderizarBlocos();
+      }
+    });
+  }
 }
 
-if (modoEdicao) {
-  sortableInstance = Sortable.create(blocosContainer, {
-    animation: 150,
-    onEnd: () => {
-      const novos = [];
-      const divs = blocosContainer.querySelectorAll("[data-index]");
-      divs.forEach(div => {
-        const index = parseInt(div.getAttribute("data-index"));
-        novos.push(blocos[index]);
-      });
-      blocos = novos;
-      // Recalcula datas após reordenar
-      blocos.forEach((bloco, i) => {
-        const ini = new Date(inputDataInicio.value);
-        ini.setDate(ini.getDate() + i * 7);
-        const fim = new Date(ini);
-        fim.setDate(fim.getDate() + 6);
-        bloco.inicio = ini.toISOString().split("T")[0];
-        bloco.fim = fim.toISOString().split("T")[0];
-      });
-      renderizarBlocos();
-    }
-  });
-}
-}
 
 // 🔹 Atualiza dados dos inputs para o array
 function atualizarDados() {
