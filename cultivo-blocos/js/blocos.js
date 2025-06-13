@@ -134,7 +134,10 @@ if (tipo === "FLUSH") {
 
     const header = document.createElement("div");
     header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
-    header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
+    header.innerHTML = bloco.nome === "EVENTO"
+      ? `<strong>EVENTO</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`
+      : `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
+
       header.onclick = () => {
         if (!modoEdicao) return;
         bloco.expandido = !bloco.expandido;
