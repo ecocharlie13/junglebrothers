@@ -273,8 +273,10 @@ if (tipo === "FLUSH") {
         });
         renderizarBlocos();
       }
-    });
-  } // 🔚 agora sim fecha renderizarBlocos
+      }); // fecha Sortable.create
+    } // fecha if (modoEdicao)
+
+    } // 🔚 AGORA sim fecha function renderizarBlocos()
     
 // 🔹 Atualiza dados dos inputs para o array
 function atualizarDados() {
