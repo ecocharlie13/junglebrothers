@@ -34,23 +34,16 @@ const diaInfo = document.getElementById("dia-info");
 
 // 🔹 Sincroniza datas ao editar data-inicio
 inputDataInicio.addEventListener("change", () => {
-  let acumuladorDias = 0;
-  blocos.forEach((bloco) => {
-    const dias = bloco.nome === "EVENTO" ? (bloco.periodo || 1) : 7;
-
+  blocos.forEach((bloco, i) => {
     const ini = new Date(inputDataInicio.value);
-    ini.setDate(ini.getDate() + acumuladorDias);
+    ini.setDate(ini.getDate() + i * 7);
     const fim = new Date(ini);
-    fim.setDate(fim.getDate() + dias - 1);
-
+    fim.setDate(fim.getDate() + 6);
     bloco.inicio = ini.toISOString().split("T")[0];
     bloco.fim = fim.toISOString().split("T")[0];
-
-    acumuladorDias += dias;
   });
   renderizarBlocos();
 });
-
 
 // 🔹 Utilitários
 function calcularInicio(ordem) {
@@ -93,12 +86,14 @@ function atualizarColheitaEDiaAtual() {
   }
 }
   
+// 🔹 Renderiza todos os blocos
 function renderizarBlocos() {
-  atualizarDados();
+  atualizarDados(); // garante que os campos editados sejam preservados
   blocosContainer.innerHTML = "";
   const hoje = new Date();
   const contagemPorTipo = {};
 
+  // Mostra ou oculta os botões de adicionar e salvar
   const botoesAdicionar = document.getElementById("botoes-adicionar");
   if (botoesAdicionar) {
     botoesAdicionar.style.display = modoEdicao ? "flex" : "none";
@@ -112,197 +107,236 @@ function renderizarBlocos() {
   blocos.forEach((bloco, i) => {
     const tipo = bloco.nome;
 
-    let semanaNumero;
-    if (tipo === "FLUSH") {
-      const semanasFlorar = blocos.slice(0, i).filter(b => b.nome === "FLORAR").length;
-      semanaNumero = semanasFlorar + 1;
-    } else {
-      contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
-      semanaNumero = contagemPorTipo[tipo];
-    }
+    // ... restante da renderização dos blocos
+    
+
+// se for FLUSH, número total acumulado até aqui
+let semanaNumero;
+if (tipo === "FLUSH") {
+  const semanasFlorar = blocos.slice(0, i).filter(b => b.nome === "FLORAR").length;
+  semanaNumero = semanasFlorar + 1;
+} else {
+  contagemPorTipo[tipo] = (contagemPorTipo[tipo] || 0) + 1;
+  semanaNumero = contagemPorTipo[tipo];
+}
 
     const wrapper = document.createElement("div");
     wrapper.className = `w-full bg-white shadow border rounded overflow-hidden relative mb-4`;
     wrapper.setAttribute("data-index", i);
 
+    let estiloExtra = "";
     const inicio = bloco.inicio ? new Date(bloco.inicio) : null;
     const fim = bloco.fim ? new Date(bloco.fim) : null;
-    let estiloExtra = "";
     if (inicio && fim) {
       if (fim < hoje) estiloExtra = "opacity-40";
       else if (inicio <= hoje && fim >= hoje) estiloExtra = "ring-4 ring-yellow-400";
     }
 
     const header = document.createElement("div");
-    const corpo = document.createElement("div");
-
-    // 🔹 BLOCO EVENTO (com expansão e edição)
-    if (bloco.nome === "EVENTO") {
-      header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
-      header.innerHTML = `<strong>EVENTO</strong><br><span class="text-sm">${formatarData(bloco.inicio) || "Sem data"}</span>`;
-
-    // 🔁 Alternar expansão ao clicar (modo edição)
-    header.onclick = () => {
-      if (!modoEdicao && bloco.nome !== "EVENTO") return;
+    header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
+    header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
+      header.onclick = () => {
+        if (!modoEdicao) return;
+        bloco.expandido = !bloco.expandido;
+        renderizarBlocos();
+      };
+    header.addEventListener("click", () => {
       bloco.expandido = !bloco.expandido;
-      renderizar();
-    };
+      renderizarBlocos();
+    });
 
-    if (bloco.expandido) {
-      corpo.className = "p-4 text-sm bg-gray-50 w-full";
-      corpo.innerHTML = `
-        <label>Título do Evento:
-          <input type="text" id="titulo-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.titulo_evento || ""}" />
-        </label>
-        <label>Data:
-          <input type="date" id="inicio-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.inicio || ""}" />
-        </label>
-        <label>Período (dias):
-          <input type="number" id="periodo-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.periodo || 1}" />
-        </label>
-        <label>Notas:
-          <textarea id="notas-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
-        </label>
-        ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
-      `;
+    const corpo = document.createElement("div");
+    corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
+
+    if (!bloco.expandido) {
+      if (bloco.nome === "TAREFA") {
+        const tarefas = [...(bloco.tarefas || [])].sort((a, b) => (a.data || "") > (b.data || "") ? 1 : -1);
+        let tarefasHtml = "";
+        if (modoEdicao) {
+          tarefasHtml = tarefas.map((tarefa, idx) => `
+            <div class="flex items-center gap-2 mb-1">
+              <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} onchange="atualizarConclusao(this)">
+
+              <input type="text" value="${tarefa.descricao || ""}" placeholder="Descrição"
+                class="flex-1 px-2 py-1 border rounded"
+                oninput="atualizarDescricao(${i}, ${idx}, this.value)"
+              >
+
+              <div class="flex items-center gap-1">
+                <div class="relative">
+                  <button type="button" onclick="document.getElementById('data-${i}-${idx}').showPicker()"
+                    class="p-1 rounded border text-xs bg-white hover:bg-gray-100">
+                    📅
+                  </button>
+                  <input type="date"
+                    id="data-${i}-${idx}"
+                    value="${tarefa.data || ""}"
+                    class="absolute top-0 left-0 opacity-0 w-0 h-0"
+                    tabindex="-1"
+                    aria-hidden="true"
+                    onchange="atualizarDataTarefa(${i}, ${idx}, this.value)"
+                  />
+                </div>
+                <button onclick="removerTarefa(${i}, ${idx})" class="text-red-500 text-sm hover:text-red-700">❌</button>
+              </div>
+            </div>
+          `).join("");
+        } else {
+          tarefasHtml = tarefas.map((tarefa) => `
+            <div class="flex items-center justify-between mb-1 text-sm">
+              <div class="flex-1 truncate ${tarefa.concluida ? 'line-through text-gray-500' : ''}">
+                ${tarefa.descricao || "-"}
+              </div>
+              <div class="text-xs text-gray-600">${tarefa.data || "-"}</div>
+            </div>
+          `).join("");
+        }
+
+        corpo.innerHTML = `
+          <div><strong>${bloco.nome}</strong></div>
+          <div class="mt-2">
+            ${tarefasHtml || "<div class='text-gray-400 italic'>Sem tarefas</div>"}
+            ${modoEdicao ? `<button class="mt-2 px-2 py-1 bg-green-600 text-white rounded" onclick="adicionarTarefa(${i})">+ Tarefa</button>` : ""}
+          </div>
+          <label class="block mt-4">
+            Notas:
+            <textarea id="notas-${i}" class="w-full border rounded px-2 py-1 mt-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
+          </label>
+        `;
+      } else {
+    // segue o bloco não-TAREFA normalmente...
+        const estrategia = bloco.estrategia || "-";
+        const vpd = bloco.receita.vpd || "-";
+        const temp = bloco.receita.temperatura || "-";
+        const ur = bloco.receita.ur || "-";
+        const ppfd = bloco.receita.ppfd || "-";
+        const ecEntrada = bloco.receita.ec_entrada || "-";
+        const receita = bloco.receita.A || bloco.receita.B || bloco.receita.C
+          ? `A:${bloco.receita.A || "-"} / B:${bloco.receita.B || "-"} / C:${bloco.receita.C || "-"}`
+          : "-";
+        const runoff = bloco.receita.runoff || "-";
+        const dryback = bloco.receita.dryback || "-";
+        const notas = bloco.notas || "-";
+
+        corpo.innerHTML = `
+          <div><strong>${bloco.nome}</strong></div>
+          <div>${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</div>
+          <div><strong>Estratégia:</strong> ${estrategia}</div>
+          <div class="grid grid-cols-2 gap-x-4 mt-2 text-sm">
+            <div>VPD: ${vpd}</div>
+            <div>EC Entrada: ${ecEntrada}</div>
+            <div>Temp: ${temp}</div>
+            <div>Receita: ${receita}</div>
+            <div>UR: ${ur}</div>
+            <div>Runoff: ${runoff}</div>
+            <div>PPFD: ${ppfd}</div>
+            <div>Dryback: ${dryback}</div>
+          </div>
+          <div class="mt-2"><strong>Notas:</strong> ${notas}</div>
+        `;
+      }
     } else {
-    corpo.className = "p-4 text-sm";
-    corpo.innerHTML = `
-      <div><strong>${bloco.titulo_evento || "EVENTO"}</strong></div>
-      <div>🗓️ ${formatarData(bloco.inicio) || "Sem data"}</div>
-      <div>📆 Duração: ${bloco.periodo || 1} dia(s)</div>
-      <div class="mt-2">${bloco.notas || ""}</div>
-    `;
-  }
-}
-
-
-    // 🔹 BLOCO PADRÃO (expandido ou contraído)
-    else {
-      header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
-      header.innerHTML = `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
-      corpo.className = "p-4 text-sm bg-gray-50 w-full";
-
+      // ... (segue o bloco expandido normalmente)
       corpo.innerHTML = `
-      <label>Etapa:
-        <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-          ${["", "PROPAGAR", "VEGETAR", "INÍCIO DE FLORA", "MEIO DE FLORA", "FIM DE FLORA", "FLUSH"]
-            .map(opt => `<option value="${opt}" ${opt === bloco.etapa ? "selected" : ""}>${opt || "Selecione"}</option>`)
-            .join("")}
-        </select>
-      </label>
-      <label>Fase:
-        <select id="fase-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-          ${["", "PROPAGAR", "VEGETAR", "ESTIRAMENTO", "VOLUME", "ACABAMENTO"]
-            .map(opt => `<option value="${opt}" ${opt === bloco.fase ? "selected" : ""}>${opt || "Selecione"}</option>`)
-            .join("")}
-        </select>
-      </label>
-      <label>Estratégia:
-        <select id="estrategia-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
-          ${["", "PROPAGAR", "VEGETATIVO", "GENERATIVO", "MISTO (VEG/GEN)"]
-            .map(opt => `<option value="${opt}" ${opt === bloco.estrategia ? "selected" : ""}>${opt || "Selecione"}</option>`)
-            .join("")}
-        </select>
-      </label>
-      <label>Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.nutrientes || ""}" /></label>
-      <label>Receita (g/L): <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}" /></label>
-      <label>EC Entrada: <input type="text" id="ec-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_entrada || ""}" /></label>
-      <label>EC Saída: <input type="text" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_saida || ""}" /></label>
-      <label>Runoff (%): <input type="text" id="runoff-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.runoff || ""}" /></label>
-      <label>Dryback (%): <input type="text" id="dryback-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.dryback || ""}" /></label>
-      <label>Temperatura: <input type="text" id="temp-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.temperatura || ""}" /></label>
-      <label>UR: <input type="text" id="ur-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ur || ""}" /></label>
-      <label>VPD: <input type="text" id="vpd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.vpd || ""}" /></label>
-      <label>PPFD: <input type="text" id="ppfd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ppfd || ""}" /></label>
-      <label>Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea></label>
-      ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
-      `;
+  <label>Etapa:
+    <select id="etapa-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
+      ${["", "PROPAGAR", "VEGETAR", "INÍCIO DE FLORA", "MEIO DE FLORA", "FIM DE FLORA", "FLUSH"]
+        .map(opt => `<option value="${opt}" ${opt === bloco.etapa ? "selected" : ""}>${opt || "Selecione"}</option>`)
+        .join("")}
+    </select>
+  </label>
+  <label>Fase:
+    <select id="fase-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
+      ${["", "PROPAGAR", "VEGETAR", "ESTIRAMENTO", "VOLUME", "ACABAMENTO"]
+        .map(opt => `<option value="${opt}" ${opt === bloco.fase ? "selected" : ""}>${opt || "Selecione"}</option>`)
+        .join("")}
+    </select>
+  </label>
+  <label>Estratégia:
+    <select id="estrategia-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>
+      ${["", "PROPAGAR", "VEGETATIVO", "GENERATIVO", "MISTO (VEG/GEN)"]
+        .map(opt => `<option value="${opt}" ${opt === bloco.estrategia ? "selected" : ""}>${opt || "Selecione"}</option>`)
+        .join("")}
+    </select>
+  </label>
+  <label>Nutrientes: <input type="text" id="nutrientes-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.nutrientes || ""}" /></label>
+  <label>Receita (g/L): <input type="text" id="receita-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="A: ${bloco.receita.A || ""} / B: ${bloco.receita.B || ""} / C: ${bloco.receita.C || ""}" /></label>
+  <label>EC Entrada: <input type="text" id="ec-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_entrada || ""}" /></label>
+  <label>EC Saída: <input type="text" id="ec_saida-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ec_saida || ""}" /></label>
+  <label>Runoff (%): <input type="text" id="runoff-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.runoff || ""}" /></label>
+  <label>Dryback (%): <input type="text" id="dryback-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.dryback || ""}" /></label>
+  <label>Temperatura: <input type="text" id="temp-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.temperatura || ""}" /></label>
+  <label>UR: <input type="text" id="ur-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ur || ""}" /></label>
+  <label>VPD: <input type="text" id="vpd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.vpd || ""}" /></label>
+  <label>PPFD: <input type="text" id="ppfd-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.receita.ppfd || ""}" /></label>
+  <label>Notas: <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea></label>
+  ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
+`;
     }
-
 
     wrapper.appendChild(header);
     wrapper.appendChild(corpo);
     blocosContainer.appendChild(wrapper);
   });
 
-  atualizarColheitaEDiaAtual();
+    atualizarColheitaEDiaAtual();
 
-  if (sortableInstance) {
-    sortableInstance.destroy();
-    sortableInstance = null;
-  }
-
-  if (modoEdicao) {
-    sortableInstance = Sortable.create(blocosContainer, {
-      animation: 150,
-      onEnd: () => {
-        const novos = [];
-        const divs = blocosContainer.querySelectorAll("[data-index]");
-        divs.forEach(div => {
-          const index = parseInt(div.getAttribute("data-index"));
-          novos.push(blocos[index]);
-        });
-        blocos = novos;
-
-        let acumuladorDias = 0;
-        blocos.forEach((bloco) => {
-          const dias = bloco.nome === "EVENTO" ? (bloco.periodo || 1) : 7;
-
-          const ini = new Date(inputDataInicio.value);
-          ini.setDate(ini.getDate() + acumuladorDias);
-          const fim = new Date(ini);
-          fim.setDate(fim.getDate() + dias - 1);
-
-          bloco.inicio = ini.toISOString().split("T")[0];
-          bloco.fim = fim.toISOString().split("T")[0];
-
-          acumuladorDias += dias;
-        });
-
-
-        renderizarBlocos();
-      }
-    });
-  }
+  // Remove o Sortable anterior se já existir
+if (sortableInstance) {
+  sortableInstance.destroy();
+  sortableInstance = null;
 }
 
+if (modoEdicao) {
+  sortableInstance = Sortable.create(blocosContainer, {
+    animation: 150,
+    onEnd: () => {
+      const novos = [];
+      const divs = blocosContainer.querySelectorAll("[data-index]");
+      divs.forEach(div => {
+        const index = parseInt(div.getAttribute("data-index"));
+        novos.push(blocos[index]);
+      });
+      blocos = novos;
+      // Recalcula datas após reordenar
+      blocos.forEach((bloco, i) => {
+        const ini = new Date(inputDataInicio.value);
+        ini.setDate(ini.getDate() + i * 7);
+        const fim = new Date(ini);
+        fim.setDate(fim.getDate() + 6);
+        bloco.inicio = ini.toISOString().split("T")[0];
+        bloco.fim = fim.toISOString().split("T")[0];
+      });
+      renderizarBlocos();
+    }
+  });
+}
+}
 
 // 🔹 Atualiza dados dos inputs para o array
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
     const get = id => document.getElementById(`${id}-${i}`)?.value;
+    bloco.etapa = get("etapa") || bloco.etapa;
+    bloco.fase = get("fase") || bloco.fase;
+    bloco.estrategia = get("estrategia") || bloco.estrategia;
+    bloco.receita.nutrientes = get("nutrientes") || bloco.receita.nutrientes;
 
-    if (bloco.nome === "EVENTO") {
-      bloco.titulo = get("titulo-evento") || bloco.titulo;
-      bloco.inicio = get("data-evento") || bloco.inicio;
-      const periodo = parseInt(get("periodo-evento"));
-      bloco.periodo = !isNaN(periodo) && periodo > 0 ? periodo : bloco.periodo || 1;
-      bloco.notas = document.getElementById(`notas-evento-${i}`)?.value || bloco.notas;
-    } else {
-      bloco.etapa = get("etapa") || bloco.etapa;
-      bloco.fase = get("fase") || bloco.fase;
-      bloco.estrategia = get("estrategia") || bloco.estrategia;
-      bloco.receita.nutrientes = get("nutrientes") || bloco.receita.nutrientes;
+    const r = get("receita") || "";
+    const matches = r.match(/A:\s*([\d.,]+)\s*\/\s*B:\s*([\d.,]+)\s*\/\s*C:\s*([\d.,]+)/);
+    if (matches) [bloco.receita.A, bloco.receita.B, bloco.receita.C] = [matches[1], matches[2], matches[3]];
 
-      const r = get("receita") || "";
-      const matches = r.match(/A:\s*([\d.,]+)\s*\/\s*B:\s*([\d.,]+)\s*\/\s*C:\s*([\d.,]+)/);
-      if (matches) [bloco.receita.A, bloco.receita.B, bloco.receita.C] = [matches[1], matches[2], matches[3]];
-
-      bloco.receita.ec_entrada = get("ec") || bloco.receita.ec_entrada;
-      bloco.receita.ec_saida = get("ec_saida") || bloco.receita.ec_saida;
-      bloco.receita.runoff = get("runoff") || bloco.receita.runoff;
-      bloco.receita.dryback = get("dryback") || bloco.receita.dryback;
-      bloco.receita.temperatura = get("temp") || bloco.receita.temperatura;
-      bloco.receita.ur = get("ur") || bloco.receita.ur;
-      bloco.receita.vpd = get("vpd") || bloco.receita.vpd;
-      bloco.receita.ppfd = get("ppfd") || bloco.receita.ppfd;
-      bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
-    }
+    bloco.receita.ec_entrada = get("ec") || bloco.receita.ec_entrada;
+    bloco.receita.ec_saida = get("ec_saida") || bloco.receita.ec_saida;
+    bloco.receita.runoff = get("runoff") || bloco.receita.runoff;
+    bloco.receita.dryback = get("dryback") || bloco.receita.dryback;
+    bloco.receita.temperatura = get("temp") || bloco.receita.temperatura;
+    bloco.receita.ur = get("ur") || bloco.receita.ur;
+    bloco.receita.vpd = get("vpd") || bloco.receita.vpd;
+    bloco.receita.ppfd = get("ppfd") || bloco.receita.ppfd;
+    bloco.notas = document.getElementById(`notas-${i}`)?.value || bloco.notas;
   });
 }
-
-
 
 // 🔹 Adicionar novo bloco
 window.adicionarBloco = function(tipo) {
@@ -310,8 +344,7 @@ window.adicionarBloco = function(tipo) {
   const ordem = blocos.length;
   const inicio = calcularInicio(ordem);
   const fim = new Date(inicio); fim.setDate(fim.getDate() + 6);
-
-  const blocoBase = {
+  blocos.push({
     nome: tipo,
     etapa: "",
     fase: "",
@@ -324,21 +357,9 @@ window.adicionarBloco = function(tipo) {
     tarefas: [],
     cor: cores[tipo],
     expandido: false,
-  };
-
-  // ajuste específico para EVENTO
-  if (tipo === "EVENTO") {
-    blocoBase.periodo = 1;
-    blocoBase.titulo_evento = "";
-    blocoBase.inicio = ""; // será ajustado dinamicamente
-    blocoBase.fim = "";
-  }
-
-
-  blocos.push(blocoBase);
+  });
   renderizarBlocos();
 };
-
 
 // 🔹 Salvar cultivo no Firestore
 async function salvarCultivo() {
