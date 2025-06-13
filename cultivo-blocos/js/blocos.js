@@ -139,34 +139,43 @@ function renderizarBlocos() {
     // 🔹 BLOCO EVENTO (com expansão e edição)
     if (bloco.nome === "EVENTO") {
       header.className = `${bloco.cor} text-white px-4 py-2 cursor-pointer ${estiloExtra}`;
-      header.innerHTML = `<strong>EVENTO</strong><br><span class="text-sm">${bloco.inicio || "Sem data definida"}</span>`;
+      header.innerHTML = `<strong>EVENTO</strong><br><span class="text-sm">${formatarData(bloco.inicio) || "Sem data"}</span>`;
 
-      if (bloco.expandido) {
-        corpo.className = "p-4 text-sm bg-gray-50 w-full";
-        corpo.innerHTML = `
-          <label>Título do Evento:
-            <input type="text" id="titulo-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.titulo || ""}" />
-          </label>
-          <label>Data:
-            <input type="date" id="inicio-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.inicio || ""}" />
-          </label>
-          <label>Duração (dias):
-            <input type="number" id="periodo-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.periodo || 1}" />
-          </label>
-          <label>Notas:
-            <textarea id="notas-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
-          </label>
-          ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
-        `;
-      } else {
-        corpo.className = "p-4 text-sm";
-        corpo.innerHTML = `
-          <div><strong>${bloco.titulo || "EVENTO"}</strong></div>
-          <div>🗓️ ${bloco.inicio || "Sem data"}</div>
-          <div class="mt-2">${bloco.notas || ""}</div>
-        `;
-      }
-    }
+    // 🔁 Alternar expansão ao clicar (modo edição)
+    header.onclick = () => {
+      if (!modoEdicao) return;
+      bloco.expandido = !bloco.expandido;
+      renderizar();
+    };
+
+    if (bloco.expandido) {
+      corpo.className = "p-4 text-sm bg-gray-50 w-full";
+      corpo.innerHTML = `
+        <label>Título do Evento:
+          <input type="text" id="titulo-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.titulo_evento || ""}" />
+        </label>
+        <label>Data:
+          <input type="date" id="inicio-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.inicio || ""}" />
+        </label>
+        <label>Período (dias):
+          <input type="number" id="periodo-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"} value="${bloco.periodo || 1}" />
+        </label>
+        <label>Notas:
+          <textarea id="notas-evento-${i}" class="w-full border rounded px-2 py-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
+        </label>
+        ${modoEdicao ? `<button class="absolute top-1 right-1 text-red-600" onclick="removerBloco(${i})">❌</button>` : ""}
+      `;
+    } else {
+    corpo.className = "p-4 text-sm";
+    corpo.innerHTML = `
+      <div><strong>${bloco.titulo_evento || "EVENTO"}</strong></div>
+      <div>🗓️ ${formatarData(bloco.inicio) || "Sem data"}</div>
+      <div>📆 Duração: ${bloco.periodo || 1} dia(s)</div>
+      <div class="mt-2">${bloco.notas || ""}</div>
+    `;
+  }
+}
+
 
     // 🔹 BLOCO PADRÃO (expandido ou contraído)
     else {
