@@ -153,59 +153,14 @@ if (tipo === "FLUSH") {
 
     if (!bloco.expandido) {
       if (bloco.nome === "EVENTO") {
-        const tarefas = [...(bloco.tarefas || [])].sort((a, b) => (a.data || "") > (b.data || "") ? 1 : -1);
-        let tarefasHtml = "";
-        if (modoEdicao) {
-          tarefasHtml = tarefas.map((tarefa, idx) => `
-            <div class="flex items-center gap-2 mb-1">
-              <input type="checkbox" data-i="${i}" data-idx="${idx}" ${tarefa.concluida ? "checked" : ""} onchange="atualizarConclusao(this)">
-
-              <input type="text" value="${tarefa.descricao || ""}" placeholder="Descrição"
-                class="flex-1 px-2 py-1 border rounded"
-                oninput="atualizarDescricao(${i}, ${idx}, this.value)"
-              >
-
-              <div class="flex items-center gap-1">
-                <div class="relative">
-                  <button type="button" onclick="document.getElementById('data-${i}-${idx}').showPicker()"
-                    class="p-1 rounded border text-xs bg-white hover:bg-gray-100">
-                    📅
-                  </button>
-                  <input type="date"
-                    id="data-${i}-${idx}"
-                    value="${tarefa.data || ""}"
-                    class="absolute top-0 left-0 opacity-0 w-0 h-0"
-                    tabindex="-1"
-                    aria-hidden="true"
-                    onchange="atualizarDataTarefa(${i}, ${idx}, this.value)"
-                  />
-                </div>
-                <button onclick="removerTarefa(${i}, ${idx})" class="text-red-500 text-sm hover:text-red-700">❌</button>
-              </div>
-            </div>
-          `).join("");
-        } else {
-          tarefasHtml = tarefas.map((tarefa) => `
-            <div class="flex items-center justify-between mb-1 text-sm">
-              <div class="flex-1 truncate ${tarefa.concluida ? 'line-through text-gray-500' : ''}">
-                ${tarefa.descricao || "-"}
-              </div>
-              <div class="text-xs text-gray-600">${tarefa.data || "-"}</div>
-            </div>
-          `).join("");
-        }
-
         corpo.innerHTML = `
           <div><strong>${bloco.nome}</strong></div>
-          <div class="mt-2">
-            ${tarefasHtml || "<div class='text-gray-400 italic'>Sem tarefas</div>"}
-            ${modoEdicao ? `<button class="mt-2 px-2 py-1 bg-green-600 text-white rounded" onclick="adicionarTarefa(${i})">+ Tarefa</button>` : ""}
-          </div>
           <label class="block mt-4">
             Notas:
             <textarea id="notas-${i}" class="w-full border rounded px-2 py-1 mt-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
           </label>
         `;
+
       } else {
     // segue o bloco não-EVENTO normalmente...
         const estrategia = bloco.estrategia || "-";
