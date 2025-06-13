@@ -273,8 +273,7 @@ if (modoEdicao) {
     }
   });
 }
-}
-
+    
 // 🔹 Atualiza dados dos inputs para o array
 function atualizarDados() {
   blocos.forEach((bloco, i) => {
