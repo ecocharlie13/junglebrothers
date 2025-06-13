@@ -269,10 +269,11 @@ if (modoEdicao) {
         bloco.inicio = ini.toISOString().split("T")[0];
         bloco.fim = fim.toISOString().split("T")[0];
       });
-      renderizarBlocos();
-    }
-  });
-}
+          renderizarBlocos();
+  }
+}); // fecha Sortable.create
+}   // 🔚 agora sim fecha renderizarBlocos
+
     
 // 🔹 Atualiza dados dos inputs para o array
 function atualizarDados() {
