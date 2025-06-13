@@ -21,7 +21,7 @@ const cores = {
   VEGETAR: "bg-green-600",
   FLORAR: "bg-orange-500",
   FLUSH: "bg-blue-500",
-  TAREFA: "bg-red-500",
+  EVENTO: "bg-red-500",
 };
 
 // 🔹 Referências DOM
@@ -61,7 +61,7 @@ function formatarData(dataStr) {
 
 function atualizarColheitaEDiaAtual() {
   const hoje = new Date();
-  const tarefa = blocos.find(b => b.nome === "TAREFA");
+  const tarefa = blocos.find(b => b.nome === "EVENTO");
   colheitaInfo.textContent = tarefa ? `🌾 Colheita em ${formatarData(tarefa.inicio)}` : "";
 
   const ativo = blocos.find(b => {
@@ -149,7 +149,7 @@ if (tipo === "FLUSH") {
     corpo.className = bloco.expandido ? "p-4 text-sm bg-gray-50 w-full" : "p-4 text-sm";
 
     if (!bloco.expandido) {
-      if (bloco.nome === "TAREFA") {
+      if (bloco.nome === "EVENTO") {
         const tarefas = [...(bloco.tarefas || [])].sort((a, b) => (a.data || "") > (b.data || "") ? 1 : -1);
         let tarefasHtml = "";
         if (modoEdicao) {
@@ -204,7 +204,7 @@ if (tipo === "FLUSH") {
           </label>
         `;
       } else {
-    // segue o bloco não-TAREFA normalmente...
+    // segue o bloco não-EVENTO normalmente...
         const estrategia = bloco.estrategia || "-";
         const vpd = bloco.receita.vpd || "-";
         const temp = bloco.receita.temperatura || "-";
@@ -429,43 +429,4 @@ window.removerBloco = function(index) {
   blocos.splice(index, 1);
   renderizarBlocos();
 };
-    
-// 🔹 Adicionar nova tarefa ao bloco TAREFA
-window.adicionarTarefa = function(index) {
-  if (!blocos[index].tarefas) {
-    blocos[index].tarefas = [];
-  }
-  blocos[index].tarefas.push({
-    descricao: "",
-    data: "",
-    concluida: false
-  });
-  renderizarBlocos();
-};
-// 🔹 Atualizar status de conclusão da tarefa
-window.atualizarConclusao = function(checkbox) {
-  const i = parseInt(checkbox.dataset.i);
-  const idx = parseInt(checkbox.dataset.idx);
-  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
-    blocos[i].tarefas[idx].concluida = checkbox.checked;
-  }
-};
-// 🔹 Remover tarefa de um bloco TAREFA
-window.removerTarefa = function(i, idx) {
-  if (blocos[i]?.tarefas) {
-    blocos[i].tarefas.splice(idx, 1); // remove a tarefa da lista
-    renderizarBlocos(); // re-renderiza os blocos para refletir a mudança
-  }
-};
-// 🔹 Atualizar descrição da tarefa
-window.atualizarDescricao = function(i, idx, valor) {
-  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
-    blocos[i].tarefas[idx].descricao = valor;
-  }
-};
-// 🔹 Atualizar data da tarefa
-window.atualizarDataTarefa = function(i, idx, valor) {
-  if (!isNaN(i) && !isNaN(idx) && blocos[i]?.tarefas?.[idx]) {
-    blocos[i].tarefas[idx].data = valor;
-  }
-};
+
