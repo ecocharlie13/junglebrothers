@@ -390,3 +390,4 @@ window.removerBloco = function(index) {
   blocos.splice(index, 1);
   renderizarBlocos();
 };
+}
