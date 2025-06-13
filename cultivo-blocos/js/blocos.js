@@ -1,4 +1,4 @@
-  // 🔹 Imports
+// 🔹 Imports
 import { db } from "./firebase-init.js";
 import {
   collection,
@@ -138,11 +138,11 @@ if (tipo === "FLUSH") {
       ? `<strong>EVENTO</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`
       : `<strong>Semana ${semanaNumero} - ${tipo}</strong><br><span class="text-sm">${formatarData(bloco.inicio)} → ${formatarData(bloco.fim)}</span>`;
 
-      header.onclick = () => {
-        if (!modoEdicao) return;
-        bloco.expandido = !bloco.expandido;
-        renderizarBlocos();
-      };
+    header.onclick = () => {
+      if (!modoEdicao) return;
+      bloco.expandido = !bloco.expandido;
+      renderizarBlocos();
+    };
     header.addEventListener("click", () => {
       bloco.expandido = !bloco.expandido;
       renderizarBlocos();
@@ -160,9 +160,7 @@ if (tipo === "FLUSH") {
             <textarea id="notas-${i}" class="w-full border rounded px-2 py-1 mt-1" ${modoEdicao ? "" : "disabled"}>${bloco.notas || ""}</textarea>
           </label>
         `;
-
       } else {
-    // segue o bloco não-EVENTO normalmente...
         const estrategia = bloco.estrategia || "-";
         const vpd = bloco.receita.vpd || "-";
         const temp = bloco.receita.temperatura || "-";
@@ -242,37 +240,41 @@ if (tipo === "FLUSH") {
       }
     }
 
+    wrapper.appendChild(header);
+    wrapper.appendChild(corpo);
+    blocosContainer.appendChild(wrapper);
+  });
 
   // Remove o Sortable anterior se já existir
-if (sortableInstance) {
-  sortableInstance.destroy();
-  sortableInstance = null;
-}
+  if (sortableInstance) {
+    sortableInstance.destroy();
+    sortableInstance = null;
+  }
 
-if (modoEdicao) {
-  sortableInstance = Sortable.create(blocosContainer, {
-    animation: 150,
-    onEnd: () => {
-      const novos = [];
-      const divs = blocosContainer.querySelectorAll("[data-index]");
-      divs.forEach(div => {
-        const index = parseInt(div.getAttribute("data-index"));
-        novos.push(blocos[index]);
-      });
-      blocos = novos;
-      // Recalcula datas após reordenar
-      blocos.forEach((bloco, i) => {
-        const ini = new Date(inputDataInicio.value);
-        ini.setDate(ini.getDate() + i * 7);
-        const fim = new Date(ini);
-        fim.setDate(fim.getDate() + 6);
-        bloco.inicio = ini.toISOString().split("T")[0];
-        bloco.fim = fim.toISOString().split("T")[0];
-      });
-      renderizarBlocos();
-    }
-  });
-} // 🔚 agora sim fecha renderizarBlocos
+  if (modoEdicao) {
+    sortableInstance = Sortable.create(blocosContainer, {
+      animation: 150,
+      onEnd: () => {
+        const novos = [];
+        const divs = blocosContainer.querySelectorAll("[data-index]");
+        divs.forEach(div => {
+          const index = parseInt(div.getAttribute("data-index"));
+          novos.push(blocos[index]);
+        });
+        blocos = novos;
+        // Recalcula datas após reordenar
+        blocos.forEach((bloco, i) => {
+          const ini = new Date(inputDataInicio.value);
+          ini.setDate(ini.getDate() + i * 7);
+          const fim = new Date(ini);
+          fim.setDate(fim.getDate() + 6);
+          bloco.inicio = ini.toISOString().split("T")[0];
+          bloco.fim = fim.toISOString().split("T")[0];
+        });
+        renderizarBlocos();
+      }
+    });
+  } // 🔚 agora sim fecha renderizarBlocos
     
 // 🔹 Atualiza dados dos inputs para o array
 function atualizarDados() {
