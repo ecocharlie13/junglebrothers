@@ -143,7 +143,7 @@ function renderizarBlocos() {
 
     // 🔁 Alternar expansão ao clicar (modo edição)
     header.onclick = () => {
-      if (!modoEdicao) return;
+      if (!modoEdicao && bloco.nome !== "EVENTO") return;
       bloco.expandido = !bloco.expandido;
       renderizar();
     };
