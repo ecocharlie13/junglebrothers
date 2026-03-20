@@ -1,1 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Grow Dashboard</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .card {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      width: 300px;
+    }
+    .value {
+      font-size: 22px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
 
+<h2>Dashboard</h2>
+
+<button onclick="loadEntities()">1. Carregar sensores</button>
+<div id="selectors"></div>
+
+<button onclick="saveSelection()">2. Salvar seleção</button>
+<div id="status"></div>
+
+<h3>Dados</h3>
+<div id="current"></div>
+
+<script>
+const API = "http://3.229.182.147:8000"
+const USER = "ha3"  // ALTERAR PARA ha2 / ha3 NOS OUTROS
+
+let sensors = []
+
+async function loadEntities() {
+  const res = await fetch(API + "/entities")
+  const data = await res.json()
+
+  sensors = [
+    ...data.temperature.available,
+    ...data.humidity.available
+  ]
+
+  let html = ""
+
+  sensors.forEach(s => {
+    html += `
+      <label>
+        <input type="checkbox" value="${s.id}">
+        ${s.name} (${s.unit})
+      </label><br>
+    `
+  })
+
+  document.getElementById("selectors").innerHTML = html
+}
+
+async function saveSelection() {
+  const checked = Array.from(document.querySelectorAll("input[type=checkbox]:checked"))
+    .map(el => el.value)
+
+  await fetch(API + "/select_devices", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      user_id: USER,
+      devices: checked
+    })
+  })
+
+  document.getElementById("status").innerText = "Salvo"
+}
+
+async function loadCurrent() {
+  const res = await fetch(API + `/current?user_id=${USER}`)
+  const data = await res.json()
+
+  let html = ""
+
+  for (const key in data) {
+    const item = data[key]
+    html += `
+      <div class="card">
+        <div>${key}</div>
+        <div class="value">${item.value} ${item.unit}</div>
+      </div>
+    `
+  }
+
+  document.getElementById("current").innerHTML = html
+}
+
+loadCurrent()
+setInterval(loadCurrent, 5000)
+</script>
+
+</body>
+</html>
