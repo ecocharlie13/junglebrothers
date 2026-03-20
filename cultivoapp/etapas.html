@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Etapas - CultivoApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+<style>
+  th.resizable {
+    position: relative;
+  }
+
+  th.resizable .resizer {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 6px;
+    cursor: col-resize;
+    user-select: none;
+    height: 100%;
+    background-color: transparent;
+  }
+
+  /* Opcional: destaca o resizer ao passar o mouse */
+  th.resizable .resizer:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+</style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div id="header-placeholder"></div>
+
+  <div class="p-6">
+    <h1 class="text-2xl font-bold text-center mb-4">Cadastro de Etapas Padrão</h1>
+    <button id="add-row" class="mb-4 px-4 py-2 bg-green-600 text-white rounded">+ Nova Etapa</button>
+    <button id="salvar-tudo" class="mb-4 ml-2 px-4 py-2 bg-blue-600 text-white rounded">💾 Salvar Tudo</button>
+    <button id="excluir-selecionados" class="mb-4 ml-2 px-4 py-2 bg-red-600 text-white rounded">🗑️ Excluir Selecionados</button>
+    <table class="w-full text-sm table-auto border border-gray-300">
+      <thead class="bg-gray-200">
+        <tr id="header-row"></tr>
+      </thead>
+      <tbody id="tabela-etapas" class="bg-white"></tbody>
+    </table>
+  </div>
+
+  <script type="module" src="/cultivoapp/js/etapas.js"></script>
+</body>
+</html>

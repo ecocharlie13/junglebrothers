@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - CultivoApp</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+  <div class="bg-white p-10 rounded-2xl shadow-xl max-w-md w-full text-center">
+    <h1 class="text-2xl font-bold mb-4">CultivoApp</h1>
+    <p class="mb-6 text-gray-600">Acesse com sua conta Google</p>
+    <button id="login-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl w-full">
+      Entrar com Google
+    </button>
+    <p id="error-msg" class="mt-4 text-red-600 hidden"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCo7MOVfaalrDg0o0GpYJ4-YNL4OCrjfXE",
+      authDomain: "jungle-brothers-93e80.firebaseapp.com",
+      projectId: "jungle-brothers-93e80",
+      storageBucket: "jungle-brothers-93e80.appspot.com",
+      messagingSenderId: "221354970870",
+      appId: "1:221354970870:web:a7f68c75480dc094bbad67"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    document.getElementById("login-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("error-msg");
+      msg.classList.add("hidden");
+      msg.textContent = "";
+
+      try {
+        await signInWithPopup(auth, provider);
+        window.location.href = "/cultivoapp/home.html";
+      } catch (error) {
+        console.error("Erro ao autenticar:", error);
+        msg.textContent = "Erro ao autenticar. Tente novamente.";
+        msg.classList.remove("hidden");
+      }
+    });
+  </script>
+</body>
+</html>
